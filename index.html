@@ -1,8 +1,185 @@
 <!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mythical Helper</title>
-<style>body{font-family:system-ui;margin:10vh auto;max-width:640px;padding:0 16px;text-align:center}</style>
-<h1>✨ Mythical Helper</h1>
-<p>Coming soon... official helper certificates.</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Enchanted Helpers Guild</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <div class="brand">
+          <span class="logo">✨</span>
+          <span class="name" data-i18n="brand_name">Enchanted Helpers Guild</span>
+        </div>
+        <nav class="nav">
+          <a href="#/" data-i18n="nav_home" class="active">Home</a>
+          <a href="#/signup" data-i18n="nav_join">Join</a>
+          <a href="#/verify" data-i18n="nav_verify">Verify</a>
+          <select id="lang" style="margin-left:12px;">
+            <option value="en">EN</option>
+            <option value="zh">中文</option>
+            <option value="es">ES</option>
+          </select>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container" id="app" style="padding: 24px 0 0;">
+      <section class="hero" data-view="home">
+        <h1 data-i18n="hero_title">Official Helper Certificates for Young Dreamers</h1>
+        <p class="lead" data-i18n="hero_lead">Become a certified Helper from the North Pole, the Tooth Fairy Circle, or the Spring Bunny Caravan — keep the wonder alive with a scannable certificate.</p>
+        <div class="actions">
+          <a class="btn primary" href="#/signup" data-i18n="cta_start">Begin</a>
+          <a class="btn" href="#/verify" data-i18n="cta_verify">Verify</a>
+        </div>
+        <section class="features mt-6">
+          <div class="feature">
+            <h3 data-i18n="f_secure">Two-Step Safeguard</h3>
+            <p data-i18n="f_secure_desc">Email and SMS codes confirm you’re a grown‑up Helper.</p>
+          </div>
+          <div class="feature">
+            <h3 data-i18n="f_official">Official Certificate</h3>
+            <p data-i18n="f_official_desc">Unique serial + QR code for on‑site verification.</p>
+          </div>
+          <div class="feature">
+            <h3 data-i18n="f_privacy">Wonder, Not Data</h3>
+            <p data-i18n="f_privacy_desc">We collect only what’s needed for the magic.</p>
+          </div>
+        </section>
+      </section>
+
+      <section data-view="signup" class="hidden" style="max-width:720px; margin: 0 auto;">
+        <h2 data-i18n="signup_title">Join the Guild · Email</h2>
+        <div class="panel">
+          <form class="form" id="email-form">
+            <div class="field">
+              <label for="email" data-i18n="label_email">Email</label>
+              <input id="email" name="email" type="email" placeholder="you@example.com" required />
+            </div>
+            <div class="field">
+              <label data-i18n="label_human">Humanity Check</label>
+              <div id="cf-turnstile" class="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
+              <div class="help" data-i18n="label_human_help">Protected by Cloudflare Turnstile.</div>
+            </div>
+            <button class="btn primary" type="submit" data-i18n="btn_email_send">Send Code</button>
+          </form>
+
+          <form class="form hidden" id="email-verify-form">
+            <div class="field">
+              <label for="email-code" data-i18n="label_email_code">Verification Code</label>
+              <input id="email-code" name="code" inputmode="numeric" pattern="[0-9]{6}" placeholder="6 digits" required />
+              <div class="help" data-i18n="help_email_sent">We’ve sent a code to your email.</div>
+            </div>
+            <div class="row">
+              <button class="btn" type="button" id="back-edit-email" data-i18n="btn_back">Back</button>
+              <button class="btn primary" type="submit" data-i18n="btn_continue">Verify & Continue</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section data-view="phone" class="hidden" style="max-width:720px; margin: 0 auto;">
+        <h2 data-i18n="phone_title">Join the Guild · Phone</h2>
+        <div class="panel">
+          <form class="form" id="phone-form">
+            <div class="field">
+              <label for="phone" data-i18n="label_phone">Phone (with country code)</label>
+              <input id="phone" name="phone" type="tel" placeholder="+1 555 123 4567" required />
+              <div class="help" data-i18n="label_phone_help">International numbers (via SNS).
+              </div>
+            </div>
+            <button class="btn primary" type="submit" data-i18n="btn_sms_send">Send SMS Code</button>
+          </form>
+
+          <form class="form hidden" id="phone-verify-form">
+            <div class="field">
+              <label for="sms-code" data-i18n="label_sms_code">SMS Code</label>
+              <input id="sms-code" name="code" inputmode="numeric" pattern="[0-9]{6}" placeholder="6 digits" required />
+            </div>
+            <div class="row">
+              <button class="btn" type="button" id="back-edit-phone" data-i18n="btn_back">Back</button>
+              <button class="btn primary" type="submit" data-i18n="btn_continue">Verify & Continue</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section data-view="generate" class="hidden" style="max-width:720px; margin: 0 auto;">
+        <h2 data-i18n="gen_title">Create Certificate</h2>
+        <div class="panel">
+          <form class="form" id="gen-form">
+            <div class="field">
+              <label for="role" data-i18n="label_role">Choose a Role</label>
+              <select id="role" name="role" required>
+                <option value="" data-i18n="opt_select">Please select</option>
+                <option value="north_pole" data-i18n="opt_santa">North Pole Helper</option>
+                <option value="tooth_fairy" data-i18n="opt_tooth">Tooth Fairy Circle</option>
+                <option value="spring_bunny" data-i18n="opt_bunny">Spring Bunny Caravan</option>
+                <option value="custom" data-i18n="opt_custom">Custom</option>
+              </select>
+            </div>
+            <div class="field hidden" id="custom-role-field">
+              <label for="customRole" data-i18n="label_custom_role">Custom Role Name</label>
+              <input id="customRole" name="customRole" placeholder="e.g., Starry Night Guardian" />
+            </div>
+            <div class="field">
+              <label for="youngName" data-i18n="label_young">Young Dreamer name (optional)</label>
+              <input id="youngName" name="youngName" placeholder="e.g., Luna" />
+              <div class="help" data-i18n="label_young_help">Shown on the certificate only.</div>
+            </div>
+            <div class="field">
+              <label for="displayPolicy" data-i18n="label_policy">Display policy</label>
+              <select id="displayPolicy" name="displayPolicy" required>
+                <option value="visible" data-i18n="policy_visible">Show on certificate</option>
+                <option value="hidden" data-i18n="policy_hidden">Hide from certificate</option>
+              </select>
+            </div>
+            <button class="btn primary" type="submit" data-i18n="btn_generate">Generate PDF</button>
+          </form>
+
+          <div id="gen-result" class="hidden">
+            <div class="alert success" data-i18n="gen_success">Your certificate is ready. A copy is sent via email.</div>
+            <div class="list">
+              <div><strong data-i18n="serial">Serial:</strong> <span id="res-serial"></span></div>
+              <div><strong data-i18n="download">Download:</strong> <a id="res-download" target="_blank" rel="noopener">PDF</a></div>
+              <div><strong data-i18n="verify_link">Verify link:</strong> <a id="res-verify" target="_blank" rel="noopener"></a></div>
+            </div>
+            <div class="mt-4">
+              <a class="btn" href="#/verify" data-i18n="go_verify">Go verify</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="verify" class="hidden" style="max-width:720px; margin: 0 auto;">
+        <h2 data-i18n="verify_title">Verify Certificate</h2>
+        <div class="panel">
+          <form class="form" id="verify-form">
+            <div class="field">
+              <label for="serial" data-i18n="label_serial">Enter serial</label>
+              <input id="serial" name="serial" placeholder="e.g., MH-20250101-AB12CD" required />
+            </div>
+            <button class="btn primary" type="submit" data-i18n="btn_lookup">Lookup</button>
+          </form>
+          <div id="result" class="hidden mt-4"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2025 mythicalhelper.org</span>
+        <a href="#/verify" data-i18n="nav_verify">Verify</a>
+      </div>
+    </footer>
+
+    <div id="toast"></div>
+  </body>
+  </html>

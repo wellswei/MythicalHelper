@@ -1,55 +1,82 @@
-Mythical Helper (Frontend)
-==========================
+# Enchanted Helpers Guild (mythicalhelper.org)
 
-Static frontend for mythicalhelper.org, hosted on Cloudflare Pages. Implements the full UX flow with a mock API to run end-to-end before wiring the real backend.
+A whimsical, storybook‑style platform for issuing Official Helper Certificates to keep wonder alive for young dreamers. Frontend is a single‑page app (EN first; 中文/ES supported). Mock API included.
 
-What’s here
------------
-- index.html: Landing with navigation.
-- register.html: Email OTP + Turnstile (token optional in mock).
-- verify-phone.html: SMS OTP (mock SNS).
-- generate.html: Choose role and child display policy, generate certificate.
-- check.html: Verify certificate by serial or QR link.
-- assets/config.js: Runtime config (mock/real API, Turnstile sitekey).
-- assets/app.js: Shared helpers + API chooser.
-- assets/mockApi.js: Local mock implementation using localStorage/sessionStorage.
-- assets/styles.css: Simple, responsive UI styles.
+## ✨ Features
 
-Local usage
------------
-1) Serve the folder with any static server (or open files directly):
-   - Python: `python3 -m http.server 8787` then visit http://localhost:8787
-   - Node: `npx serve .`
+- **Two‑step safeguard**: Email + SMS OTP for grown‑up Helpers
+- **Official certificate**: Unique serial + QR for verification
+- **Privacy‑friendly**: Only what’s needed for the magic
+- **PDF delivery**: Email attachment + download link
 
-2) The default config uses the mock API, so you can:
-   - Go to register.html → send/verify email OTP (OTP is logged to devtools console).
-   - Proceed to verify-phone.html → send/verify SMS OTP (also logged).
-   - Go to generate.html → create a certificate; you’ll see serial + QR.
-   - Visit check.html or open the provided link to view status.
+## 🧭 Flow (mocked)
 
-Turnstile
----------
-- Add your public sitekey in `assets/config.js` at `turnstileSiteKey`.
-- In mock mode, token is not validated; real backend should validate server-side.
+1. Email OTP (with Cloudflare Turnstile)
+2. Phone OTP (international SMS)
+3. Choose a role and generate a certificate (serial + QR)
+4. Verify by serial or link
 
-Switch to real backend
-----------------------
-- Set `useMockApi: false` and `apiBase: "https://api.mythicalhelper.org"` in `assets/config.js`.
-- Expected endpoints (to be provided by FastAPI):
-  - POST `/auth/email/send-otp` { email, turnstile_token }
-  - POST `/auth/email/verify` { email, code }
-  - POST `/auth/sms/send-otp` { phone }
-  - POST `/auth/sms/verify` { phone, code }
-  - POST `/certificates` { role, child_name?, display_policy }
-  - GET  `/certificates/{serial}`
+## 🛠️ Stack
 
-Cloudflare Pages
-----------------
-- Deploy this repo directly; Pages will serve these static files.
-- Custom domain mythicalhelper.org is already mapped.
-- Later, use Pages Functions or separate AWS backend; this frontend consumes whichever `apiBase` you point it to.
+- Static HTML/CSS/JS (no build step)
+- Cloudflare Pages hosting
+- Cloudflare Turnstile (bot protection)
 
-Notes
------
-- QR image is generated via a public QR service as a placeholder. Replace with a backend-generated QR embedded in the PDF when available.
-- No frameworks or bundlers are used for simplicity.
+## 📱 App structure
+
+- `index.html`: Single‑page app with hash routing (`#/`, `#/signup`, `#/phone`, `#/generate`, `#/verify`)
+- `styles.css`: Minimal, responsive dark theme
+- `app.js`: All logic (i18n, mock API, session, router, views)
+
+## 🎨 设计特色
+
+- **深色主题**: 现代化的深色UI设计
+- **渐变效果**: 精美的背景和按钮渐变
+- **毛玻璃效果**: 现代化的毛玻璃导航栏
+- **响应式布局**: 适配各种屏幕尺寸
+- **动画交互**: 平滑的悬停和点击效果
+
+## 🔧 Run locally
+
+Open `index.html` directly or serve the folder with any static server.
+
+Config lives in `app.js` → `CFG`:
+
+- `apiBaseUrl`: real FastAPI endpoint later
+- `mock`: set `false` to call backend
+- `turnstileSiteKey`: replace with your real site key
+
+## 📁 Files
+
+```
+MythicalHelper/
+├── app.js
+├── styles.css
+├── index.html
+└── README.md
+```
+
+## 🎯 Next
+
+- [ ] Swap mock → real FastAPI
+- [ ] Turnstile real site key
+- [ ] Add visual certificate preview
+- [ ] QR rendering client‑side
+
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request！
+
+## 📄 许可证
+
+MIT License
+
+## 📞 联系方式
+
+如有问题或建议，请通过以下方式联系：
+- 提交GitHub Issue
+- 发送邮件至: [your-email@example.com]
+
+---
+
+**Enchanted Helpers Guild** — keep the wonder alive ✨

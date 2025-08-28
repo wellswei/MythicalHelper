@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>生成证书 · Mythical Helper</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script defer src="assets/config.js"></script>
+    <script defer src="assets/app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/"><span class="logo">✨</span><span class="name">Mythical Helper</span></a>
+      <nav>
+        <a href="register.html">注册</a>
+        <a href="verify-phone.html">手机验证</a>
+        <a href="check.html">验证证书</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <h2>步骤 3 · 生成证书</h2>
+      <div class="panel">
+        <div class="grid">
+          <div>
+            <label for="role">选择证书角色</label>
+            <select id="role">
+              <option value="santa">圣诞老人助手</option>
+              <option value="tooth-fairy">牙仙助手</option>
+              <option value="easter-bunny">复活节兔子助手</option>
+            </select>
+          </div>
+          <div class="grid cols-2">
+            <div>
+              <label for="child">孩子姓名（可选）</label>
+              <input id="child" placeholder="可留空" />
+            </div>
+            <div>
+              <label for="policy">显示策略</label>
+              <select id="policy">
+                <option value="hidden">不显示姓名</option>
+                <option value="first-name">只显示名</option>
+                <option value="full-name">显示全名</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <button id="gen" class="btn primary">生成证书</button>
+            <span class="help">证书将通过邮件发送，并可扫码验证</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="result" class="panel" style="display:none;">
+        <h3>已生成 ✔</h3>
+        <div class="grid cols-2">
+          <div>
+            <div><strong>序列号</strong></div>
+            <div id="serial" class="muted"></div>
+            <div class="spacer"></div>
+            <a id="checkLink" class="btn" href="#">打开验证页面</a>
+            <span class="help">可分享给孩子扫码/验证</span>
+          </div>
+          <div class="center">
+            <div class="qr"><img id="qr" alt="QR" width="180" height="180" /></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const { qs, setBusy, toast } = window.$mh;
+      const api = () => window.MH_API;
+
+      qs('#gen').addEventListener('click', async () => {
+        const role = qs('#role').value;
+        const child_name = qs('#child').value.trim();
+        const display_policy = qs('#policy').value;
+        
+        if (!role) return toast('请选择证书角色', 'error');
+        
+        setBusy(qs('#gen'), true);
+        try {
+          const rec = await api().generateCertificate({ role, child_name, display_policy });
+          qs('#serial').textContent = rec.serial;
+          qs('#qr').src = rec.qr_url;
+          const link = new URL(location.origin + '/check.html');
+          link.searchParams.set('serial', rec.serial);
+          qs('#checkLink').href = link.toString();
+          qs('#result').style.display = '';
+          toast('证书生成成功！', 'success');
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        } catch (e) {
+          toast(e.message || '生成失败', 'error');
+        } finally { setBusy(qs('#gen'), false); }
+      });
+    </script>
+  </body>
+  </html>
+

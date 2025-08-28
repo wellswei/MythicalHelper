@@ -1,37 +1,94 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-  </style>
-</head>
-<body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="en"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Mythical Helper&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>body {<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-family: sans-serif;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">      </span>text-align: center;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin-top: 20vh;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: #f9fafb;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">      </span>color: #333;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>h1 { color: #2d6cdf; }</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;h1&gt;✨ Mythical Helper&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;p&gt;Coming soon...&lt;br/&gt;Your official Santa, Tooth Fairy &amp; Easter Bunny assistant certificates.&lt;/p&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
-</body>
-</html>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mythical Helper · 神话助手证书</title>
+    <link rel="preconnect" href="https://challenges.cloudflare.com" />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script defer src="assets/config.js"></script>
+    <script defer src="assets/app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">
+        <span class="logo">✨</span>
+        <span class="name">Mythical Helper</span>
+      </a>
+      <nav>
+        <a href="register.html">注册</a>
+        <a href="verify-phone.html">手机验证</a>
+        <a href="generate.html">生成证书</a>
+        <a href="check.html">验证证书</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h1>神话助手证书平台</h1>
+        <p>为家长生成"官方助手证书"，守护孩子的童年仪式感。</p>
+        <div class="cta-row">
+          <a class="btn primary" href="register.html">开始 · 邮箱验证</a>
+          <a class="btn" href="check.html">验证证书真伪</a>
+        </div>
+      </section>
+
+      <section class="progress-steps">
+        <h3>申请流程</h3>
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4>邮箱验证</h4>
+              <p>通过邮箱 OTP 验证身份</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4>手机验证</h4>
+              <p>通过短信 OTP 验证手机</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4>生成证书</h4>
+              <p>选择角色并生成 PDF 证书</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h4>验证真伪</h4>
+              <p>扫码或输入序列号验证</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features">
+        <div class="card">
+          <h3>邮箱 + 手机双重验证</h3>
+          <p>通过 SES/SNS 发送 OTP，确保申请人为成年人。</p>
+        </div>
+        <div class="card">
+          <h3>证书 PDF + 二维码</h3>
+          <p>生成带序列号的官方证书，扫码即可验证真伪。</p>
+        </div>
+        <div class="card">
+          <h3>隐私与可撤销</h3>
+          <p>证书可设有效期与撤销状态，便于管理。</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <small>© <span id="year"></span> Mythical Helper · mythicalhelper.org</small>
+    </footer>
+
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+  </body>
+  </html>

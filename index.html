@@ -85,10 +85,12 @@
 
     <footer class="site-footer">
       <small>© <span id="year"></span> Mythical Helper · mythicalhelper.org</small>
+      <small class="deploy-info">部署时间: <span id="deploy-time"></span></small>
     </footer>
 
     <script>
       document.getElementById('year').textContent = new Date().getFullYear();
+      document.getElementById('deploy-time').textContent = new Date().toLocaleString('zh-CN');
     </script>
   </body>
   </html>

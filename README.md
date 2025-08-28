@@ -1,4 +1,4 @@
-# Enchanted Helpers Guild (mythicalhelper.org)
+# Mythical Helper (mythicalhelper.org)
 
 A whimsical, storybook‑style platform for issuing Official Helper Certificates to keep wonder alive for young dreamers. Frontend is a single‑page app (EN first; 中文/ES supported). Mock API included.
 

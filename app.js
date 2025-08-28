@@ -25,7 +25,7 @@
   // i18n dictionaries (EN primary)
   const I18N = {
     en: {
-      brand_name: 'Enchanted Helpers Guild',
+      brand_name: 'Mythical Helper',
       nav_home: 'Home', nav_join: 'Join', nav_verify: 'Verify',
       hero_title: 'Official Helper Certificates for Young Dreamers',
       hero_lead: 'Become a certified Helper from the North Pole, the Tooth Fairy Circle, or the Spring Bunny Caravan — keep the wonder alive with a scannable certificate.',
@@ -49,7 +49,7 @@
       t_sent_email: 'Code sent to email', t_email_verified: 'Email verified', t_sent_sms: 'SMS sent', t_phone_verified: 'Phone verified', t_gen_ok: 'Certificate created', not_found: 'Certificate not found', status_valid: 'Valid', status_expired: 'Expired', status_revoked: 'Revoked',
     },
     zh: {
-      brand_name: '魔法助手公会',
+      brand_name: 'Mythical Helper',
       nav_home: '首页', nav_join: '加入', nav_verify: '验证',
       hero_title: '为小小梦想家颁发“官方助手证书”',
       hero_lead: '成为北境工坊、牙仙之环或春野兔队的认证助手，用可扫码的证书守护仪式与惊喜。',
@@ -64,7 +64,7 @@
       verify_title: '验证证书', label_serial: '输入序列号', btn_lookup: '查询', t_sent_email: '验证码已发送至邮箱', t_email_verified: '邮箱已验证', t_sent_sms: '短信已发送', t_phone_verified: '手机已验证', t_gen_ok: '证书生成成功', not_found: '未找到该证书', status_valid: '有效', status_expired: '已过期', status_revoked: '已撤销',
     },
     es: {
-      brand_name: 'Gremio de Ayudantes Encantados',
+      brand_name: 'Mythical Helper',
       nav_home: 'Inicio', nav_join: 'Unirse', nav_verify: 'Verificar',
       hero_title: 'Certificados oficiales para pequeños soñadores',
       hero_lead: 'Conviértete en Ayudante del Polo Norte, Círculo del Hada de los Dientes o Caravana del Conejo de Primavera — mantén la magia con un certificado escaneable.',
@@ -211,4 +211,3 @@
     initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); route();
   });
 })();
-

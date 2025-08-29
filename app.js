@@ -164,11 +164,11 @@
   const state = { lang: guessLang() };
   function guessLang(){ const l=(navigator.language||'en').slice(0,2); return ['en','zh','es'].includes(l)?l:'en'; }
   function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key; }
-  function applyI18N(){ 
+  function applyI18N(){
     $$('[data-i18n]').forEach(el=>{ 
       el.textContent = t(el.getAttribute('data-i18n')); 
     }); 
-    document.documentElement.lang = state.lang; 
+    document.documentElement.lang = state.lang;
     const langSelect = $('#lang');
     if (langSelect) {
       langSelect.value = state.lang; 
@@ -361,7 +361,9 @@
       // 同步更新左侧卡片的小副标题
       const activeBtn = document.querySelector(`.choice[data-role="${role}"] .choice-desc`);
       if (activeBtn && data.chip) {
-        activeBtn.textContent = data.chip;
+        // 将横线分隔的格式改成列表格式
+        const items = data.chip.split(' · ');
+        activeBtn.innerHTML = items.map(item => `- ${item}`).join('<br>');
       }
       
       console.log('Letter content updated successfully'); // 调试信息

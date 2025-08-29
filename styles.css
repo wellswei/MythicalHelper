@@ -1248,3 +1248,19 @@ body::after {
   background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)); 
   border-color: rgba(255,255,255,.1); 
 }
+
+/* Apply board active state */
+.band-help .choice {
+  transition: border-color .2s ease, background .2s ease, transform .15s ease;
+}
+.band-help .choice.active {
+  border-color: var(--primary);
+  background: rgba(255,255,255,.06);
+  transform: translateY(-2px);
+}
+
+/* Letter preview accent by role */
+.letter-preview { transition: box-shadow .2s ease, border-color .2s ease, background .2s ease; }
+.letter-preview.role-north { border-color: rgba(168,208,255,.35); box-shadow: inset 0 0 0 2px rgba(168,208,255,.15); }
+.letter-preview.role-tooth { border-color: rgba(255,224,138,.35); box-shadow: inset 0 0 0 2px rgba(255,224,138,.18); }
+.letter-preview.role-bunny { border-color: rgba(61,220,151,.35); box-shadow: inset 0 0 0 2px rgba(61,220,151,.15); }

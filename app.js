@@ -245,6 +245,66 @@
     }
   };
 
+  // --- Apply board (left choices -> right letter preview) ---
+  function initApplyBoard(){
+    const container = document.querySelector('.band-help .apply-grid');
+    const letterBox = document.getElementById('letter-box');
+    const letterContent = document.getElementById('letter-content');
+    const choiceButtons = document.querySelectorAll('.band-help .choices .choice');
+    if (!container || !letterBox || !letterContent || !choiceButtons.length) return;
+
+    // Role -> letter copy
+    const LETTERS = {
+      north_pole: {
+        head: 'North Pole Workshop',
+        body: `Snow prints mark the season's path. We're seeking steady hands to keep the sleigh on time. 
+               If your heart is warm and your steps are sure, the Workshop welcomes you.`,
+        css: 'role-north'
+      },
+      tooth_fairy: {
+        head: 'Tooth Fairy Circle',
+        body: 'Brave smiles deserve gentle notes. Lend your hands to tiny exchanges beneath the pillow.',
+        css: 'role-tooth'
+      },
+      spring_bunny: {
+        head: 'Spring Bunny Caravan',
+        body: 'Hide hope in plain sight — bright eggs, warm notes, and trails of laughter across the garden.',
+        css: 'role-bunny'
+      }
+    };
+
+    const setActive = (role) => {
+      // 左侧高亮
+      choiceButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-role') === role);
+      });
+      // 右侧内容
+      const data = LETTERS[role];
+      if (!data) return;
+      letterBox.classList.remove('role-north','role-tooth','role-bunny');
+      letterBox.classList.add(data.css);
+      letterContent.innerHTML = `
+        <div class="letter-head">${data.head}</div>
+        <p>Dear Helper,</p>
+        <p>${data.body}</p>
+        <p class="letter-sign">— The Guild</p>
+      `;
+    };
+
+    // 悬停 / 聚焦 / 点击（兼容鼠标、键盘、触屏）
+    choiceButtons.forEach(btn => {
+      const role = btn.getAttribute('data-role');
+      btn.addEventListener('mouseenter', () => setActive(role));
+      btn.addEventListener('focus', () => setActive(role));
+      btn.addEventListener('click', () => setActive(role));
+      btn.addEventListener('touchstart', () => setActive(role), { passive: true });
+    });
+
+    // 默认选中
+    const defaultRole = (document.querySelector('.band-help .choice.active')?.getAttribute('data-role')) || 'north_pole';
+    setActive(defaultRole);
+  }
+
   // === 路由：增加 login / account / billing & 守卫 ===
   const views = ['home','signup','phone','generate','verify','login','account','billing'];
   function show(view){
@@ -279,13 +339,14 @@
 
     show(view);
 
-    if (view === 'verify') {
-      const s=new URLSearchParams(url.hash.split('?')[1]||'').get('s');
-      if (s) { const input=document.querySelector('#serial'); if(input) input.value=s; await doLookup(s); }
-    }
-    if (view === 'account') initAccount();
-    if (view === 'billing') initBilling();
-    if (view === 'login') updateNav();
+          if (view === 'verify') {
+        const s=new URLSearchParams(url.hash.split('?')[1]||'').get('s');
+        if (s) { const input=document.querySelector('#serial'); if(input) input.value=s; await doLookup(s); }
+      }
+      if (view === 'home') { initApplyBoard(); }
+      if (view === 'account') initAccount();
+      if (view === 'billing') initBilling();
+      if (view === 'login') updateNav();
   }
 
   // === 会员（缴费）页：mock 订阅 ===
@@ -395,6 +456,7 @@
     updateNav(); route();
     initFloatingApply();
     initVerifyMini();
+    initApplyBoard(); // Call initApplyBoard here
   });
 
   // === 悬浮Apply按钮 ===

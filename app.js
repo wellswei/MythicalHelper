@@ -390,7 +390,7 @@
   // === 在现有 init 钩子里调用 updateNav ===
   window.addEventListener('hashchange', route);
   document.addEventListener('DOMContentLoaded', ()=>{
-    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); 
+    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); initTestAccount();
     updateNav(); route();
   });
 
@@ -584,5 +584,15 @@
       `;
       hero.appendChild(sparkle);
     }
+  }
+
+  function initTestAccount(){
+    const btn = document.getElementById('use-test');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      setSession({ email: 'test@mythicalhelper.org', emailVerified: true, phone: '+10000000000', phoneVerified: true, authenticated: true });
+      toast('Signed in as test');
+      location.hash = '#/generate';
+    });
   }
 })();

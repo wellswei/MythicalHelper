@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Enchanted Helpers Guild</title>
+    <title>Mythical Helper</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -15,80 +15,116 @@
     <header class="site-header">
       <div class="container">
         <div class="brand">
-          <span class="logo">✨</span>
-          <span class="name" data-i18n="brand_name">Enchanted Helpers Guild</span>
+          <img class="logo" src="/logo.png" alt="Mythical Helper logo" />
+          <span class="name">Mythical Helper</span>
         </div>
         <nav class="nav">
-          <a href="#/" data-i18n="nav_home" class="active">Home</a>
-          <a href="#/signup" data-i18n="nav_join">Join</a>
-          <a href="#/verify" data-i18n="nav_verify">Verify</a>
-          <a href="#/login" data-nav="login">Login</a>
-          <a href="#/account" data-nav="account" class="hidden">Account</a>
-          <a href="#/billing" data-nav="billing" class="hidden">Membership</a>
-          <select id="lang" style="margin-left:12px;">
-            <option value="en">EN</option>
-            <option value="zh">中文</option>
-            <option value="es">ES</option>
-          </select>
+          <a href="#/" class="active">Home</a>
+          <a href="#/signup">Sign in / Join</a>
         </nav>
       </div>
     </header>
 
     <main class="container" id="app" style="padding: 24px 0 0;">
       <section class="hero" data-view="home">
-        <h1 data-i18n="hero_title">Official Helper Certificates for Young Dreamers</h1>
-        <p class="lead" data-i18n="hero_lead">Become a certified Helper from the North Pole, the Tooth Fairy Circle, or the Spring Bunny Caravan — keep the wonder alive with a scannable certificate.</p>
+        <h1>Official Helper Certificates for Young Dreamers</h1>
+        <p class="lead">Welcome to Mythical Helper — a warm little guild where grown‑ups become certified guardians of childhood wonder.</p>
         <div class="actions">
-          <a class="btn primary" href="#/signup" data-i18n="cta_start">Begin</a>
-          <a class="btn" href="#/verify" data-i18n="cta_verify">Verify</a>
+          <a class="btn primary magic" href="#/signup">Answer the Call</a>
+          <button class="btn" id="use-test" type="button">Use test account</button>
         </div>
-        <section class="features mt-6">
-          <div class="feature">
-            <h3 data-i18n="f_secure">Two-Step Safeguard</h3>
-            <p data-i18n="f_secure_desc">Email and SMS codes confirm you're a grown‑up Helper.</p>
-          </div>
-          <div class="feature">
-            <h3 data-i18n="f_official">Official Certificate</h3>
-            <p data-i18n="f_official_desc">Unique serial + QR code for on‑site verification.</p>
-          </div>
-          <div class="feature">
-            <h3 data-i18n="f_privacy">Wonder, Not Data</h3>
-            <p data-i18n="f_privacy_desc">We collect only what's needed for the magic.</p>
+
+        <section class="section mt-6 band band-help" aria-labelledby="help-title">
+          <h2 id="help-title">Guild Notice · Helpers Needed</h2>
+          <p class="section-lead">We’re inviting warm‑hearted grown‑ups to keep the wonder alive — from the North Pole Workshop to the Tooth Fairy Circle and the Spring Bunny Caravan.</p>
+          <div class="box">
+            <ul class="bullets">
+              <li><strong>Simple sign‑in:</strong> quick email + SMS codes</li>
+              <li><strong>Official certificate:</strong> unique serial and QR for verification</li>
+              <li><strong>Privacy‑friendly:</strong> only what’s needed for the magic</li>
+            </ul>
           </div>
         </section>
-
-        <!-- How it works section -->
+        
+        <!-- How it works section (moved under Apply) -->
         <section class="section mt-6 band band-steps is-large" aria-labelledby="how-title">
-          <h2 id="how-title" data-i18n="how_title">How It Works</h2>
-          <p class="section-lead" data-i18n="how_lead">A friendly, grown-up hiring flow — quick, safe, and a little magical.</p>
+          <h2 id="how-title">How It Works</h2>
+          <p class="section-lead">A friendly, grown‑up hiring flow — quick, safe, and a little magical.</p>
           <div class="steps steps-xl">
             <div class="step">
               <span class="step-no">1</span>
               <div>
-                <strong data-i18n="how_1_t">Messenger Owl</strong>
-                <div class="help" data-i18n="how_1_d">We send a code to your email to greet you at the gate.</div>
+                <strong>Messenger Owl</strong>
+                <div class="help">We send a code to your email to greet you at the gate.</div>
               </div>
             </div>
             <div class="step">
               <span class="step-no">2</span>
               <div>
-                <strong data-i18n="how_2_t">Spring Bunny</strong>
-                <div class="help" data-i18n="how_2_d">A quick SMS confirms you're a grown-up Helper.</div>
+                <strong>Spring Bunny</strong>
+                <div class="help">A quick SMS confirms you’re a grown‑up Helper.</div>
               </div>
             </div>
             <div class="step">
               <span class="step-no">3</span>
               <div>
-                <strong data-i18n="how_3_t">Scribes of the North</strong>
-                <div class="help" data-i18n="how_3_d">Your parchment is stamped with a unique serial and QR.</div>
+                <strong>Scribes of the North</strong>
+                <div class="help">Your parchment is stamped with a unique serial and QR.</div>
               </div>
             </div>
           </div>
           <div class="actions mt-4">
-            <a class="btn primary magic" href="#/signup" data-i18n="cta_start">Begin</a>
-            <a class="btn" href="#/verify" data-i18n="cta_verify">Verify</a>
+            <a class="btn primary magic" href="#/signup">Answer the Call</a>
           </div>
         </section>
+
+        <!-- What you’ll get -->
+        <section class="section mt-6 band band-get" aria-labelledby="get-title">
+          <h2 id="get-title">What You’ll Get</h2>
+          <div class="box">
+            <div class="features">
+              <div class="feature">
+                <div class="feature-icon-svg" aria-hidden="true">
+                  <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
+                    <rect x="14" y="14" width="36" height="28" rx="4" ry="4" fill="#fff" opacity=".9"/>
+                    <path d="M18 22h28M18 28h20M18 34h16" stroke="#4d8dff" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M42 40l4 10 3-3 3 3 2-8" stroke="#f8d26a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h3>Official Certificate</h3>
+                <p>Unique serial + QR for easy verification anywhere.</p>
+              </div>
+              <div class="feature">
+                <div class="feature-icon-svg" aria-hidden="true">
+                  <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
+                    <circle cx="32" cy="32" r="30" fill="url(#g1)" opacity="0.2"/>
+                    <path d="M12 40c8-2 14-6 20-14 4 8 9 12 20 14-6 6-13 10-20 10s-14-4-20-10z" fill="#C3E1FF" opacity="0.5"/>
+                    <defs>
+                      <radialGradient id="g1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 32) rotate(90) scale(30)">
+                        <stop stop-color="#8fd3fe"/>
+                        <stop offset="1" stop-color="#4d8dff"/>
+                      </radialGradient>
+                    </defs>
+                  </svg>
+                </div>
+                <h3>Simple Two‑Step</h3>
+                <p>Just email + SMS — quick, secure, and friendly.</p>
+              </div>
+              <div class="feature">
+                <div class="feature-icon-svg" aria-hidden="true">
+                  <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
+                    <path d="M22 48c-4-4-6-8-6-14 0-8 6-14 16-14s16 6 16 14c0 6-2 10-6 14" stroke="#3ddc97" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <circle cx="32" cy="34" r="4" fill="#3ddc97"/>
+                  </svg>
+                </div>
+                <h3>Wonder, Not Data</h3>
+                <p>We collect the minimum — no ads, no resale, just magic.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        
 
         <!-- Apply for the Job section -->
         <section class="section mt-6 band band-roles" aria-labelledby="roles-title">

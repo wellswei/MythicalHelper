@@ -256,6 +256,11 @@ body::before {
   line-height: 1.5;
 }
 
+/* Utility framed box + bullets */
+.box { background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.bullets { margin: 0; padding: 0 0 0 18px; color: var(--muted); }
+.bullets li { margin: 6px 0; }
+
 .site-footer { 
   margin-top: 80px; 
   padding: 32px 0; 
@@ -542,6 +547,7 @@ select:focus-visible {
 .band-steps { background: linear-gradient(180deg, rgba(168,208,255,.08), rgba(255,255,255,0)); border-color: rgba(168,208,255,.25); }
 .band-stories { background: linear-gradient(180deg, rgba(255,224,138,.08), rgba(255,255,255,0)); border-color: rgba(255,224,138,.25); }
 .band-faq { background: linear-gradient(180deg, rgba(200,230,255,.06), rgba(255,255,255,0)); border-color: rgba(200,230,255,.2); }
+.band-help { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0)); }
 
 .grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: center; }
 .illus-large { display: none; }

@@ -343,7 +343,10 @@
         const s=new URLSearchParams(url.hash.split('?')[1]||'').get('s');
         if (s) { const input=document.querySelector('#serial'); if(input) input.value=s; await doLookup(s); }
       }
-      if (view === 'home') { initApplyBoard(); }
+      if (view === 'home') { 
+        // Add a small delay to ensure DOM is ready
+        setTimeout(() => initApplyBoard(), 50); 
+      }
       if (view === 'account') initAccount();
       if (view === 'billing') initBilling();
       if (view === 'login') updateNav();
@@ -452,11 +455,11 @@
   window.addEventListener('hashchange', route);
   document.addEventListener('DOMContentLoaded', ()=>{
     initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles();
-    initApplyLetters(); initApplyLettersFix(); initQuickApply(); initTestAccount();
+    initQuickApply(); initTestAccount();
     updateNav(); route();
     initFloatingApply();
     initVerifyMini();
-    initApplyBoard(); // Call initApplyBoard here
+    initApplyBoard(); // Only call this one, remove other apply-related calls
   });
 
   // === 悬浮Apply按钮 ===
@@ -472,86 +475,6 @@
     
     window.addEventListener('hashchange', showFloating);
     showFloating();
-  }
-
-  // === Apply Letters 动态展示 ===
-  function initApplyLetters() {
-    console.log('initApplyLetters called'); // 调试信息
-    
-    const choices = document.querySelectorAll('.choice');
-    const letterBox = document.getElementById('letter-box');
-    const letterContent = document.getElementById('letter-content');
-    
-    console.log('Found elements:', { choices: choices.length, letterBox: !!letterBox, letterContent: !!letterContent }); // 调试信息
-    
-    if (!choices.length || !letterBox || !letterContent) return;
-    
-    // 信件内容配置
-    const letters = {
-      north_pole: {
-        head: 'North Pole Workshop',
-        content: `Dear Helper,
-
-Snow prints mark the season's path, and we're seeking steady hands to keep the sleigh on time. If your heart is warm and your steps are sure, the Workshop welcomes you.
-
-The North Pole needs those who can navigate by starlight, care for reindeer with gentle patience, and ensure every gift reaches its destination. Your role will be crucial in maintaining the magic of Christmas.`,
-        sign: '— The Scribes of Winter'
-      },
-      tooth_fairy: {
-        head: 'Tooth Fairy Circle',
-        content: `Dear Helper,
-
-The Circle seeks those with gentle hearts and steady hands to collect precious teeth and leave tokens of courage under pillows worldwide.
-
-Your mission will be to comfort brave children, collect their fallen teeth with care, and leave behind treasures that sparkle with magic. You'll work under the cover of night, bringing joy to every young dreamer.`,
-        sign: '— The Council of Tiny Treasures'
-      },
-      spring_bunny: {
-        head: 'Spring Bunny Caravan',
-        content: `Dear Helper,
-
-Spring awakens, and the Caravan calls for those who can scatter joy across gardens and bring laughter to the breeze.
-
-You'll help hide colorful eggs in plain sight, create trails of wonder through gardens, and ensure every child discovers the magic of spring. Your role is to awaken hope and create traditions that last generations.`,
-        sign: '— The Garden Keepers'
-      }
-    };
-    
-    // 悬浮效果
-    choices.forEach((choice, index) => {
-      choice.addEventListener('mouseenter', () => {
-        const role = choice.getAttribute('data-role');
-        console.log('Hovering over:', role); // 调试信息
-        
-        const letter = letters[role];
-        
-        if (letter) {
-          // 更新信件内容 - 保持HTML结构
-          letterContent.innerHTML = `
-            <div class="letter-head">${letter.head}</div>
-            <p>Dear Helper,</p>
-            <p>${letter.content.split('\n\n')[1]}</p>
-            <p>${letter.content.split('\n\n')[2]}</p>
-            <div class="letter-sign">${letter.sign}</div>
-          `;
-          
-          // 更新样式类
-          letterBox.className = `letter-preview role-${role.split('_')[0]}`;
-          
-          // 添加活跃状态
-          choices.forEach(c => c.classList.remove('active'));
-          choice.classList.add('active');
-          
-          console.log('Updated letter for:', role); // 调试信息
-        }
-      });
-      
-      // 点击效果
-      choice.addEventListener('click', () => {
-        const role = choice.getAttribute('data-role');
-        console.log(`Selected role: ${role}`);
-      });
-    });
   }
 
   // === Verify mini form ===

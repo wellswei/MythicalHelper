@@ -391,7 +391,7 @@
   window.addEventListener('hashchange', route);
   document.addEventListener('DOMContentLoaded', ()=>{
     initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles();
-    initApplyLetters(); initQuickApply(); initTestAccount();
+    initApplyLetters(); initApplyLettersFix(); initQuickApply(); initTestAccount();
     updateNav(); route();
     initFloatingApply();
     initVerifyMini();
@@ -721,5 +721,61 @@ You'll help hide colorful eggs in plain sight, create trails of wonder through g
       toast('Signed in as test');
       location.hash = '#/generate';
     });
+  }
+
+  // 兼容修复：更稳健的信件切换（覆盖早期绑定）
+  function initApplyLettersFix(){
+    const choices = document.querySelectorAll('.choice');
+    const letterBox = document.getElementById('letter-box');
+    const letterContent = document.getElementById('letter-content');
+    if (!choices.length || !letterBox || !letterContent) return;
+
+    const letters = {
+      north_pole: {
+        head: 'North Pole Workshop',
+        paras: [
+          'Snow prints mark the season’s path, and we’re seeking steady hands to keep the sleigh on time. If your heart is warm and your steps are sure, the Workshop welcomes you.',
+          'Navigate by starlight, care for reindeer with gentle patience, and help every parcel find its way.'
+        ],
+        sign: '— The Scribes of Winter', skin: 'role-north'
+      },
+      tooth_fairy: {
+        head: 'Tooth Fairy Circle',
+        paras: [
+          'Where courage meets a missing tooth, we leave a shimmer of thanks. Gentle hearts and steady hands are most welcome.',
+          'Comfort brave young dreamers, collect their tiny treasures with care, and leave notes that sparkle with magic.'
+        ],
+        sign: '— The Council of Tiny Treasures', skin: 'role-tooth'
+      },
+      spring_bunny: {
+        head: 'Spring Bunny Caravan',
+        paras: [
+          'Spring awakens and the Caravan calls. We scatter bright eggs and good cheer across quiet gardens.',
+          'Hide hope in plain sight, trace laughter through the hedges, and help the season bloom.'
+        ],
+        sign: '— The Garden Keepers', skin: 'role-bunny'
+      }
+    };
+
+    const render = (key) => {
+      const L = letters[key] || letters.north_pole;
+      letterContent.innerHTML = `
+        <div class="letter-head">${L.head}</div>
+        <p>Dear Helper,</p>
+        <p>${L.paras[0]}</p>
+        <p>${L.paras[1]}</p>
+        <p class="letter-sign">${L.sign}</p>
+      `;
+      letterBox.classList.remove('role-north','role-tooth','role-bunny');
+      letterBox.classList.add(L.skin);
+    };
+
+    // 默认选择
+    render('north_pole');
+
+    const bind = (el)=>['mouseenter','mouseover','focus','click'].forEach(ev=>el.addEventListener(ev, ()=>{
+      render(el.getAttribute('data-role'));
+    }));
+    choices.forEach(bind);
   }
 })();

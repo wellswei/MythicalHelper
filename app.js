@@ -337,7 +337,7 @@
       const el = document.querySelector(`.choice[data-role="${role}"] .choice-desc`);
       if (el && data?.chip) {
         const items = data.chip.split(' · ');
-        el.innerHTML = items.map(item => `<span class="chip-item">- ${item}</span>`).join('');
+        el.innerHTML = items.map(item => `<span class="chip-item">- ${item}</span>`).join('<br>');
       }
     });
 
@@ -373,7 +373,7 @@
       if (activeBtn && data.chip) {
         // 将横线分隔的格式改成小块元素，便于两列排布
         const items = data.chip.split(' · ');
-        activeBtn.innerHTML = items.map(item => `<span class="chip-item">- ${item}</span>`).join('');
+        activeBtn.innerHTML = items.map(item => `<span class="chip-item">- ${item}</span>`).join('<br>');
       }
       
       console.log('Letter content updated successfully'); // 调试信息

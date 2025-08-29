@@ -246,12 +246,17 @@
   };
 
   // --- Apply board (left choices -> right letter preview) ---
+  let __applyBoardInit = false;
   function initApplyBoard(){
     const container = document.querySelector('.band-help .apply-grid');
+    if (__applyBoardInit) { 
+      return; 
+    }
     const letterBox = document.getElementById('letter-box');
     const letterContent = document.getElementById('letter-content');
     const choiceButtons = document.querySelectorAll('.band-help .choices .choice');
     if (!container || !letterBox || !letterContent || !choiceButtons.length) return;
+    __applyBoardInit = true;
 
     // Role -> letter copy
     const LETTERS = {
@@ -274,13 +279,22 @@
     };
 
     const setActive = (role) => {
+      console.log('setActive called with role:', role); // 调试信息
+      
       // 左侧高亮
       choiceButtons.forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-role') === role);
       });
+      
       // 右侧内容
       const data = LETTERS[role];
-      if (!data) return;
+      if (!data) {
+        console.log('No data found for role:', role); // 调试信息
+        return;
+      }
+      
+      console.log('Updating letter content for:', role, data); // 调试信息
+      
       letterBox.classList.remove('role-north','role-tooth','role-bunny');
       letterBox.classList.add(data.css);
       letterContent.innerHTML = `
@@ -289,6 +303,8 @@
         <p>${data.body}</p>
         <p class="letter-sign">— The Guild</p>
       `;
+      
+      console.log('Letter content updated successfully'); // 调试信息
     };
 
     // 悬停 / 聚焦 / 点击（兼容鼠标、键盘、触屏）
@@ -339,17 +355,17 @@
 
     show(view);
 
-          if (view === 'verify') {
-        const s=new URLSearchParams(url.hash.split('?')[1]||'').get('s');
-        if (s) { const input=document.querySelector('#serial'); if(input) input.value=s; await doLookup(s); }
-      }
-      if (view === 'home') { 
-        // Add a small delay to ensure DOM is ready
-        setTimeout(() => initApplyBoard(), 50); 
-      }
-      if (view === 'account') initAccount();
-      if (view === 'billing') initBilling();
-      if (view === 'login') updateNav();
+    if (view === 'verify') {
+      const s=new URLSearchParams(url.hash.split('?')[1]||'').get('s');
+      if (s) { const input=document.querySelector('#serial'); if(input) input.value=s; await doLookup(s); }
+    }
+    if (view === 'home') { 
+      // Add a small delay to ensure DOM is ready
+      setTimeout(() => initApplyBoard(), 50); 
+    }
+    if (view === 'account') initAccount();
+    if (view === 'billing') initBilling();
+    if (view === 'login') updateNav();
   }
 
   // === 会员（缴费）页：mock 订阅 ===
@@ -459,7 +475,7 @@
     updateNav(); route();
     initFloatingApply();
     initVerifyMini();
-    initApplyBoard(); // Only call this one, remove other apply-related calls
+    // initApplyBoard(); // Only call this one, remove other apply-related calls
   });
 
   // === 悬浮Apply按钮 ===
@@ -708,59 +724,4 @@
     });
   }
 
-  // 兼容修复：更稳健的信件切换（覆盖早期绑定）
-  function initApplyLettersFix(){
-    const choices = document.querySelectorAll('.choice');
-    const letterBox = document.getElementById('letter-box');
-    const letterContent = document.getElementById('letter-content');
-    if (!choices.length || !letterBox || !letterContent) return;
-
-    const letters = {
-      north_pole: {
-        head: 'North Pole Workshop',
-        paras: [
-          'Snow prints mark the season’s path, and we’re seeking steady hands to keep the sleigh on time. If your heart is warm and your steps are sure, the Workshop welcomes you.',
-          'Navigate by starlight, care for reindeer with gentle patience, and help every parcel find its way.'
-        ],
-        sign: '— The Scribes of Winter', skin: 'role-north'
-      },
-      tooth_fairy: {
-        head: 'Tooth Fairy Circle',
-        paras: [
-          'Where courage meets a missing tooth, we leave a shimmer of thanks. Gentle hearts and steady hands are most welcome.',
-          'Comfort brave young dreamers, collect their tiny treasures with care, and leave notes that sparkle with magic.'
-        ],
-        sign: '— The Council of Tiny Treasures', skin: 'role-tooth'
-      },
-      spring_bunny: {
-        head: 'Spring Bunny Caravan',
-        paras: [
-          'Spring awakens and the Caravan calls. We scatter bright eggs and good cheer across quiet gardens.',
-          'Hide hope in plain sight, trace laughter through the hedges, and help the season bloom.'
-        ],
-        sign: '— The Garden Keepers', skin: 'role-bunny'
-      }
-    };
-
-    const render = (key) => {
-      const L = letters[key] || letters.north_pole;
-      letterContent.innerHTML = `
-        <div class="letter-head">${L.head}</div>
-        <p>Dear Helper,</p>
-        <p>${L.paras[0]}</p>
-        <p>${L.paras[1]}</p>
-        <p class="letter-sign">${L.sign}</p>
-      `;
-      letterBox.classList.remove('role-north','role-tooth','role-bunny');
-      letterBox.classList.add(L.skin);
-    };
-
-    // 默认选择
-    render('north_pole');
-
-    const bind = (el)=>['mouseenter','mouseover','focus','click'].forEach(ev=>el.addEventListener(ev, ()=>{
-      render(el.getAttribute('data-role'));
-    }));
-    choices.forEach(bind);
-  }
 })();

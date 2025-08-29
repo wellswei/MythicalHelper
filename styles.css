@@ -229,8 +229,8 @@ body::before {
   line-height: 1.6;
 }
 
-.hero .lead:last-of-type {
-  margin-bottom: 32px; /* 最后一段副标题与按钮之间有更多间距 */
+.hero .lead:nth-of-type(2) {
+  margin-bottom: 32px; /* 第二段副标题与按钮之间有更多间距 */
 }
 .verse { color: var(--muted); font-style: italic; margin-top: -36px; margin-bottom: 36px; }
 .actions { 

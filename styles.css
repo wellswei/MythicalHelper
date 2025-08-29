@@ -751,7 +751,7 @@ select:focus-visible {
 .choice .choice-title { 
   font-weight: 700; 
   font-size: 18px;
-  margin-bottom: 4px;
+  margin-bottom: 12px; /* 增加标题与列表之间的行距 */
   position: relative;
   z-index: 1;
 }
@@ -772,9 +772,9 @@ select:focus-visible {
 }
 .band-help .choice .choice-desc .chip-item {
   display: block; /* 块级元素，确保换行 */
-  margin-bottom: 8px; /* 增加项目间距，让行距更协调 */
+  margin-bottom: 2px; /* 减少列表项之间的行距 */
   white-space: normal; /* 允许换行 */
-  line-height: 1.3; /* 稍微紧凑的行高 */
+  line-height: 1.2; /* 更紧凑的行高 */
 }
 
 .letter-preview { 

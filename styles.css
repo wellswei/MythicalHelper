@@ -101,7 +101,7 @@ body::before {
   opacity: .6;
 }
 
-.container { max-width: 960px; padding: 0 20px; margin: 0 auto; }
+.container { max-width: 900px; padding: 0 20px; margin: 0 auto; }
 
 .site-header { 
   position: sticky; 

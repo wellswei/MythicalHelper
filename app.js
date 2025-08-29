@@ -390,9 +390,43 @@
   // === 在现有 init 钩子里调用 updateNav ===
   window.addEventListener('hashchange', route);
   document.addEventListener('DOMContentLoaded', ()=>{
-    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); initApplyLetters(); initTestAccount();
+    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); 
     updateNav(); route();
+    initFloatingApply();
+    initVerifyMini();
   });
+
+  // === 悬浮Apply按钮 ===
+  function initFloatingApply() {
+    const floatingBtn = document.getElementById('floating-apply');
+    if (!floatingBtn) return;
+    
+    // 只在首页显示
+    const showFloating = () => {
+      const isHome = location.hash === '#/' || location.hash === '';
+      floatingBtn.style.display = isHome ? 'block' : 'none';
+    };
+    
+    window.addEventListener('hashchange', showFloating);
+    showFloating();
+  }
+
+  // === Verify mini form ===
+  function initVerifyMini() {
+    const form = document.getElementById('verify-mini-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = form.querySelector('input[name="serial"]');
+      const serial = input.value.trim();
+      
+      if (!serial) return;
+      
+      // 跳转到verify页面并自动查询
+      location.hash = `#/verify?s=${encodeURIComponent(serial)}`;
+    });
+  }
 
   // === I18N：新增一些键（可选，最少把英文加上就行） ===
   Object.assign(I18N.en, {

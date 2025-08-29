@@ -6,7 +6,7 @@
     <title>Mythical Helper</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Cinzel+Decorative:wght@400;700&family=Uncial+Antiqua&family=Great+Vibes&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/app.js"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -34,21 +34,46 @@
     <main class="container" id="app" style="padding: 24px 0 0;">
       <section class="hero" data-view="home">
         <h1 data-i18n="hero_title">Official Helper Certificates for Young Dreamers</h1>
-        <p class="lead" data-i18n="hero_lead">Become a certified Helper from the North Pole, the Tooth Fairy Circle, or the Spring Bunny Caravan — keep the wonder alive with a scannable certificate.</p>
+        <p class="lead" data-i18n="hero_lead_story">Welcome to the Mythical Helper guild — where grown‑ups become certified guardians of childhood wonder.</p>
         <div class="actions">
           <a class="btn primary" href="#/signup" data-i18n="cta_start">Begin</a>
           <a class="btn" href="#/verify" data-i18n="cta_verify">Verify</a>
         </div>
         <section class="features mt-6">
           <div class="feature">
+            <div class="feature-icon-svg" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="30" fill="url(#g1)" opacity="0.2"/>
+                <path d="M12 40c8-2 14-6 20-14 4 8 9 12 20 14-6 6-13 10-20 10s-14-4-20-10z" fill="#C3E1FF" opacity="0.5"/>
+                <defs>
+                  <radialGradient id="g1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 32) rotate(90) scale(30)">
+                    <stop stop-color="#8fd3fe"/>
+                    <stop offset="1" stop-color="#4d8dff"/>
+                  </radialGradient>
+                </defs>
+              </svg>
+            </div>
             <h3 data-i18n="f_secure">Two-Step Safeguard</h3>
             <p data-i18n="f_secure_desc">Email and SMS codes confirm you’re a grown‑up Helper.</p>
           </div>
           <div class="feature">
+            <div class="feature-icon-svg" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
+                <rect x="14" y="14" width="36" height="28" rx="4" ry="4" fill="#fff" opacity=".9"/>
+                <path d="M18 22h28M18 28h20M18 34h16" stroke="#4d8dff" stroke-width="2" stroke-linecap="round"/>
+                <path d="M42 40l4 10 3-3 3 3 2-8" stroke="#f8d26a" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
             <h3 data-i18n="f_official">Official Certificate</h3>
             <p data-i18n="f_official_desc">Unique serial + QR code for on‑site verification.</p>
           </div>
           <div class="feature">
+            <div class="feature-icon-svg" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
+                <path d="M22 48c-4-4-6-8-6-14 0-8 6-14 16-14s16 6 16 14c0 6-2 10-6 14" stroke="#3ddc97" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="32" cy="34" r="4" fill="#3ddc97"/>
+              </svg>
+            </div>
             <h3 data-i18n="f_privacy">Wonder, Not Data</h3>
             <p data-i18n="f_privacy_desc">We collect only what’s needed for the magic.</p>
           </div>
@@ -57,7 +82,15 @@
 
       <section data-view="signup" class="hidden" style="max-width:720px; margin: 0 auto;">
         <h2 data-i18n="signup_title">Join the Guild · Email</h2>
+        <p class="note" data-i18n="signup_lore">Step 1: The Messenger Owl delivers your email code.</p>
         <div class="panel">
+          <div class="lore-illustration" aria-hidden="true">
+            <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
+              <circle cx="90" cy="20" r="12" fill="#fff" opacity=".9"/>
+              <path d="M20 50c15-10 35-10 50 0 10 6 18 8 30 8-10 8-22 12-35 12-20 0-35-8-45-20z" fill="#cde7ff" opacity=".5"/>
+              <path d="M78 26l8 6 10-6M86 32v10" stroke="#4d8dff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
           <form class="form" id="email-form">
             <div class="field">
               <label for="email" data-i18n="label_email">Email</label>
@@ -87,7 +120,15 @@
 
       <section data-view="phone" class="hidden" style="max-width:720px; margin: 0 auto;">
         <h2 data-i18n="phone_title">Join the Guild · Phone</h2>
+        <p class="note" data-i18n="phone_lore">Step 2: The Spring Bunny hops by with your SMS code.</p>
         <div class="panel">
+          <div class="lore-illustration" aria-hidden="true">
+            <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
+              <ellipse cx="30" cy="60" rx="18" ry="6" fill="#cde7ff" opacity=".4"/>
+              <path d="M28 40c2-8 8-10 12-6 6 6-4 12-2 18 6 4 14 6 22 6" stroke="#f8d26a" stroke-width="3" stroke-linecap="round"/>
+              <path d="M40 28c0-8 8-18 10-18 2 0 4 10 4 16" stroke="#4d8dff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
           <form class="form" id="phone-form">
             <div class="field">
               <label for="phone" data-i18n="label_phone">Phone (with country code)</label>
@@ -113,6 +154,7 @@
 
       <section data-view="generate" class="hidden" style="max-width:720px; margin: 0 auto;">
         <h2 data-i18n="gen_title">Create Certificate</h2>
+        <p class="note" data-i18n="gen_lore">Step 3: The North Pole Scribes prepare your parchment.</p>
         <div class="panel">
           <form class="form" id="gen-form">
             <div class="field">
@@ -141,8 +183,24 @@
                 <option value="hidden" data-i18n="policy_hidden">Hide from certificate</option>
               </select>
             </div>
-            <button class="btn primary" type="submit" data-i18n="btn_generate">Generate PDF</button>
+            <button class="btn primary magic" type="submit" data-i18n="btn_generate">Generate PDF</button>
           </form>
+
+          <div class="preview-wrap">
+            <div id="cert-preview" aria-live="polite">
+              <div class="cert-inner">
+                <div class="cert-ribbon"></div>
+                <div class="cert-title" data-i18n="cert_title">Certificate of Mythical Helping</div>
+                <div class="cert-role" id="preview-role">—</div>
+                <div class="cert-name" id="preview-name">Young Dreamer</div>
+                <div class="cert-meta">
+                  <span data-i18n="cert_serial">Serial:</span>
+                  <span id="preview-serial">MH-XXXX-XXXX</span>
+                </div>
+                <div class="cert-sign" data-i18n="cert_sign">By the Council of Wonder</div>
+              </div>
+            </div>
+          </div>
 
           <div id="gen-result" class="hidden">
             <div class="alert success" data-i18n="gen_success">Your certificate is ready. A copy is sent via email.</div>
@@ -155,6 +213,7 @@
               <a class="btn" href="#/verify" data-i18n="go_verify">Go verify</a>
             </div>
           </div>
+          <div class="note mt-4" data-i18n="gen_roles_note">Now hiring more roles: Dream Guardian, Starlight Messenger, Lantern Spirit — the Guild is in talks to welcome them.</div>
         </div>
       </section>
 

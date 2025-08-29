@@ -267,24 +267,59 @@
     if (!container || !letterBox || !letterContent || !choiceButtons.length) return;
     __applyBoardInit = true;
 
-    // Role -> letter copy
+    // Role -> letter copy (random selection)
     const LETTERS = {
-      north_pole: {
-        head: 'North Pole Workshop',
-        body: `Snow prints mark the season's path. We're seeking steady hands to keep the sleigh on time. 
-               If your heart is warm and your steps are sure, the Workshop welcomes you.`,
-        css: 'role-north'
-      },
-      tooth_fairy: {
-        head: 'Tooth Fairy Circle',
-        body: 'Brave smiles deserve gentle notes. Lend your hands to tiny exchanges beneath the pillow.',
-        css: 'role-tooth'
-      },
-      spring_bunny: {
-        head: 'Spring Bunny Caravan',
-        body: 'Hide hope in plain sight — bright eggs, warm notes, and trails of laughter across the garden.',
-        css: 'role-bunny'
-      }
+      north_pole: [
+        { head: 'North Logistics Office',
+          body: `Dear Helper,\nFamilies everywhere await parcels of hope. Your duty is to stage small surprises by room, confirm paths are clear and quiet, time the delivery for after lights-out, and leave a simple note where morning eyes will find it. If questions arise, keep the wonder line: "The dispatch was tight, but everything arrived on time."`,
+          css: 'role-north', 
+          sign: '— Scribes of Winter',
+          chip: 'Night Routes · Gift Delivery · Silent Drop' },
+        { head: 'Workshop Night Ops',
+          body: `Briefing: prepare packages discreetly; choose safe, quiet routes; place the "first find" where little feet might land; leave a seal or short message to mark completion. Window: after bedtime, before dawn chatter.`,
+          css: 'role-north', 
+          sign: '— Route Captain, NP-7',
+          chip: 'Dispatch Window · First Find · Sleigh Mark' },
+        { head: 'The Snowbell Desk',
+          body: `A calm hand carries the night. Arrange the gift where wonder blooms, tuck a kind line beside it, and move softly so the house keeps dreaming. If early eyes awake, smile and say, "You were on the list, and the night kept its promise."`,
+          css: 'role-north', 
+          sign: '— The Snowbell Clerk',
+          chip: 'Gift Staging · Note Placement · Morning Surprise' }
+      ],
+      tooth_fairy: [
+        { head: 'Tooth Fairy Circle · Exchange Office',
+          body: `Appointment: prepare a clean keepsake spot. After bedtime, exchange the milestone (tooth or token) for a small treasure or note. Leave a tiny sparkle trail and a courage line: "Brave step, brave heart." Exit before first light, without waking anyone.`,
+          css: 'role-tooth', 
+          sign: '— Night Shift, TF-3',
+          chip: 'Exchange Duty · Courage Note · Sparkle Trail' },
+        { head: 'The Gentle Wing',
+          body: `Dear Helper,\nNot every home keeps the same custom, yet every child faces change. Your task is to honor that moment: place a modest reward, set a handwritten note within reach, and keep the keepsake safe. If asked, whisper, "The Circle visited while the moon was working."`,
+          css: 'role-tooth', 
+          sign: '— Registrar of the Wing',
+          chip: 'Tooth Safekeeping · Token Swap · Moon Visit' },
+        { head: 'Tiny Treasures Desk',
+          body: `Steps: (1) Confirm a quiet approach to the pillow. (2) Swap milestone → coin/message/other token. (3) Leave two or three subtle hints, no noise. (4) Depart silently. Optional: stamp the parchment for morning verification.`,
+          css: 'role-tooth', 
+          sign: '— Clerk of Glitter',
+          chip: 'Pillow Route · Glitter Clues · Dawn Check' }
+      ],
+      spring_bunny: [
+        { head: 'Caravan Trail Office',
+          body: `Dear Helper,\nDawn needs a trail map. Color or prepare small tokens of renewal, hide them at eye-level spots, and set a gentle path from door to garden or room to room. Final touch: a paw-mark note by the last find. Begin joyful recovery at the first squeals.`,
+          css: 'role-bunny', 
+          sign: '— Trailmaster SB-2',
+          chip: 'Egg Hiding · Path Design · Pawprint Mark' },
+        { head: 'The Hopping Desk',
+          body: `Lace laughter through the home. Tuck bright surprises where curiosity grows, leave a warm line—"Spring found you here."—and be ready with a basket for proud returns. Adapt placements to each family's space and tradition.`,
+          css: 'role-bunny', 
+          sign: '— Keeper of Baskets',
+          chip: 'Laughter Trail · Warm Note · Basket Return' },
+        { head: 'Bunny Ops · Dawn Unit',
+          body: `Checklist: hide tokens (low → mid height), place two "nearly there" clues, set the final piece near a window or well-lit spot. Keep the certificate visible for post-quest cheers. Debrief over breakfast.`,
+          css: 'role-bunny', 
+          sign: '— Dawn Unit Lead',
+          chip: 'Tiered Hiding · Clue Markers · Sunrise Celebration' }
+      ]
     };
 
     const setActive = (role) => {
@@ -295,23 +330,31 @@
         btn.classList.toggle('active', btn.getAttribute('data-role') === role);
       });
       
-      // 右侧内容
-      const data = LETTERS[role];
-      if (!data) {
+      // 右侧内容：随机选择
+      const pool = LETTERS[role];
+      if (!pool || !pool.length) {
         console.log('No data found for role:', role); // 调试信息
         return;
       }
       
+      const data = pool[Math.floor(Math.random() * pool.length)];
       console.log('Updating letter content for:', role, data); // 调试信息
       
+      // 更新右侧信件内容
       letterBox.classList.remove('role-north','role-tooth','role-bunny');
       letterBox.classList.add(data.css);
       letterContent.innerHTML = `
         <div class="letter-head">${data.head}</div>
         <p>Dear Helper,</p>
-        <p>${data.body}</p>
-        <p class="letter-sign">— The Guild</p>
+        <p>${data.body.replace(/\n/g,'</p><p>')}</p>
+        <p class="letter-sign">${data.sign}</p>
       `;
+      
+      // 同步更新左侧卡片的小副标题
+      const activeBtn = document.querySelector(`.choice[data-role="${role}"] .choice-desc`);
+      if (activeBtn && data.chip) {
+        activeBtn.textContent = data.chip;
+      }
       
       console.log('Letter content updated successfully'); // 调试信息
     };

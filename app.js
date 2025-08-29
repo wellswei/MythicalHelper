@@ -331,6 +331,16 @@
       }
     });
 
+    // 初始化：将左侧三个卡片的副标题改为多行破折格式（- item）
+    Object.keys(selectedLetters).forEach((role) => {
+      const data = selectedLetters[role];
+      const el = document.querySelector(`.choice[data-role="${role}"] .choice-desc`);
+      if (el && data?.chip) {
+        const items = data.chip.split(' · ');
+        el.innerHTML = items.map(item => `<span class="chip-item">- ${item}</span>`).join('');
+      }
+    });
+
     const setActive = (role) => {
       console.log('setActive called with role:', role); // 调试信息
       
@@ -358,12 +368,12 @@
         <p class="letter-sign">${data.sign}</p>
       `;
       
-      // 同步更新左侧卡片的小副标题
+      // 同步更新左侧卡片的小副标题（保持为多行 - item 格式，2列排布）
       const activeBtn = document.querySelector(`.choice[data-role="${role}"] .choice-desc`);
       if (activeBtn && data.chip) {
-        // 将横线分隔的格式改成列表格式
+        // 将横线分隔的格式改成小块元素，便于两列排布
         const items = data.chip.split(' · ');
-        activeBtn.innerHTML = items.map(item => `- ${item}`).join('<br>');
+        activeBtn.innerHTML = items.map(item => `<span class="chip-item">- ${item}</span>`).join('');
       }
       
       console.log('Letter content updated successfully'); // 调试信息

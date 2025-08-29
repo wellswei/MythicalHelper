@@ -687,6 +687,8 @@ select:focus-visible {
 .band-stories { background: linear-gradient(180deg, rgba(255,224,138,.08), rgba(255,255,255,0)); border-color: rgba(255,224,138,.25); }
 .band-faq { background: linear-gradient(180deg, rgba(200,230,255,.06), rgba(255,255,255,0)); border-color: rgba(200,230,255,.2); }
 .band-help { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0)); }
+/* Reduce padding for apply band to trim space above choices */
+.band-help { padding: 20px 24px; }
 
 /* Divider between sections */
 .divider { height: 1px; margin: 36px auto 0; max-width: 920px; position: relative; opacity: .8; }
@@ -696,21 +698,21 @@ select:focus-visible {
 .apply-grid { 
   display: grid; 
   grid-template-columns: 1fr 1.2fr; 
-  gap: 32px; 
+  gap: 20px; 
   align-items: stretch;
-  min-height: 600px; /* 固定最小高度，避免抖动 */
+  min-height: 380px; /* 降低整体高度，减少视觉占位 */
 }
 
 .choices { 
   display: grid; 
-  gap: 12px !important; 
+  gap: 8px; 
 }
 
 .choice { 
   text-align: left; 
-  padding: 16px !important; 
-  border-radius: 16px; 
-  border: 2px solid var(--border); 
+  padding: 12px 14px; 
+  border-radius: 14px; 
+  border: 1px solid var(--border); 
   background: rgba(255,255,255,.04); 
   color: var(--text); 
   cursor: pointer; 
@@ -749,7 +751,7 @@ select:focus-visible {
 .choice .choice-title { 
   font-weight: 700; 
   font-size: 18px;
-  margin-bottom: 6px !important;
+  margin-bottom: 4px;
   position: relative;
   z-index: 1;
 }
@@ -757,9 +759,21 @@ select:focus-visible {
 .choice .choice-desc { 
   color: var(--muted); 
   font-size: 14px; 
-  line-height: 1.4 !important;
+  line-height: 1.35;
   position: relative;
   z-index: 1;
+}
+
+/* Compact two-column chip list inside apply choices */
+.band-help .choice .choice-desc {
+  display: flex;
+  flex-wrap: wrap; /* 三列可自动换行 */
+  gap: 6px 10px; /* 行间 6px，列间 10px */
+}
+.band-help .choice .choice-desc .chip-item {
+  display: block; /* 改为块级元素，确保换行 */
+  margin-bottom: 4px; /* 每个项目之间的间距 */
+  white-space: normal; /* 允许换行 */
 }
 
 .letter-preview { 
@@ -767,11 +781,11 @@ select:focus-visible {
   border-radius: 18px; 
   background: #faf7ef; 
   box-shadow: inset 0 0 0 4px rgba(255,255,255,.6), 0 20px 50px -20px rgba(0,0,0,.6); 
-  padding: 24px 28px; 
+  padding: 16px 22px 20px; 
   position: relative; 
   overflow: hidden; 
   transition: all 0.3s ease;
-  min-height: 500px; /* 固定最小高度，避免内容变化时的抖动 */
+  min-height: 340px; /* 降低信件预览最小高度 */
   display: flex;
   flex-direction: column;
 }
@@ -850,16 +864,13 @@ select:focus-visible {
 @media (max-width: 960px) {
   .apply-grid { 
     grid-template-columns: 1fr; 
-    gap: 24px;
-    min-height: 500px; /* 小屏幕下调整最小高度 */
+    gap: 14px;
+    min-height: 360px; /* 小屏幕下调整最小高度 */
   }
-  .choice {
-    padding: 16px;
-  }
-  .letter-preview {
-    padding: 20px 24px;
-    min-height: 400px; /* 小屏幕下调整信件预览最小高度 */
-  }
+  .choice { padding: 10px; }
+  .band-help .choice .choice-desc { flex-wrap: wrap; gap: 6px 10px; }
+  .band-help .choice .choice-desc .chip-item { flex-basis: 100%; }
+  .letter-preview { padding: 14px 18px 18px; min-height: 300px; }
 }
 
 /* Step illustration */

@@ -693,7 +693,8 @@ select:focus-visible {
   display: grid; 
   grid-template-columns: 1fr 1.2fr; 
   gap: 32px; 
-  align-items: stretch; 
+  align-items: stretch;
+  min-height: 600px; /* 固定最小高度，避免抖动 */
 }
 
 .choices { 
@@ -766,6 +767,9 @@ select:focus-visible {
   position: relative; 
   overflow: hidden; 
   transition: all 0.3s ease;
+  min-height: 500px; /* 固定最小高度，避免内容变化时的抖动 */
+  display: flex;
+  flex-direction: column;
 }
 
 .letter-preview::before { 
@@ -781,22 +785,28 @@ select:focus-visible {
   font-size: 16px; 
   color: #2b2b2b; 
   line-height: 1.6;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .letter-head { 
   font-family: var(--font-decorative); 
   color: #3a2a00; 
   font-size: 20px; 
-  margin-bottom: 12px; 
+  margin-bottom: 16px; 
   font-weight: 600;
+  flex-shrink: 0; /* 防止标题被压缩 */
 }
 
 .letter-sign { 
   font-family: var(--font-decorative); 
   color: #6b4b00; 
   font-size: 22px; 
-  margin-top: 16px; 
+  margin-top: auto; /* 推到底部 */
   font-style: italic;
+  flex-shrink: 0; /* 防止签名被压缩 */
 }
 
 /* Role-styled letter skins */
@@ -828,12 +838,14 @@ select:focus-visible {
   .apply-grid { 
     grid-template-columns: 1fr; 
     gap: 24px;
+    min-height: 500px; /* 小屏幕下调整最小高度 */
   }
   .choice {
     padding: 16px;
   }
   .letter-preview {
     padding: 20px 24px;
+    min-height: 400px; /* 小屏幕下调整信件预览最小高度 */
   }
 }
 

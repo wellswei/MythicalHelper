@@ -228,6 +228,10 @@ body::before {
   font-size: 16px;
   line-height: 1.6;
 }
+
+.hero .lead:last-of-type {
+  margin-bottom: 32px; /* 最后一段副标题与按钮之间有更多间距 */
+}
 .verse { color: var(--muted); font-style: italic; margin-top: -36px; margin-bottom: 36px; }
 .actions { 
   display: inline-flex; 

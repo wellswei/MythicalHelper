@@ -164,7 +164,16 @@
   const state = { lang: guessLang() };
   function guessLang(){ const l=(navigator.language||'en').slice(0,2); return ['en','zh','es'].includes(l)?l:'en'; }
   function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key; }
-  function applyI18N(){ $$('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); }); document.documentElement.lang = state.lang; $('#lang').value = state.lang; }
+  function applyI18N(){ 
+    $$('[data-i18n]').forEach(el=>{ 
+      el.textContent = t(el.getAttribute('data-i18n')); 
+    }); 
+    document.documentElement.lang = state.lang; 
+    const langSelect = $('#lang');
+    if (langSelect) {
+      langSelect.value = state.lang; 
+    }
+  }
 
   // API (with mock)
   const http = async (path, opts={}) => {
@@ -537,10 +546,13 @@
 
   // === 现有功能保持不变 ===
   function initLang(){
-    $('#lang').onchange = (e) => {
-      state.lang = e.target.value;
-      applyI18N();
-    };
+    const langSelect = $('#lang');
+    if (langSelect) {
+      langSelect.onchange = (e) => {
+        state.lang = e.target.value;
+        applyI18N();
+      };
+    }
     applyI18N();
   }
 

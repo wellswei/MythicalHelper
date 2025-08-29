@@ -322,6 +322,15 @@
       ]
     };
 
+    // 为每个角色预先随机选择一次信件内容
+    const selectedLetters = {};
+    Object.keys(LETTERS).forEach(role => {
+      const pool = LETTERS[role];
+      if (pool && pool.length) {
+        selectedLetters[role] = pool[Math.floor(Math.random() * pool.length)];
+      }
+    });
+
     const setActive = (role) => {
       console.log('setActive called with role:', role); // 调试信息
       
@@ -330,14 +339,13 @@
         btn.classList.toggle('active', btn.getAttribute('data-role') === role);
       });
       
-      // 右侧内容：随机选择
-      const pool = LETTERS[role];
-      if (!pool || !pool.length) {
+      // 右侧内容：使用预选的信件内容
+      const data = selectedLetters[role];
+      if (!data) {
         console.log('No data found for role:', role); // 调试信息
         return;
       }
       
-      const data = pool[Math.floor(Math.random() * pool.length)];
       console.log('Updating letter content for:', role, data); // 调试信息
       
       // 更新右侧信件内容

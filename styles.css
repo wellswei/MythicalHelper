@@ -791,6 +791,15 @@ select:focus-visible {
   justify-content: flex-start;
 }
 
+.letter p {
+  margin: 0 0 12px 0;
+  text-align: left;
+}
+
+.letter p:last-child {
+  margin-bottom: 0;
+}
+
 .letter-head { 
   font-family: var(--font-decorative); 
   color: #3a2a00; 

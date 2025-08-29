@@ -772,9 +772,9 @@ select:focus-visible {
 }
 .band-help .choice .choice-desc .chip-item {
   display: block; /* 块级元素，确保换行 */
-  margin-bottom: 2px; /* 减少列表项之间的行距 */
+  margin-bottom: 1px; /* 进一步减少列表项之间的行距 */
   white-space: normal; /* 允许换行 */
-  line-height: 1.2; /* 更紧凑的行高 */
+  line-height: 1.1; /* 更紧凑的行高 */
 }
 
 .letter-preview { 
@@ -869,8 +869,7 @@ select:focus-visible {
     min-height: 360px; /* 小屏幕下调整最小高度 */
   }
   .choice { padding: 10px; }
-  .band-help .choice .choice-desc { flex-wrap: wrap; gap: 6px 10px; }
-  .band-help .choice .choice-desc .chip-item { flex-basis: 100%; }
+  .band-help .choice .choice-desc .chip-item { margin-bottom: 1px; }
   .letter-preview { padding: 14px 18px 18px; min-height: 300px; }
 }
 

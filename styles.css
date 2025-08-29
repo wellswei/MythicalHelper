@@ -766,14 +766,14 @@ select:focus-visible {
 
 /* Compact two-column chip list inside apply choices */
 .band-help .choice .choice-desc {
-  display: flex;
-  flex-wrap: wrap; /* 三列可自动换行 */
-  gap: 6px 10px; /* 行间 6px，列间 10px */
+  display: block; /* 改为块级布局，确保垂直排列 */
+  min-height: 60px; /* 确保有足够的高度容纳多行内容 */
 }
 .band-help .choice .choice-desc .chip-item {
-  display: block; /* 改为块级元素，确保换行 */
-  margin-bottom: 4px; /* 每个项目之间的间距 */
+  display: block; /* 块级元素，确保换行 */
+  margin-bottom: 6px; /* 每个项目之间的间距 */
   white-space: normal; /* 允许换行 */
+  line-height: 1.4; /* 行高 */
 }
 
 .letter-preview { 

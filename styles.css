@@ -110,6 +110,7 @@ body::before {
   font-size: 18px;
   line-height: 1.6;
 }
+.verse { color: var(--muted); font-style: italic; margin-top: -36px; margin-bottom: 36px; }
 .actions { 
   display: inline-flex; 
   gap: 16px; 
@@ -567,12 +568,27 @@ select:focus-visible {
 .letter-head { font-family: 'Uncial Antiqua','Cinzel Decorative',serif; color: #3a2a00; font-size: 18px; margin-bottom: 8px; }
 .letter-sign { font-family: 'Great Vibes', cursive; color: #6b4b00; font-size: 20px; margin-top: 8px; }
 
+/* Role-styled letter skins */
+.letter-preview.role-north { border-color: rgba(168,208,255,.5); }
+.letter-preview.role-north .letter-head { color: #2a3a6b; }
+.letter-preview.role-tooth { border-color: rgba(255,224,138,.5); }
+.letter-preview.role-tooth .letter-head { color: #6b4b00; }
+.letter-preview.role-bunny { border-color: rgba(157, 230, 180, .5); }
+.letter-preview.role-bunny .letter-head { color: #1f5a3a; }
+
 @media (max-width: 960px) {
   .apply-grid { grid-template-columns: 1fr; }
 }
 
 /* Step illustration */
 .step-illus { margin-top: 8px; opacity: .9; }
+
+/* Badges row */
+.badges { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 12px; }
+.badge { display:flex; gap: 10px; align-items: center; padding: 12px 14px; border:1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.04); }
+.badge-icon { font-size: 20px; }
+.badge-title { font-weight: 700; }
+.badge-desc { color: var(--muted); font-size: 14px; }
 
 .grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: center; }
 .illus-large { display: none; }

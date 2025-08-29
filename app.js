@@ -588,6 +588,7 @@
 
   function initApplyLetters(){
     const preview = document.getElementById('letter-content');
+    const box = document.getElementById('letter-box');
     if (!preview) return;
     const letters = {
       north_pole: {
@@ -614,6 +615,12 @@
         <p>${l.body}</p>
         <p class="letter-sign">${l.sign}</p>
       `;
+      if (box) {
+        box.classList.remove('role-north','role-tooth','role-bunny');
+        if (k==='tooth_fairy') box.classList.add('role-tooth');
+        else if (k==='spring_bunny') box.classList.add('role-bunny');
+        else box.classList.add('role-north');
+      }
     };
     document.querySelectorAll('.choice').forEach(btn => {
       const key = btn.getAttribute('data-role');

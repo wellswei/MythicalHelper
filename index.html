@@ -35,6 +35,8 @@
           <button class="btn" id="use-test" type="button">Use test account</button>
         </div>
 
+        <p class="verse">“For every young dream, a gentle grown‑up to keep the lantern lit.”</p>
+
         <div class="divider" aria-hidden="true"></div>
 
         <section class="section mt-6 band band-help" aria-labelledby="help-title">
@@ -55,7 +57,7 @@
                 <div id="sb-desc" class="choice-desc">Egg trails, garden laughter.</div>
               </button>
             </div>
-            <aside class="letter-preview" aria-live="polite">
+            <aside class="letter-preview role-north" id="letter-box" aria-live="polite">
               <div class="letter" id="letter-content">
                 <div class="letter-head">North Pole Workshop</div>
                 <p>Dear Helper,</p>
@@ -114,43 +116,27 @@
         <section class="section mt-6 band band-get" aria-labelledby="get-title">
           <h2 id="get-title">Why Mythical Helper</h2>
           <div class="box">
-            <div class="features">
-              <div class="feature">
-                <div class="feature-icon-svg" aria-hidden="true">
-                  <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
-                    <rect x="14" y="14" width="36" height="28" rx="4" ry="4" fill="#fff" opacity=".9"/>
-                    <path d="M18 22h28M18 28h20M18 34h16" stroke="#4d8dff" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M42 40l4 10 3-3 3 3 2-8" stroke="#f8d26a" stroke-width="2" fill="none" stroke-linecap="round"/>
-                  </svg>
+            <div class="badges">
+              <div class="badge">
+                <span class="badge-icon">📜</span>
+                <div class="badge-text">
+                  <div class="badge-title">Official & Verifiable</div>
+                  <div class="badge-desc">Parchment PDF, unique serial, QR ready.</div>
                 </div>
-                <h3>Official & Verifiable</h3>
-                <p>A beautiful PDF certificate with a unique serial and QR that anyone can verify on our site.</p>
               </div>
-              <div class="feature">
-                <div class="feature-icon-svg" aria-hidden="true">
-                  <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
-                    <circle cx="32" cy="32" r="30" fill="url(#g1)" opacity="0.2"/>
-                    <path d="M12 40c8-2 14-6 20-14 4 8 9 12 20 14-6 6-13 10-20 10s-14-4-20-10z" fill="#C3E1FF" opacity="0.5"/>
-                    <defs>
-                      <radialGradient id="g1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 32) rotate(90) scale(30)">
-                        <stop stop-color="#8fd3fe"/>
-                        <stop offset="1" stop-color="#4d8dff"/>
-                      </radialGradient>
-                    </defs>
-                  </svg>
+              <div class="badge">
+                <span class="badge-icon">🕊️</span>
+                <div class="badge-text">
+                  <div class="badge-title">Gentle & Simple</div>
+                  <div class="badge-desc">Email + SMS sign‑in. No passwords.</div>
                 </div>
-                <h3>Gentle & Simple</h3>
-                <p>Just email and SMS to sign in. No passwords, no fuss — designed for grown‑ups.</p>
               </div>
-              <div class="feature">
-                <div class="feature-icon-svg" aria-hidden="true">
-                  <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
-                    <path d="M22 48c-4-4-6-8-6-14 0-8 6-14 16-14s16 6 16 14c0 6-2 10-6 14" stroke="#3ddc97" stroke-width="3" fill="none" stroke-linecap="round"/>
-                    <circle cx="32" cy="34" r="4" fill="#3ddc97"/>
-                  </svg>
+              <div class="badge">
+                <span class="badge-icon">🛡️</span>
+                <div class="badge-text">
+                  <div class="badge-title">Wonder, Not Data</div>
+                  <div class="badge-desc">Minimal info. No ads. No resale.</div>
                 </div>
-                <h3>Wonder, Not Data</h3>
-                <p>We collect the minimum needed to make the magic work. No ads. No resale.</p>
               </div>
             </div>
           </div>

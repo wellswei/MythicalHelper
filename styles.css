@@ -703,12 +703,12 @@ select:focus-visible {
 
 .choices { 
   display: grid; 
-  gap: 12px; 
+  gap: 12px !important; 
 }
 
 .choice { 
   text-align: left; 
-  padding: 16px; 
+  padding: 16px !important; 
   border-radius: 16px; 
   border: 2px solid var(--border); 
   background: rgba(255,255,255,.04); 
@@ -749,7 +749,7 @@ select:focus-visible {
 .choice .choice-title { 
   font-weight: 700; 
   font-size: 18px;
-  margin-bottom: 6px;
+  margin-bottom: 6px !important;
   position: relative;
   z-index: 1;
 }
@@ -757,7 +757,7 @@ select:focus-visible {
 .choice .choice-desc { 
   color: var(--muted); 
   font-size: 14px; 
-  line-height: 1.4;
+  line-height: 1.4 !important;
   position: relative;
   z-index: 1;
 }

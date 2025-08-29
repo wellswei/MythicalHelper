@@ -390,7 +390,8 @@
   // === 在现有 init 钩子里调用 updateNav ===
   window.addEventListener('hashchange', route);
   document.addEventListener('DOMContentLoaded', ()=>{
-    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); 
+    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles();
+    initApplyLetters(); initQuickApply(); initTestAccount();
     updateNav(); route();
     initFloatingApply();
     initVerifyMini();
@@ -499,6 +500,18 @@
       verifyForm.classList.add('hidden');
       form.classList.remove('hidden');
     };
+  }
+
+  function initQuickApply(){
+    const form = document.getElementById('quick-apply-form');
+    const input = document.getElementById('quick-email');
+    if (!form || !input) return;
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const v = input.value.trim(); if (!v) return;
+      setSession({ email: v, emailVerified: false });
+      location.hash = '#/signup';
+    });
   }
 
   function initPhone(){
@@ -661,6 +674,8 @@
       btn.addEventListener('mouseenter', ()=>render(key));
       btn.addEventListener('focus', ()=>render(key));
     });
+    // Prefill from quick apply
+    try { const s = session(); if (s.email && email) email.value = s.email; } catch {}
   }
 
   function initTestAccount(){

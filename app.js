@@ -412,6 +412,77 @@
     showFloating();
   }
 
+  // === Apply Letters 动态展示 ===
+  function initApplyLetters() {
+    const choices = document.querySelectorAll('.choice');
+    const letterBox = document.getElementById('letter-box');
+    const letterContent = document.getElementById('letter-content');
+    
+    if (!choices.length || !letterBox || !letterContent) return;
+    
+    // 信件内容配置
+    const letters = {
+      north_pole: {
+        head: 'North Pole Workshop',
+        content: `Dear Helper,
+
+Snow prints mark the season's path, and we're seeking steady hands to keep the sleigh on time. If your heart is warm and your steps are sure, the Workshop welcomes you.
+
+The North Pole needs those who can navigate by starlight, care for reindeer with gentle patience, and ensure every gift reaches its destination. Your role will be crucial in maintaining the magic of Christmas.`,
+        sign: '— The Scribes of Winter'
+      },
+      tooth_fairy: {
+        head: 'Tooth Fairy Circle',
+        content: `Dear Helper,
+
+The Circle seeks those with gentle hearts and steady hands to collect precious teeth and leave tokens of courage under pillows worldwide.
+
+Your mission will be to comfort brave children, collect their fallen teeth with care, and leave behind treasures that sparkle with magic. You'll work under the cover of night, bringing joy to every young dreamer.`,
+        sign: '— The Council of Tiny Treasures'
+      },
+      spring_bunny: {
+        head: 'Spring Bunny Caravan',
+        content: `Dear Helper,
+
+Spring awakens, and the Caravan calls for those who can scatter joy across gardens and bring laughter to the breeze.
+
+You'll help hide colorful eggs in plain sight, create trails of wonder through gardens, and ensure every child discovers the magic of spring. Your role is to awaken hope and create traditions that last generations.`,
+        sign: '— The Garden Keepers'
+      }
+    };
+    
+    // 悬浮效果
+    choices.forEach(choice => {
+      choice.addEventListener('mouseenter', () => {
+        const role = choice.getAttribute('data-role');
+        const letter = letters[role];
+        
+        if (letter) {
+          // 更新信件内容
+          letterContent.innerHTML = `
+            <div class="letter-head">${letter.head}</div>
+            <div class="letter-content">${letter.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>
+            <div class="letter-sign">${letter.sign}</div>
+          `;
+          
+          // 更新样式类
+          letterBox.className = `letter-preview role-${role.split('_')[0]}`;
+          
+          // 添加活跃状态
+          choices.forEach(c => c.classList.remove('active'));
+          choice.classList.add('active');
+        }
+      });
+      
+      // 点击效果
+      choice.addEventListener('click', () => {
+        const role = choice.getAttribute('data-role');
+        // 可以在这里添加跳转逻辑
+        console.log(`Selected role: ${role}`);
+      });
+    });
+  }
+
   // === Verify mini form ===
   function initVerifyMini() {
     const form = document.getElementById('verify-mini-form');
@@ -631,51 +702,6 @@
       `;
       hero.appendChild(sparkle);
     }
-  }
-
-  function initApplyLetters(){
-    const preview = document.getElementById('letter-content');
-    const box = document.getElementById('letter-box');
-    if (!preview) return;
-    const letters = {
-      north_pole: {
-        head: 'North Pole Workshop',
-        body: 'Snow prints mark the season’s path, and we’re seeking steady hands to keep the sleigh on time. If your heart is warm and your steps are sure, the Workshop welcomes you.',
-        sign: '— The Scribes of Winter',
-      },
-      tooth_fairy: {
-        head: 'Tooth Fairy Circle',
-        body: 'Where courage meets a missing tooth, we leave a shimmer of thanks. If you delight in tiny treasures and brave smiles, your wings await their first flutter.',
-        sign: '— The Circle Keeper',
-      },
-      spring_bunny: {
-        head: 'Spring Bunny Caravan',
-        body: 'We scatter bright eggs and good cheer across quiet gardens. If you can hide hope in plain sight, hop aboard — laughter is our favorite map.',
-        sign: '— Caravan Master, Vernal Route',
-      },
-    };
-    const render = (k) => {
-      const l = letters[k] || letters.north_pole;
-      preview.innerHTML = `
-        <div class="letter-head">${l.head}</div>
-        <p>Dear Helper,</p>
-        <p>${l.body}</p>
-        <p class="letter-sign">${l.sign}</p>
-      `;
-      if (box) {
-        box.classList.remove('role-north','role-tooth','role-bunny');
-        if (k==='tooth_fairy') box.classList.add('role-tooth');
-        else if (k==='spring_bunny') box.classList.add('role-bunny');
-        else box.classList.add('role-north');
-      }
-    };
-    document.querySelectorAll('.choice').forEach(btn => {
-      const key = btn.getAttribute('data-role');
-      btn.addEventListener('mouseenter', ()=>render(key));
-      btn.addEventListener('focus', ()=>render(key));
-    });
-    // Prefill from quick apply
-    try { const s = session(); if (s.email && email) email.value = s.email; } catch {}
   }
 
   function initTestAccount(){

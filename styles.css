@@ -611,3 +611,186 @@ body::after {
 /* View fade transition */
 [data-view] { opacity: 1; transform: translateY(0); transition: opacity .28s ease, transform .28s ease; }
 [data-view].hidden { opacity: 0; transform: translateY(10px); }
+
+/* Bigger "How it works" */
+.band-steps.is-large { padding: 32px; }
+.steps-xl .step { padding: 18px; }
+.steps-xl .step-no { width: 36px; height: 36px; font-size: 16px; }
+.steps-xl .help { font-size: 15px; }
+
+/* Account */
+#acct-summary .note, #acct-certs .note { color: var(--muted); }
+#acct-certs .card h3 { font-size: 18px; }
+#acct-certs .card .btn { margin-right: 8px; }
+
+/* Billing */
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.plan { background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 14px; padding: 18px; text-align: left; }
+.plan .price { font-size: 28px; font-weight: 800; margin: 8px 0; }
+.plan .price .per { font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.plan .bullets { list-style: none; padding: 0; margin: 10px 0 16px; color: var(--muted); }
+.plan .bullets li { margin: 6px 0; }
+
+/* New layout components */
+.section { margin-bottom: 40px; }
+.section-lead { 
+  color: var(--muted); 
+  font-size: 18px; 
+  line-height: 1.6; 
+  margin: 0 auto 24px; 
+  max-width: 600px; 
+  text-align: center;
+}
+
+.band { 
+  background: rgba(255,255,255,.03); 
+  border: 1px solid var(--border); 
+  border-radius: 20px; 
+  padding: 40px; 
+  margin: 40px 0;
+}
+
+.band-steps { text-align: center; }
+.band-roles { text-align: left; }
+
+.steps { 
+  display: grid; 
+  gap: 24px; 
+  margin: 32px 0;
+}
+
+.step { 
+  display: flex; 
+  align-items: flex-start; 
+  gap: 16px; 
+  text-align: left;
+}
+
+.step-no { 
+  width: 32px; 
+  height: 32px; 
+  background: var(--primary); 
+  color: white; 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-weight: 700; 
+  font-size: 14px; 
+  flex-shrink: 0;
+}
+
+.step strong { 
+  display: block; 
+  font-size: 18px; 
+  margin-bottom: 4px; 
+  color: var(--text);
+}
+
+.step .help { 
+  color: var(--muted); 
+  line-height: 1.5;
+}
+
+.grid-2 { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 40px; 
+  align-items: center;
+}
+
+.cards { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+  gap: 20px; 
+  margin: 24px 0;
+}
+
+.card { 
+  background: rgba(255,255,255,.04); 
+  border: 1px solid var(--border); 
+  border-radius: 16px; 
+  padding: 24px; 
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.06);
+  border-color: var(--primary);
+}
+
+.card h3 { 
+  margin: 0 0 12px; 
+  font-size: 20px; 
+  color: var(--text);
+}
+
+.card p { 
+  margin: 0; 
+  color: var(--muted); 
+  line-height: 1.5;
+}
+
+.illus-large { 
+  text-align: center; 
+  opacity: 0.6;
+}
+
+.illus-placeholder { 
+  font-size: 120px; 
+  opacity: 0.3;
+}
+
+.note { 
+  font-size: 14px; 
+  color: var(--muted); 
+  font-style: italic; 
+  margin: 16px 0 0;
+}
+
+/* Magic button effect */
+.btn.magic {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn.magic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn.magic:hover::before {
+  left: 100%;
+}
+
+/* Sparkle animation */
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.sparkle {
+  animation: twinkle 3s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .band { padding: 24px; }
+  .grid-2 { grid-template-columns: 1fr; gap: 24px; }
+  .steps-xl .step { padding: 14px; }
+  .steps-xl .step-no { width: 32px; height: 32px; font-size: 14px; }
+}
+
+@media (max-width: 640px) {
+  .band { padding: 20px; }
+  .section-lead { font-size: 16px; }
+  .step { flex-direction: column; text-align: center; }
+  .step-no { align-self: center; }
+}

@@ -22,111 +22,149 @@
   const requireEmail=()=>{const s=session(); if(!s.email||!s.emailVerified) location.hash='#/signup';};
   const requirePhone=()=>{const s=session(); if(!s.email||!s.emailVerified) return location.hash='#/signup'; if(!s.phone||!s.phoneVerified) return location.hash='#/phone';};
 
+  // === 新增：会话 & 权限辅助 ===
+  const isAuthed = () => {
+    const s = session();
+    return !!(s.emailVerified && s.phoneVerified);
+  };
+  const hasMembership = () => {
+    const s = session();
+    return !!s.membershipActive;
+  };
+  function updateNav() {
+    const show = (sel, on) => {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      el.classList.toggle('hidden', !on);
+    };
+    show('[data-nav="login"]', !isAuthed());
+    show('[data-nav="account"]', isAuthed());
+    show('[data-nav="billing"]', isAuthed());
+  }
+
   // i18n dictionaries (EN primary)
   const I18N = {
     en: {
-      brand_name: 'Mythical Helper',
+      brand_name: 'Enchanted Helpers Guild',
       nav_home: 'Home', nav_join: 'Join', nav_verify: 'Verify',
       hero_title: 'Official Helper Certificates for Young Dreamers',
       hero_lead: 'Become a certified Helper from the North Pole, the Tooth Fairy Circle, or the Spring Bunny Caravan — keep the wonder alive with a scannable certificate.',
-      hero_lead_story: 'Welcome to the Mythical Helper guild — where grown‑ups become certified guardians of childhood wonder.',
       cta_start: 'Begin', cta_verify: 'Verify',
       f_secure: 'Two-Step Safeguard',
-      f_secure_desc: 'Email and SMS codes confirm you’re a grown‑up Helper.',
+      f_secure_desc: 'Email and SMS codes confirm you\'re a grown‑up Helper.',
       f_official: 'Official Certificate',
       f_official_desc: 'Unique serial + QR code for on‑site verification.',
       f_privacy: 'Wonder, Not Data',
-      f_privacy_desc: 'We collect only what’s needed for the magic.',
+      f_privacy_desc: 'We collect only what\'s needed for the magic.',
+      how_title: 'How It Works',
+      how_lead: 'A friendly, grown-up hiring flow — quick, safe, and a little magical.',
+      how_1_t: 'Messenger Owl',
+      how_1_d: 'We send a code to your email to greet you at the gate.',
+      how_2_t: 'Spring Bunny',
+      how_2_d: 'A quick SMS confirms you\'re a grown-up Helper.',
+      how_3_t: 'Scribes of the North',
+      how_3_d: 'Your parchment is stamped with a unique serial and QR.',
+      apply_title: 'Apply for the Job',
+      apply_intro: 'Adults are vetted and hired to help Santa, the Tooth Fairy, and the Spring Bunny keep wonder alive.',
+      apply_more: 'More roles on the horizon — the Guild is in talks to welcome new friends.',
+      opt_santa: 'North Pole Helper',
+      opt_santa_desc: 'Assist Santa with gift delivery logistics and reindeer management.',
+      opt_tooth: 'Tooth Fairy Circle',
+      opt_tooth_desc: 'Help collect teeth and leave coins under pillows worldwide.',
+      opt_bunny: 'Spring Bunny Caravan',
+      opt_bunny_desc: 'Distribute eggs and spread spring joy across the land.',
       signup_title: 'Join the Guild · Email',
-      signup_lore: 'Step 1: The Messenger Owl delivers your email code.',
       label_email: 'Email', label_human: 'Humanity Check', label_human_help: 'Protected by Cloudflare Turnstile.',
-      btn_email_send: 'Send Code', label_email_code: 'Verification Code', help_email_sent: 'We’ve sent a code to your email.',
+      btn_email_send: 'Send Code', label_email_code: 'Verification Code', help_email_sent: 'We\'ve sent a code to your email.',
       btn_back: 'Back', btn_continue: 'Verify & Continue',
-      phone_title: 'Join the Guild · Phone',
-      phone_lore: 'Step 2: The Spring Bunny hops by with your SMS code.',
-      label_phone: 'Phone (with country code)', label_phone_help: 'International numbers (via SNS).',
+      phone_title: 'Join the Guild · Phone', label_phone: 'Phone (with country code)', label_phone_help: 'International numbers (via SNS).',
       btn_sms_send: 'Send SMS Code', label_sms_code: 'SMS Code',
-      gen_title: 'Create Certificate', label_role: 'Choose a Role', opt_select: 'Please select', opt_santa: 'North Pole Helper', opt_tooth: 'Tooth Fairy Circle', opt_bunny: 'Spring Bunny Caravan', opt_custom: 'Custom', label_custom_role: 'Custom Role Name',
+      gen_title: 'Create Certificate', label_role: 'Choose a Role', opt_select: 'Please select', opt_custom: 'Custom', label_custom_role: 'Custom Role Name',
       label_young: 'Young Dreamer name (optional)', label_young_help: 'Shown on the certificate only.', label_policy: 'Display policy', policy_visible: 'Show on certificate', policy_hidden: 'Hide from certificate', btn_generate: 'Generate PDF',
       gen_success: 'Your certificate is ready. A copy is sent via email.', serial: 'Serial:', download: 'Download:', verify_link: 'Verify link:', go_verify: 'Go verify',
       verify_title: 'Verify Certificate', label_serial: 'Enter serial', btn_lookup: 'Lookup',
-      gen_lore: 'Step 3: The North Pole Scribes prepare your parchment.',
-      gen_roles_note: 'Now hiring more roles: Dream Guardian, Starlight Messenger, Lantern Spirit — the Guild is in talks to welcome them.',
-      cert_title: 'Certificate of Mythical Helping', cert_serial: 'Serial:', cert_sign: 'By the Council of Wonder',
+      login_title: 'Login',
+      login_intro: 'Use your email and SMS codes to sign in. If you\'re new, you\'ll create your account along the way.',
+      account_title: 'Your Account',
+      account_certs: 'Your Certificates',
+      billing_title: 'Membership',
+      plan_helper: 'Helper Guild Membership',
+      plan_b1: 'Create unlimited certificates',
+      plan_b2: 'Download printable badges',
+      plan_b3: 'Priority support',
+      subscribe_now: 'Subscribe (mock)',
+      billing_note: 'Payments are processed by Stripe (coming soon). For now, this is a demo switch to activate membership.',
       t_sent_email: 'Code sent to email', t_email_verified: 'Email verified', t_sent_sms: 'SMS sent', t_phone_verified: 'Phone verified', t_gen_ok: 'Certificate created', not_found: 'Certificate not found', status_valid: 'Valid', status_expired: 'Expired', status_revoked: 'Revoked',
-      roles_title: 'Choose Your Guild', roles_intro: 'Three classic callings — with more friends joining the guild soon.',
-      role_santa: 'North Pole Helper', role_santa_desc: 'Keep the sleigh on schedule, whisper wishes to the wind, and stamp parchment with a frosty seal.',
-      role_tooth: 'Tooth Fairy Circle', role_tooth_desc: 'Trade tiny treasures for brave smiles; leave sparkles and sweet notes where courage was shown.',
-      role_bunny: 'Spring Bunny Caravan', role_bunny_desc: 'Hide hope in plain sight — bright eggs, warm notes, and trails of laughter across the garden.',
-      roles_more: 'More roles on the horizon: Dream Guardian, Starlight Messenger, Lantern Spirit — the Guild is in talks to welcome them.',
-      how_title: 'How It Works', how_1_t: 'Messenger Owl', how_1_d: 'We send a code to your email to greet you at the gate.', how_2_t: 'Spring Bunny', how_2_d: 'A quick SMS confirms you’re a grown‑up Helper.', how_3_t: 'Scribes of the North', how_3_d: 'Your parchment is stamped with a unique serial and QR.',
-      stories_title: 'Stories from Helpers', q1: 'Our young dreamer found the QR and gasped — “It’s real!” The look was worth a thousand winter mornings.', q1_by: 'North Pole Helper, Mia', q2: 'The circle note under the pillow became our new tradition. Courage, celebrated.', q2_by: 'Tooth Fairy Circle, Luis',
-      faq_title: 'FAQ', faq_q1: 'Is this certificate official?', faq_a1: 'Each certificate has a unique serial and QR. Anyone can check status on the site (valid/expired/revoked).', faq_q2: 'What about privacy?', faq_a2: 'We ask for the minimum to make the magic work. No ads, no resale — just wonder.', faq_q3: 'Can I customize the role?', faq_a3: 'Yes — choose “Custom” on the create page to type your own title.', cta_join_now: 'Join the Guild Now',
     },
     zh: {
-      brand_name: 'Mythical Helper',
+      brand_name: '魔法助手公会',
       nav_home: '首页', nav_join: '加入', nav_verify: '验证',
-      hero_title: '为小小梦想家颁发“官方助手证书”',
+      hero_title: '为小小梦想家颁发"官方助手证书"',
       hero_lead: '成为北境工坊、牙仙之环或春野兔队的认证助手，用可扫码的证书守护仪式与惊喜。',
-      hero_lead_story: '欢迎来到 Mythical Helper —— 在这里，成年守护者将被授予守护童真之证。',
       cta_start: '开始', cta_verify: '验证',
       f_secure: '双重校验', f_secure_desc: '邮箱与短信验证码，确认你是成年助手。',
       f_official: '官方证书', f_official_desc: '唯一序列号 + 二维码，线上可查。',
       f_privacy: '守护童真', f_privacy_desc: '只收集完成魔法所需的信息。',
-      signup_title: '加入公会 · 邮箱', signup_lore: '第一步：猫头鹰信使将送来你的邮箱验证码。', label_email: '邮箱', label_human: '人机校验', label_human_help: '由 Cloudflare Turnstile 保护。',
+      how_title: '如何加入',
+      how_lead: '友好的成年人招聘流程 — 快速、安全，还带点魔法。',
+      how_1_t: '信使猫头鹰',
+      how_1_d: '我们向你的邮箱发送验证码，在门口迎接你。',
+      how_2_t: '春野兔',
+      how_2_d: '快速短信确认你是成年助手。',
+      how_3_t: '北境文书官',
+      how_3_d: '你的羊皮纸会盖上独特的序列号和二维码。',
+      apply_title: '申请职位',
+      apply_intro: '我们聘请成年人协助圣诞老人、牙仙和春野兔守护童真。',
+      apply_more: '更多角色即将到来 — 公会正在洽谈欢迎新朋友。',
+      opt_santa: '北境工坊助手',
+      opt_santa_desc: '协助圣诞老人处理礼物配送和驯鹿管理。',
+      opt_tooth: '牙仙之环助手',
+      opt_tooth_desc: '帮助收集牙齿，在枕头下留下硬币。',
+      opt_bunny: '春野兔队助手',
+      opt_bunny_desc: '分发彩蛋，在各地传播春天的欢乐。',
+      signup_title: '加入公会 · 邮箱', label_email: '邮箱', label_human: '人机校验', label_human_help: '由 Cloudflare Turnstile 保护。',
       btn_email_send: '发送验证码', label_email_code: '邮箱验证码', help_email_sent: '验证码已发送至你的邮箱。', btn_back: '返回', btn_continue: '验证并继续',
-      phone_title: '加入公会 · 手机', phone_lore: '第二步：春野兔会把短信验证码轻轻递到你手心。', label_phone: '手机号（含国家区号）', label_phone_help: '目前支持海外手机号（SNS）。', btn_sms_send: '发送短信验证码', label_sms_code: '短信验证码',
-      gen_title: '生成证书', label_role: '选择角色', opt_select: '请选择', opt_santa: '北境工坊助手', opt_tooth: '牙仙之环助手', opt_bunny: '春野兔队助手', opt_custom: '自定义', label_custom_role: '自定义角色名', label_young: '小小梦想家称呼（可选）', label_young_help: '仅用于证书显示。', label_policy: '展示策略', policy_visible: '证书上显示', policy_hidden: '证书上隐藏', btn_generate: '生成 PDF', gen_success: '证书已生成，邮件已发送副本。', serial: '序列号：', download: '下载：', verify_link: '验证链接：', go_verify: '去验证',
-      verify_title: '验证证书', label_serial: '输入序列号', btn_lookup: '查询',
-      gen_lore: '第三步：北境书记官正在誊抄你的羊皮卷。',
-      gen_roles_note: '更多角色招募中：梦境守护者、繁星信使、灯影之灵 —— 公会正在与他们洽谈加入时间。',
-      cert_title: 'Mythical Helper 官方助手证书', cert_serial: '序列号：', cert_sign: '童真议会签署',
-      t_sent_email: '验证码已发送至邮箱', t_email_verified: '邮箱已验证', t_sent_sms: '短信已发送', t_phone_verified: '手机已验证', t_gen_ok: '证书生成成功', not_found: '未找到该证书', status_valid: '有效', status_expired: '已过期', status_revoked: '已撤销',
-      roles_title: '选择你的公会', roles_intro: '三位经典伙伴，更多朋友即将加入。',
-      role_santa: '北境工坊助手', role_santa_desc: '让雪橇按星图准时出发，把愿望悄悄托付给风，并为羊皮卷盖上霜印。',
-      role_tooth: '牙仙之环助手', role_tooth_desc: '用小小礼物交换勇敢的笑容；在枕边留下微光与鼓励的字条。',
-      role_bunny: '春野兔队助手', role_bunny_desc: '把希望藏在视线所及之处——彩蛋、温暖的便笺、一路笑声穿过花园。',
-      roles_more: '更多角色在路上：梦境守护者、繁星信使、灯影之灵——公会正在洽谈迎新。',
-      how_title: '流程说明', how_1_t: '猫头鹰信使', how_1_d: '我们向你的邮箱送达验证码，作为入场问候。', how_2_t: '春野信使', how_2_d: '一条短信确认你是成年助手。', how_3_t: '北境书记官', how_3_d: '你的羊皮卷将盖上唯一序列与二维码。',
-      stories_title: '助手来信', q1: '小小梦想家扫到二维码时倒吸一口气：“是真的！” 那一眼，抵过千百个清晨。', q1_by: '北境工坊助手·Mia', q2: '枕边那张圆环便笺成了我们的新传统。把勇敢，郑重其事。', q2_by: '牙仙之环助手·Luis',
-      faq_title: '常见问题', faq_q1: '这份证书靠谱吗？', faq_a1: '每张证书都有唯一序列与二维码，可在站内查询有效、过期或撤销。', faq_q2: '隐私如何保障？', faq_a2: '只收集完成魔法所需的最少信息，不做广告、不转售，只为守护童真。', faq_q3: '可以自定义角色吗？', faq_a3: '可以。在生成页面选择“自定义角色”，输入你的专属称号即可。', cta_join_now: '现在加入公会',
+      phone_title: '加入公会 · 手机', label_phone: '手机号（含国家区号）', label_phone_help: '目前支持海外手机号（SNS）。', btn_sms_send: '发送短信验证码', label_sms_code: '短信验证码',
+      gen_title: '生成证书', label_role: '选择角色', opt_select: '请选择', opt_custom: '自定义', label_custom_role: '自定义角色名', label_young: '小小梦想家称呼（可选）', label_young_help: '仅用于证书显示。', label_policy: '展示策略', policy_visible: '证书上显示', policy_hidden: '证书上隐藏', btn_generate: '生成 PDF', gen_success: '证书已生成，邮件已发送副本。', serial: '序列号：', download: '下载：', verify_link: '验证链接：', go_verify: '去验证',
+      verify_title: '验证证书', label_serial: '输入序列号', btn_lookup: '查询', login_title: '登录', login_intro: '使用你的邮箱和短信验证码登录。如果你是新人，会在过程中创建账户。', account_title: '你的账户', account_certs: '你的证书', billing_title: '会员订阅', plan_helper: '助手公会会员', plan_b1: '创建无限证书', plan_b2: '下载可打印徽章', plan_b3: '优先支持', subscribe_now: '订阅（演示）', billing_note: '支付由 Stripe 处理（即将推出）。目前这是一个激活会员的演示开关。', t_sent_email: '验证码已发送至邮箱', t_email_verified: '邮箱已验证', t_sent_sms: '短信已发送', t_phone_verified: '手机已验证', t_gen_ok: '证书生成成功', not_found: '未找到该证书', status_valid: '有效', status_expired: '已过期', status_revoked: '已撤销',
     },
     es: {
-      brand_name: 'Mythical Helper',
+      brand_name: 'Gremio de Ayudantes Encantados',
       nav_home: 'Inicio', nav_join: 'Unirse', nav_verify: 'Verificar',
       hero_title: 'Certificados oficiales para pequeños soñadores',
       hero_lead: 'Conviértete en Ayudante del Polo Norte, Círculo del Hada de los Dientes o Caravana del Conejo de Primavera — mantén la magia con un certificado escaneable.',
-      hero_lead_story: 'Bienvenido a Mythical Helper: donde los adultos se convierten en guardianes certificados de la maravilla infantil.',
       cta_start: 'Comenzar', cta_verify: 'Verificar',
       f_secure: 'Doble verificación', f_secure_desc: 'Correo y SMS confirman que eres un Ayudante adulto.',
       f_official: 'Certificado oficial', f_official_desc: 'Serie única + código QR para verificación.',
       f_privacy: 'Magia, no datos', f_privacy_desc: 'Solo recopilamos lo necesario para la magia.',
-      signup_title: 'Unirse al gremio · Correo', signup_lore: 'Paso 1: El búho mensajero trae tu código de correo.', label_email: 'Correo', label_human: 'Comprobación humana', label_human_help: 'Protegido por Cloudflare Turnstile.', btn_email_send: 'Enviar código', label_email_code: 'Código de verificación', help_email_sent: 'Hemos enviado un código a tu correo.', btn_back: 'Atrás', btn_continue: 'Verificar y continuar',
-      phone_title: 'Unirse al gremio · Teléfono', phone_lore: 'Paso 2: El conejo primaveral salta con tu código SMS.', label_phone: 'Teléfono (con código país)', label_phone_help: 'Números internacionales (SNS).', btn_sms_send: 'Enviar código SMS', label_sms_code: 'Código SMS',
-      gen_title: 'Crear certificado', label_role: 'Elegir rol', opt_select: 'Seleccionar', opt_santa: 'Ayudante del Polo Norte', opt_tooth: 'Círculo del Hada', opt_bunny: 'Caravana de Primavera', opt_custom: 'Personalizado', label_custom_role: 'Nombre de rol personal', label_young: 'Nombre del pequeño soñador (opcional)', label_young_help: 'Solo se muestra en el certificado.', label_policy: 'Política de visibilidad', policy_visible: 'Mostrar en certificado', policy_hidden: 'Ocultar del certificado', btn_generate: 'Generar PDF', gen_success: 'Tu certificado está listo. Se envió una copia por correo.', serial: 'Serie:', download: 'Descargar:', verify_link: 'Enlace de verificación:', go_verify: 'Ir a verificar',
-      verify_title: 'Verificar certificado', label_serial: 'Ingresa la serie', btn_lookup: 'Buscar',
-      gen_lore: 'Paso 3: Los escribas del Norte preparan tu pergamino.',
-      gen_roles_note: 'Próximamente: Guardián de Sueños, Mensajero de Estrellas, Espíritu Linterna — el gremio está en conversaciones para darles la bienvenida.',
-      cert_title: 'Certificado de Ayudante Mítico', cert_serial: 'Serie:', cert_sign: 'Por el Consejo de la Maravilla',
-      t_sent_email: 'Código enviado al correo', t_email_verified: 'Correo verificado', t_sent_sms: 'SMS enviado', t_phone_verified: 'Teléfono verificado', t_gen_ok: 'Certificado creado', not_found: 'No se encontró el certificado', status_valid: 'Vigente', status_expired: 'Vencido', status_revoked: 'Revocado',
-      roles_title: 'Elige tu gremio', roles_intro: 'Tres llamados clásicos — y más amigos se unirán pronto.',
-      role_santa: 'Ayudante del Polo Norte', role_santa_desc: 'Mantén el trineo a tiempo, susurra deseos al viento y sella pergaminos con escarcha.',
-      role_tooth: 'Círculo del Hada de los Dientes', role_tooth_desc: 'Intercambia pequeños tesoros por sonrisas valientes; deja brillo y notas dulces donde hubo coraje.',
-      role_bunny: 'Caravana del Conejo de Primavera', role_bunny_desc: 'Esconde esperanza a simple vista — huevos brillantes, notas cálidas y risas por el jardín.',
-      roles_more: 'Más roles en el horizonte: Guardián de Sueños, Mensajero de Estrellas, Espíritu Linterna — el gremio está en conversaciones.',
-      how_title: 'Cómo funciona', how_1_t: 'Búho mensajero', how_1_d: 'Enviamos un código a tu correo para darte la bienvenida.', how_2_t: 'Conejo de primavera', how_2_d: 'Un SMS rápido confirma que eres un Ayudante adulto.', how_3_t: 'Escribas del Norte', how_3_d: 'Tu pergamino lleva una serie única y código QR.',
-      stories_title: 'Historias de Ayudantes', q1: 'Nuestro pequeño soñador vio el QR y exclamó: “¡Es real!” Esa mirada valió mil mañanas de invierno.', q1_by: 'Ayudante del Polo Norte, Mia', q2: 'La nota bajo la almohada se volvió tradición. El valor, celebrado.', q2_by: 'Círculo del Hada, Luis',
-      faq_title: 'FAQ', faq_q1: '¿Es oficial el certificado?', faq_a1: 'Cada certificado tiene serie única y QR. Cualquiera puede verificar el estado en el sitio.', faq_q2: '¿Y la privacidad?', faq_a2: 'Pedimos lo mínimo para que la magia funcione. Sin anuncios, sin reventa — solo maravilla.', faq_q3: '¿Puedo personalizar el rol?', faq_a3: 'Sí, elige “Personalizado” al crear e ingresa tu título.', cta_join_now: 'Únete ahora',
+      how_title: 'Cómo funciona',
+      how_lead: 'Un flujo de contratación amigable para adultos — rápido, seguro y un poco mágico.',
+      how_1_t: 'Búho Mensajero',
+      how_1_d: 'Enviamos un código a tu correo para saludarte en la puerta.',
+      how_2_t: 'Conejo de Primavera',
+      how_2_d: 'Un SMS rápido confirma que eres un Ayudante adulto.',
+      how_3_t: 'Escribas del Norte',
+      how_3_d: 'Tu pergamino se sella con una serie única y QR.',
+      apply_title: 'Solicita el Trabajo',
+      apply_intro: 'Los adultos son evaluados y contratados para ayudar a Santa, el Hada de los Dientes y el Conejo de Primavera a mantener la magia.',
+      apply_more: 'Más roles en el horizonte — el Gremio está en conversaciones para dar la bienvenida a nuevos amigos.',
+      opt_santa: 'Ayudante del Polo Norte',
+      opt_santa_desc: 'Ayuda a Santa con la logística de entrega de regalos y gestión de renos.',
+      opt_tooth: 'Círculo del Hada',
+      opt_tooth_desc: 'Ayuda a recolectar dientes y dejar monedas bajo las almohadas.',
+      opt_bunny: 'Caravana de Primavera',
+      opt_bunny_desc: 'Distribuye huevos y esparce la alegría de la primavera.',
+      signup_title: 'Unirse al gremio · Correo', label_email: 'Correo', label_human: 'Comprobación humana', label_human_help: 'Protegido por Cloudflare Turnstile.', btn_email_send: 'Enviar código', label_email_code: 'Código de verificación', help_email_sent: 'Hemos enviado un código a tu correo.', btn_back: 'Atrás', btn_continue: 'Verificar y continuar',
+      phone_title: 'Unirse al gremio · Teléfono', label_phone: 'Teléfono (con código país)', label_phone_help: 'Números internacionales (SNS).', btn_sms_send: 'Enviar código SMS', label_sms_code: 'Código SMS',
+      gen_title: 'Crear certificado', label_role: 'Elegir rol', opt_select: 'Seleccionar', opt_custom: 'Personalizado', label_custom_role: 'Nombre de rol personal', label_young: 'Nombre del pequeño soñador (opcional)', label_young_help: 'Solo se muestra en el certificado.', label_policy: 'Política de visibilidad', policy_visible: 'Mostrar en certificado', policy_hidden: 'Ocultar del certificado', btn_generate: 'Generar PDF', gen_success: 'Tu certificado está listo. Se envió una copia por correo.', serial: 'Serie:', download: 'Descargar:', verify_link: 'Enlace de verificación:', go_verify: 'Ir a verificar',
+      verify_title: 'Verificar certificado', label_serial: 'Ingresa la serie', btn_lookup: 'Buscar', login_title: 'Iniciar sesión', login_intro: 'Usa tus códigos de correo y SMS para iniciar sesión. Si eres nuevo, crearás tu cuenta en el camino.', account_title: 'Tu cuenta', account_certs: 'Tus certificados', billing_title: 'Membresía', plan_helper: 'Membresía del Gremio de Ayudantes', plan_b1: 'Crear certificados ilimitados', plan_b2: 'Descargar insignias imprimibles', plan_b3: 'Soporte prioritario', subscribe_now: 'Suscribirse (demo)', billing_note: 'Los pagos son procesados por Stripe (próximamente). Por ahora, este es un interruptor de demostración para activar la membresía.', t_sent_email: 'Código enviado al correo', t_email_verified: 'Correo verificado', t_sent_sms: 'SMS enviado', t_phone_verified: 'Teléfono verificado', t_gen_ok: 'Certificado creado', not_found: 'No se encontró el certificado', status_valid: 'Vigente', status_expired: 'Vencido', status_revoked: 'Revocado',
     }
   };
 
-  const state = { lang: 'en' };
-  function t(key){ return (I18N.en && I18N.en[key]) || key; }
-  function applyI18N(){
-    $$('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
-    document.documentElement.lang = state.lang;
-    const sel = $('#lang'); if (sel) sel.value = state.lang;
-  }
+  const state = { lang: guessLang() };
+  function guessLang(){ const l=(navigator.language||'en').slice(0,2); return ['en','zh','es'].includes(l)?l:'en'; }
+  function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key; }
+  function applyI18N(){ $$('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); }); document.documentElement.lang = state.lang; $('#lang').value = state.lang; }
 
   // API (with mock)
   const http = async (path, opts={}) => {
@@ -142,135 +180,409 @@
     async emailOtp({email, turnstileToken}){
       if(!email) throw new Error('Email required');
       if(!CFG.mock) return http('/auth/email/otp',{method:'POST',body:JSON.stringify({email,turnstile_token:turnstileToken})});
-      const map=readLS('mh_email_codes',{}); const code=rndCode(); map[email]={code,ts:Date.now()}; writeLS('mh_email_codes',map); return {ok:true,mock:true,code};
+      await sleep(1000);
+      const code = rndCode();
+      writeLS('email_otp', {email, code, time: Date.now()});
+      console.log('Mock: Email OTP sent:', code);
+      return {success: true, message: 'Code sent'};
     },
     async emailVerify({email, code}){
-      if(!email||!code) throw new Error('Code required');
+      if(!email||!code) throw new Error('Email and code required');
       if(!CFG.mock) return http('/auth/email/verify',{method:'POST',body:JSON.stringify({email,code})});
-      const map=readLS('mh_email_codes',{}); if(!map[email]||map[email].code!==code) throw new Error('Invalid code'); return {ok:true,token:'mock-email'};
+      const stored = readLS('email_otp', {});
+      if(stored.email !== email || stored.code !== code) throw new Error('Invalid code');
+      if(Date.now() - stored.time > 10*60*1000) throw new Error('Code expired');
+      localStorage.removeItem('email_otp');
+      return {success: true, message: 'Email verified'};
     },
     async smsOtp({phone}){
       if(!phone) throw new Error('Phone required');
-      if(!CFG.mock) return http('/auth/phone/otp',{method:'POST',body:JSON.stringify({phone})});
-      const map=readLS('mh_sms_codes',{}); const code=rndCode(); map[phone]={code,ts:Date.now()}; writeLS('mh_sms_codes',map); return {ok:true,mock:true,code};
+      if(!CFG.mock) return http('/auth/sms/otp',{method:'POST',body:JSON.stringify({phone})});
+      await sleep(1000);
+      const code = rndCode();
+      writeLS('sms_otp', {phone, code, time: Date.now()});
+      console.log('Mock: SMS OTP sent:', code);
+      return {success: true, message: 'Code sent'};
     },
-    async smsVerify({phone,code}){
-      if(!CFG.mock) return http('/auth/phone/verify',{method:'POST',body:JSON.stringify({phone,code})});
-      const map=readLS('mh_sms_codes',{}); if(!map[phone]||map[phone].code!==code) throw new Error('Invalid code'); return {ok:true,token:'mock-sms'};
+    async smsVerify({phone, code}){
+      if(!phone||!code) throw new Error('Phone and code required');
+      if(!CFG.mock) return http('/auth/sms/verify',{method:'POST',body:JSON.stringify({phone,code})});
+      const stored = readLS('sms_otp', {});
+      if(stored.phone !== phone || stored.code !== code) throw new Error('Invalid code');
+      if(Date.now() - stored.time > 10*60*1000) throw new Error('Code expired');
+      localStorage.removeItem('sms_otp');
+      return {success: true, message: 'Phone verified'};
     },
-    async generate({role, youngName, displayPolicy}){
+    async createCert({role, youngName, displayPolicy}){
       if(!role) throw new Error('Role required');
-      if(!CFG.mock) return http('/certificates',{method:'POST',body:JSON.stringify({role, child_name:youngName, display_policy:displayPolicy})});
-      const serial=mkSerial(); const now=Date.now(); const expires=now+365*24*3600*1000; const verifyUrl = `${location.origin}${location.pathname}#/verify?s=${encodeURIComponent(serial)}`;
-      const db=readLS('mh_certs',{}); db[serial]={serial,role,youngName,displayPolicy,status:'valid',createdAt:now,expiresAt:expires}; writeLS('mh_certs',db);
-      const pdfUrl='data:application/pdf;base64,'+btoa('%PDF-1.4\n%mock-pdf\n');
-      return {ok:true,serial,download_url:pdfUrl,verify_url:verifyUrl};
+      if(!CFG.mock) return http('/certificates',{method:'POST',body:JSON.stringify({role,youngName,displayPolicy})});
+      await sleep(1500);
+      const serial = mkSerial();
+      const cert = {
+        id: Date.now(),
+        serial,
+        role: role === 'custom' ? (youngName || 'Custom Helper') : role,
+        youngName: displayPolicy === 'visible' ? youngName : undefined,
+        displayPolicy,
+        createdAt: new Date().toISOString(),
+        status: 'valid',
+        download_url: `#/cert/${serial}`,
+        verify_url: `#/verify?s=${serial}`
+      };
+      const db = readLS('mh_certs', {});
+      db[serial] = cert;
+      writeLS('mh_certs', db);
+      return cert;
     },
-    async status({serial}){
-      if(!CFG.mock) return http(`/certificates/${encodeURIComponent(serial)}`);
-      const db=readLS('mh_certs',{}); const it=db[serial]; if(!it) return {ok:false,status:'not_found'}; const now=Date.now(); let st=it.status; if(now>it.expiresAt) st='expired'; return {ok:true,status:st, ...it};
+    async verifyCert(serial){
+      if(!serial) throw new Error('Serial required');
+      if(!CFG.mock) return http(`/certificates/${serial}`);
+      await sleep(800);
+      const db = readLS('mh_certs', {});
+      const cert = db[serial];
+      if(!cert) return {status: 'not_found'};
+      return {status: cert.status, ...cert};
     }
   };
 
-  // Router
-  const views = ['home','signup','phone','generate','verify'];
-  function show(view){ views.forEach(v=>{ const el=$(`[data-view="${v}"]`); if(el) el.classList.toggle('hidden', v!==view); });
-    $$('.nav a').forEach(a=>a.classList.toggle('active', a.getAttribute('href')===`#/${view==='home'?'':view}`)); }
+  // === 路由：增加 login / account / billing & 守卫 ===
+  const views = ['home','signup','phone','generate','verify','login','account','billing'];
+  function show(view){
+    views.forEach(v=>{
+      const el = document.querySelector(`[data-view="${v}"]`);
+      if (el) el.classList.toggle('hidden', v !== view);
+    });
+    document.querySelectorAll('.nav a').forEach(a=>{
+      const want = a.getAttribute('href') === `#/${view==='home'?'':view}`;
+      a.classList.toggle('active', want);
+    });
+    updateNav();
+  }
+
   async function route(){
     const url = new URL(location.href);
     const hash = (location.hash||'#/').replace(/^#\//,'');
     const [seg] = hash.split('?')[0].split('/');
     const view = seg || 'home';
-    if(view==='signup') requireEmail(); // allow direct
-    if(view==='phone') requireEmail();
-    if(view==='generate') requirePhone();
+
+    // 视图守卫
+    if (view === 'generate') {
+      if (!isAuthed()) return location.hash = '#/login';
+      if (!hasMembership()) return location.hash = '#/billing';
+    }
+    if (view === 'phone') {
+      if (!session().emailVerified) return location.hash = '#/signup';
+    }
+    if (view === 'account' || view === 'billing') {
+      if (!isAuthed()) return location.hash = '#/login';
+    }
+
     show(view);
-    if(view==='verify') { const s=new URLSearchParams(url.hash.split('?')[1]||'').get('s'); if(s) { const input=$('#serial'); if(input) input.value=s; await doLookup(s); } }
+
+    if (view === 'verify') {
+      const s=new URLSearchParams(url.hash.split('?')[1]||'').get('s');
+      if (s) { const input=document.querySelector('#serial'); if(input) input.value=s; await doLookup(s); }
+    }
+    if (view === 'account') initAccount();
+    if (view === 'billing') initBilling();
+    if (view === 'login') updateNav();
   }
 
-  // Email step
-  function initEmail(){
-    const tsEl = $('#cf-turnstile'); if(tsEl) tsEl.setAttribute('data-sitekey', CFG.turnstileSiteKey);
-    const emailForm = $('#email-form'); const verifyForm = $('#email-verify-form');
-    emailForm?.addEventListener('submit', async (e)=>{
-      e.preventDefault(); const { email } = formToJSON(emailForm);
-      try{ const token = window.turnstile?.getResponse?.(tsEl) || 'mock-turnstile-token'; const res = await API.emailOtp({email, turnstileToken:token}); if(res.mock&&res.code) toast(`Mock: ${res.code}`); toast('Code sent to email'); setSession({email, emailVerified:false}); emailForm.classList.add('hidden'); verifyForm.classList.remove('hidden'); }
-      catch(err){ toast(err.message||'Send failed'); }
-    });
-    $('#back-edit-email')?.addEventListener('click', ()=>{ verifyForm.classList.add('hidden'); emailForm.classList.remove('hidden'); });
-    verifyForm?.addEventListener('submit', async (e)=>{
-      e.preventDefault(); const { email } = session(); const { code } = formToJSON(verifyForm);
-      try{ await API.emailVerify({email, code}); setSession({emailVerified:true}); toast('Email verified'); await sleep(300); location.hash='#/phone'; }
-      catch(err){ toast(err.message||'Verify failed'); }
-    });
-  }
-
-  // Phone step
-  function initPhone(){
-    const phoneForm = $('#phone-form'); const verifyForm = $('#phone-verify-form');
-    phoneForm?.addEventListener('submit', async (e)=>{
-      e.preventDefault(); const { phone } = formToJSON(phoneForm);
-      try{ const res = await API.smsOtp({phone}); if(res.mock&&res.code) toast(`Mock: ${res.code}`); setSession({phone, phoneVerified:false}); toast('SMS sent'); phoneForm.classList.add('hidden'); verifyForm.classList.remove('hidden'); }
-      catch(err){ toast(err.message||'Send failed'); }
-    });
-    $('#back-edit-phone')?.addEventListener('click', ()=>{ verifyForm.classList.add('hidden'); phoneForm.classList.remove('hidden'); });
-    verifyForm?.addEventListener('submit', async (e)=>{
-      e.preventDefault(); const { phone } = session(); const { code } = formToJSON(verifyForm);
-      try{ await API.smsVerify({phone, code}); setSession({phoneVerified:true}); toast('Phone verified'); await sleep(300); location.hash='#/generate'; }
-      catch(err){ toast(err.message||'Verify failed'); }
-    });
-  }
-
-  // Generate
-  function initGenerate(){
-    const form = $('#gen-form'); const roleEl = $('#role'); const customField = $('#custom-role-field');
-    roleEl?.addEventListener('change', ()=>{ customField.classList.toggle('hidden', roleEl.value!=='custom'); });
-    // Live preview
-    const roleText=()=>{
-      const v=roleEl.value; const opt=roleEl.options[roleEl.selectedIndex];
-      return v==='custom' ? ($('#customRole').value||'Custom') : (opt?.textContent||'—');
+  // === 会员（缴费）页：mock 订阅 ===
+  function initBilling(){
+    const btn = document.querySelector('#btn-subscribe');
+    if (!btn) return;
+    btn.onclick = () => {
+      setSession({ membershipActive: true, membershipSince: Date.now() });
+      toast('Membership activated (demo)');
+      updateNav();
+      setTimeout(()=> location.hash = '#/generate', 300);
     };
-    const updatePreview=(serial)=>{
-      $('#preview-role').textContent = roleText();
-      $('#preview-name').textContent = ($('#youngName').value || 'Young Dreamer');
-      if (serial) $('#preview-serial').textContent = serial;
-    };
-    roleEl?.addEventListener('input', ()=>updatePreview());
-    $('#customRole')?.addEventListener('input', ()=>updatePreview());
-    $('#youngName')?.addEventListener('input', ()=>updatePreview());
-    updatePreview();
-    form?.addEventListener('submit', async (e)=>{
-      e.preventDefault(); let { role, customRole, youngName, displayPolicy } = formToJSON(form); if(role==='custom'){ if(!customRole) return toast('Please enter a custom role'); role = customRole; }
-      try{ const res = await API.generate({role, youngName, displayPolicy}); $('#res-serial').textContent=res.serial; const dl=$('#res-download'); dl.href=res.download_url; const v=$('#res-verify'); v.href=res.verify_url; v.textContent=res.verify_url; form.classList.add('hidden'); $('#gen-result').classList.remove('hidden'); toast('Certificate created'); }
-      catch(err){ toast(err.message||'Generate failed'); }
+  }
+
+  // === 账号页：展示资料 + 证书列表 + Badge 导出 ===
+  function initAccount(){
+    const box = document.querySelector('#acct-summary');
+    const list = document.querySelector('#acct-certs');
+    if (!box || !list) return;
+
+    const s = session();
+    const status = [
+      `<div><strong>Email:</strong> ${s.email||'-'} ${s.emailVerified? '✓':''}</div>`,
+      `<div><strong>Phone:</strong> ${s.phone||'-'} ${s.phoneVerified? '✓':''}</div>`,
+      `<div><strong>Membership:</strong> ${hasMembership()? 'Active':'Inactive'}</div>`,
+    ].join('');
+    box.innerHTML = status;
+
+    // 证书列表（localStorage mock）
+    const db = (()=>{
+      try { return JSON.parse(localStorage.getItem('mh_certs')||'{}'); } catch { return {}; }
+    })();
+    const rows = Object.values(db);
+    if (!rows.length) {
+      list.innerHTML = `<div class="note">No certificates yet. <a href="#/generate">Create one</a>.</div>`;
+      return;
+    }
+
+    list.innerHTML = '';
+    rows.forEach(it=>{
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `
+        <h3>${it.role || 'Helper'}</h3>
+        <p class="mt-2"><strong>Serial:</strong> ${it.serial}</p>
+        <div class="mt-3">
+          <a class="btn" href="${it.download_url||'#'}" ${it.download_url?'target="_blank"':''}>PDF</a>
+          <button class="btn" data-badge="${it.serial}">Badge</button>
+          <a class="btn" href="#/verify?s=${encodeURIComponent(it.serial)}">Verify</a>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    // Badge 按钮：导出 PNG（前端生成）
+    list.querySelectorAll('button[data-badge]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const serial = btn.getAttribute('data-badge');
+        const rec = rows.find(r=>r.serial===serial);
+        const url = await makeBadgePNG({
+          title: 'Mythical Helper',
+          role: rec?.role || 'Helper',
+          serial
+        });
+        const a = document.createElement('a');
+        a.href = url; a.download = `${serial}-badge.png`; a.click();
+      });
     });
   }
 
-  // Verify
-  async function doLookup(serial){ try{ const r = await API.status({serial}); if(!r.ok) throw new Error(r.status||'not_found'); renderStatus(r); } catch(err){ renderNotFound(); } }
-  function renderStatus(d){ const box=$('#result'); const created=d.createdAt?new Date(d.createdAt).toLocaleString():''; const expires=d.expiresAt?new Date(d.expiresAt).toLocaleDateString():''; const statusMap={valid:'Valid', expired:'Expired', revoked:'Revoked'}; box.classList.remove('hidden'); box.className='panel'; box.innerHTML=`
-    <div class="list">
-      <div><strong>Serial:</strong> ${d.serial}</div>
-      ${d.role?`<div><strong>Role:</strong> ${d.role}</div>`:''}
-      ${d.youngName?`<div><strong>Young Dreamer:</strong> ${d.youngName}</div>`:''}
-      ${d.createdAt?`<div><strong>Created:</strong> ${created}</div>`:''}
-      ${d.expiresAt?`<div><strong>Expires:</strong> ${expires}</div>`:''}
-      <div><strong>Status:</strong> ${statusMap[d.status]||d.status}</div>
-    </div>`; }
-  function renderNotFound(){ const box=$('#result'); box.classList.remove('hidden'); box.className='alert danger'; box.textContent='Certificate not found'; }
-  function initVerify(){ const form=$('#verify-form'); form?.addEventListener('submit', async (e)=>{ e.preventDefault(); const { serial } = formToJSON(form); await doLookup(serial.trim()); }); }
+  // === Badge 生成（Canvas） ===
+  async function makeBadgePNG({title, role, serial}){
+    const size = 512;
+    const c = document.createElement('canvas');
+    c.width = size; c.height = size;
+    const ctx = c.getContext('2d');
 
-  // Lang switch
-  function initLang(){ const sel=$('#lang'); if (sel) sel.addEventListener('change', ()=>{ state.lang=sel.value; applyI18N(); }); applyI18N(); }
+    // 背景渐变
+    const g = ctx.createLinearGradient(0,0,size,size);
+    g.addColorStop(0,'#a8d0ff');
+    g.addColorStop(1,'#ffe08a');
+    ctx.fillStyle = g; ctx.fillRect(0,0,size,size);
 
-  // Sparkles on brand logo + magic button hover
-  function spawnSparks(parent, count=6){ const rect = parent.getBoundingClientRect(); for(let i=0;i<count;i++){ const s=document.createElement('span'); s.className='spark'; const x=Math.random()*parent.clientWidth; const y=parent.clientHeight*0.6 + Math.random()*6; s.style.left = (x-3)+'px'; s.style.top = (y-3)+'px'; parent.appendChild(s); setTimeout(()=>s.remove(), 800); } }
-  function initSparkles(){ const logo=$('.brand .logo'); if(logo){ logo.style.cursor='pointer'; logo.addEventListener('click', ()=>spawnSparks(logo,10)); }
-    $$('.btn.magic').forEach(btn=>{ btn.addEventListener('mouseenter', ()=>spawnSparks(btn,8)); }); }
+    // 圆形徽章
+    ctx.beginPath(); ctx.arc(size/2,size/2,size/2-12,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,.85)'; ctx.fill();
+    ctx.strokeStyle='rgba(77,141,255,.5)'; ctx.lineWidth=6; ctx.stroke();
 
-  // Init
+    // 文案
+    ctx.fillStyle='#1d2a4a'; ctx.textAlign='center';
+    ctx.font='700 28px "Inter", system-ui'; ctx.fillText(title, size/2, size*0.32);
+    ctx.font='700 24px Inter, system-ui'; ctx.fillText(role, size/2, size*0.50);
+    ctx.font='500 18px Inter, system-ui'; ctx.fillText(serial, size/2, size*0.66);
+
+    // 小星星点缀
+    for(let i=0;i<18;i++){
+      const x = Math.random()*size, y=Math.random()*size; const r = Math.random()*2+0.8;
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='rgba(77,141,255,.35)'; ctx.fill();
+    }
+    return c.toDataURL('image/png');
+  }
+
+  // === 在现有 init 钩子里调用 updateNav ===
   window.addEventListener('hashchange', route);
   document.addEventListener('DOMContentLoaded', ()=>{
-    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); route();
+    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); 
+    updateNav(); route();
   });
+
+  // === I18N：新增一些键（可选，最少把英文加上就行） ===
+  Object.assign(I18N.en, {
+    how_lead: 'A friendly, grown-up hiring flow — quick, safe, and a little magical.',
+    login_title: 'Login',
+    login_intro: 'Use your email and SMS codes to sign in. If you\'re new, you\'ll create your account along the way.',
+    account_title: 'Your Account',
+    account_certs: 'Your Certificates',
+    billing_title: 'Membership',
+    plan_helper: 'Helper Guild Membership',
+    plan_b1: 'Create unlimited certificates',
+    plan_b2: 'Download printable badges',
+    plan_b3: 'Priority support',
+    subscribe_now: 'Subscribe (mock)',
+    apply_title: 'Apply for the Job',
+    apply_intro: 'Adults are vetted and hired to help Santa, the Tooth Fairy, and the Spring Bunny keep wonder alive.',
+    apply_more: 'More roles on the horizon — the Guild is in talks to welcome new friends.'
+  });
+
+  // === 登录完成时，标记已认证 ===
+  // 在你现有的手机验证成功后，添加：
+  /*
+    setSession({ phoneVerified:true, authenticated:true });
+    updateNav();
+  */
+
+  // === 现有功能保持不变 ===
+  function initLang(){
+    $('#lang').onchange = (e) => {
+      state.lang = e.target.value;
+      applyI18N();
+    };
+    applyI18N();
+  }
+
+  function initEmail(){
+    const form = $('#email-form');
+    const verifyForm = $('#email-verify-form');
+    const email = $('#email');
+    const code = $('#email-code');
+    const backBtn = $('#back-edit-email');
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = formToJSON(form);
+      try {
+        await API.emailOtp(data);
+        toast(t('t_sent_email'));
+        form.classList.add('hidden');
+        verifyForm.classList.remove('hidden');
+      } catch (err) {
+        toast(err.message, 4000);
+      }
+    };
+
+    verifyForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = formToJSON(verifyForm);
+      try {
+        await API.emailVerify(data);
+        setSession({ email: email.value, emailVerified: true });
+        toast(t('t_email_verified'));
+        location.hash = '#/phone';
+      } catch (err) {
+        toast(err.message, 4000);
+      }
+    };
+
+    backBtn.onclick = () => {
+      verifyForm.classList.add('hidden');
+      form.classList.remove('hidden');
+    };
+  }
+
+  function initPhone(){
+    const form = $('#phone-form');
+    const verifyForm = $('#phone-verify-form');
+    const phone = $('#phone');
+    const code = $('#sms-code');
+    const backBtn = $('#back-edit-phone');
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = formToJSON(form);
+      try {
+        await API.smsOtp(data);
+        toast(t('t_sent_sms'));
+        form.classList.add('hidden');
+        verifyForm.classList.remove('hidden');
+      } catch (err) {
+        toast(err.message, 4000);
+      }
+    };
+
+    verifyForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = formToJSON(verifyForm);
+      try {
+        await API.smsVerify(data);
+        setSession({ phone: phone.value, phoneVerified: true, authenticated: true });
+        toast(t('t_phone_verified'));
+        updateNav();
+        location.hash = '#/generate';
+      } catch (err) {
+        toast(err.message, 4000);
+      }
+    };
+
+    backBtn.onclick = () => {
+      verifyForm.classList.add('hidden');
+      form.classList.remove('hidden');
+    };
+  }
+
+  function initGenerate(){
+    const form = $('#gen-form');
+    const role = $('#role');
+    const customField = $('#custom-role-field');
+    const result = $('#gen-result');
+
+    role.onchange = () => {
+      customField.classList.toggle('hidden', role.value !== 'custom');
+    };
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = formToJSON(form);
+      try {
+        const cert = await API.createCert(data);
+        toast(t('t_gen_ok'));
+        $('#res-serial').textContent = cert.serial;
+        $('#res-download').href = cert.download_url;
+        $('#res-verify').href = cert.verify_url;
+        $('#res-verify').textContent = cert.verify_url;
+        result.classList.remove('hidden');
+        form.classList.add('hidden');
+      } catch (err) {
+        toast(err.message, 4000);
+      }
+    };
+  }
+
+  function initVerify(){
+    const form = $('#verify-form');
+    const result = $('#result');
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = formToJSON(form);
+      await doLookup(data.serial);
+    };
+  }
+
+  async function doLookup(serial){
+    const result = $('#result');
+    try {
+      const cert = await API.verifyCert(serial);
+      if (cert.status === 'not_found') {
+        result.innerHTML = `<div class="alert danger">${t('not_found')}</div>`;
+      } else {
+        const status = cert.status === 'valid' ? 'success' : 'danger';
+        result.innerHTML = `<div class="alert ${status}">Status: ${t(`status_${cert.status}`)}</div>`;
+      }
+      result.classList.remove('hidden');
+    } catch (err) {
+      result.innerHTML = `<div class="alert danger">${err.message}</div>`;
+      result.classList.remove('hidden');
+    }
+  }
+
+  function initSparkles(){
+    // 简单的星星动画效果
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    
+    for (let i = 0; i < 20; i++) {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'sparkle';
+      sparkle.style.cssText = `
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: var(--accent);
+        border-radius: 50%;
+        left: ${Math.random() * 100}%;
+        top: ${Math.random() * 100}%;
+        animation: twinkle ${2 + Math.random() * 3}s infinite;
+        opacity: 0;
+      `;
+      hero.appendChild(sparkle);
+    }
+  }
 })();

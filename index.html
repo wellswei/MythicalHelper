@@ -15,18 +15,13 @@
     <header class="site-header">
       <div class="container">
         <div class="brand">
-          <span class="logo">✨</span>
-          <span class="name" data-i18n="brand_name">Mythical Helper</span>
+          <img class="logo" src="/logo.png" alt="Mythical Helper logo" />
+          <span class="name">Mythical Helper</span>
         </div>
         <nav class="nav">
-          <a href="#/" data-i18n="nav_home" class="active">Home</a>
-          <a href="#/signup" data-i18n="nav_join">Join</a>
-          <a href="#/verify" data-i18n="nav_verify">Verify</a>
-          <select id="lang" style="margin-left:12px;">
-            <option value="en">EN</option>
-            <option value="zh">中文</option>
-            <option value="es">ES</option>
-          </select>
+          <a href="#/" class="active">Home</a>
+          <a href="#/signup">Join</a>
+          <a href="#/verify">Verify</a>
         </nav>
       </div>
     </header>
@@ -79,60 +74,79 @@
           </div>
         </section>
 
-        <section class="section mt-6" aria-labelledby="roles-title">
-          <h2 id="roles-title" data-i18n="roles_title">Choose Your Guild</h2>
-          <p class="section-lead" data-i18n="roles_intro">Three classic callings — with more friends joining the guild soon.</p>
+        <section class="section mt-6 band band-roles" aria-labelledby="roles-title">
+          <div class="grid-2">
+            <div>
+          <h2 id="roles-title">Choose Your Guild</h2>
+          <p class="section-lead">Three classic callings — with more friends joining the guild soon.</p>
           <div class="cards">
             <article class="card">
               <div class="card-illus" aria-hidden="true">
                 <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" fill="url(#r1)" opacity=".2"/><path d="M22 40l10-18 10 18H22z" fill="#fff" opacity=".9"/><circle cx="22" cy="18" r="4" fill="#cde7ff"/><defs><linearGradient id="r1" x1="0" y1="0" x2="64" y2="64"><stop stop-color="#a8d0ff"/><stop offset="1" stop-color="#ffe08a"/></linearGradient></defs></svg>
               </div>
-              <h3 data-i18n="role_santa">North Pole Helper</h3>
-              <p data-i18n="role_santa_desc">Keep the sleigh on schedule, whisper wishes to the wind, and stamp parchment with a frosty seal.</p>
+              <h3>North Pole Helper</h3>
+              <p>Keep the sleigh on schedule, whisper wishes to the wind, and stamp parchment with a frosty seal.</p>
             </article>
             <article class="card">
               <div class="card-illus" aria-hidden="true">
                 <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" fill="url(#r2)" opacity=".18"/><path d="M18 30l14-10 14 10-14 10-14-10z" fill="#fff" opacity=".95"/><path d="M32 20v24" stroke="#4d8dff" stroke-width="2"/></svg>
               </div>
-              <h3 data-i18n="role_tooth">Tooth Fairy Circle</h3>
-              <p data-i18n="role_tooth_desc">Trade tiny treasures for brave smiles; leave sparkles and sweet notes where courage was shown.</p>
+              <h3>Tooth Fairy Circle</h3>
+              <p>Trade tiny treasures for brave smiles; leave sparkles and sweet notes where courage was shown.</p>
             </article>
             <article class="card">
               <div class="card-illus" aria-hidden="true">
                 <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" fill="url(#r3)" opacity=".18"/><path d="M22 44c6-2 10-8 12-16 4 6 8 10 12 12" stroke="#f8d26a" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="24" r="4" fill="#fff"/></svg>
               </div>
-              <h3 data-i18n="role_bunny">Spring Bunny Caravan</h3>
-              <p data-i18n="role_bunny_desc">Hide hope in plain sight — bright eggs, warm notes, and trails of laughter across the garden.</p>
+              <h3>Spring Bunny Caravan</h3>
+              <p>Hide hope in plain sight — bright eggs, warm notes, and trails of laughter across the garden.</p>
             </article>
           </div>
-          <p class="note" data-i18n="roles_more">More roles on the horizon: Dream Guardian, Starlight Messenger, Lantern Spirit — the Guild is in talks to welcome them.</p>
+          <p class="note">More roles on the horizon: Dream Guardian, Starlight Messenger, Lantern Spirit — the Guild is in talks to welcome them.</p>
+            </div>
+            <aside class="illus-large" aria-hidden="true">
+              <svg width="560" height="360" viewBox="0 0 560 360" fill="none">
+                <defs>
+                  <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+                    <stop stop-color="#a8d0ff"/>
+                    <stop offset="1" stop-color="#ffe08a"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="420" cy="80" r="46" fill="#fff" opacity=".85"/>
+                <path d="M60 260c70-60 160-60 230 0 40 28 72 36 120 36-40 36-88 56-140 56-80 0-140-36-210-92z" fill="#cde7ff" opacity=".5"/>
+                <path d="M380 120l40 28 50-28M420 148v50" stroke="#4d8dff" stroke-width="4" stroke-linecap="round"/>
+                <path d="M140 220c8-30 30-40 46-24 24 24-14 48-8 72 20 14 54 22 86 22" stroke="#f8d26a" stroke-width="6" stroke-linecap="round"/>
+                <path d="M200 160c0-32 30-72 38-72s16 40 16 64" stroke="#4d8dff" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </aside>
+          </div>
         </section>
 
-        <section class="section mt-6" aria-labelledby="how-title">
-          <h2 id="how-title" data-i18n="how_title">How It Works</h2>
+        <section class="section mt-6 band band-steps" aria-labelledby="how-title">
+          <h2 id="how-title">How It Works</h2>
           <div class="steps">
-            <div class="step"><span class="step-no">1</span><div><strong data-i18n="how_1_t">Messenger Owl</strong><div class="help" data-i18n="how_1_d">We send a code to your email to greet you at the gate.</div></div></div>
-            <div class="step"><span class="step-no">2</span><div><strong data-i18n="how_2_t">Spring Bunny</strong><div class="help" data-i18n="how_2_d">A quick SMS confirms you’re a grown‑up Helper.</div></div></div>
-            <div class="step"><span class="step-no">3</span><div><strong data-i18n="how_3_t">Scribes of the North</strong><div class="help" data-i18n="how_3_d">Your parchment is stamped with a unique serial and QR.</div></div></div>
+            <div class="step"><span class="step-no">1</span><div><strong>Messenger Owl</strong><div class="help">We send a code to your email to greet you at the gate.</div></div></div>
+            <div class="step"><span class="step-no">2</span><div><strong>Spring Bunny</strong><div class="help">A quick SMS confirms you’re a grown‑up Helper.</div></div></div>
+            <div class="step"><span class="step-no">3</span><div><strong>Scribes of the North</strong><div class="help">Your parchment is stamped with a unique serial and QR.</div></div></div>
           </div>
         </section>
 
-        <section class="section mt-6" aria-labelledby="stories-title">
-          <h2 id="stories-title" data-i18n="stories_title">Stories from Helpers</h2>
+        <section class="section mt-6 band band-stories" aria-labelledby="stories-title">
+          <h2 id="stories-title">Stories from Helpers</h2>
           <div class="quotes">
-            <blockquote class="quote">“<span data-i18n="q1">Our young dreamer found the QR and gasped — ‘It’s real!’ The look was worth a thousand winter mornings.</span>” <span class="by">— <span data-i18n="q1_by">North Pole Helper, Mia</span></span></blockquote>
-            <blockquote class="quote">“<span data-i18n="q2">The circle note under the pillow became our new tradition. Courage, celebrated.</span>” <span class="by">— <span data-i18n="q2_by">Tooth Fairy Circle, Luis</span></span></blockquote>
+            <blockquote class="quote">“Our young dreamer found the QR and gasped — ‘It’s real!’ The look was worth a thousand winter mornings.” <span class="by">— North Pole Helper, Mia</span></blockquote>
+            <blockquote class="quote">“The circle note under the pillow became our new tradition. Courage, celebrated.” <span class="by">— Tooth Fairy Circle, Luis</span></blockquote>
           </div>
         </section>
 
-        <section class="section mt-6" aria-labelledby="faq-title">
-          <h2 id="faq-title" data-i18n="faq_title">FAQ</h2>
+        <section class="section mt-6 band band-faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">FAQ</h2>
           <div class="faq">
-            <div class="qa"><div class="q" data-i18n="faq_q1">Is this certificate official?</div><div class="a" data-i18n="faq_a1">Each certificate has a unique serial and QR. Anyone can check status on the site (valid/expired/revoked).</div></div>
-            <div class="qa"><div class="q" data-i18n="faq_q2">What about privacy?</div><div class="a" data-i18n="faq_a2">We ask for the minimum to make the magic work. No ads, no resale — just wonder.</div></div>
-            <div class="qa"><div class="q" data-i18n="faq_q3">Can I customize the role?</div><div class="a" data-i18n="faq_a3">Yes — choose “Custom” on the create page to type your own title.</div></div>
+            <div class="qa"><div class="q">Is this certificate official?</div><div class="a">Each certificate has a unique serial and QR. Anyone can check status on the site (valid/expired/revoked).</div></div>
+            <div class="qa"><div class="q">What about privacy?</div><div class="a">We ask for the minimum to make the magic work. No ads, no resale — just wonder.</div></div>
+            <div class="qa"><div class="q">Can I customize the role?</div><div class="a">Yes — choose “Custom” on the create page to type your own title.</div></div>
           </div>
-          <div class="actions mt-4"><a class="btn primary magic" href="#/signup" data-i18n="cta_join_now">Join the Guild Now</a></div>
+          <div class="actions mt-4"><a class="btn primary magic" href="#/signup">Join the Guild Now</a></div>
         </section>
       </section>
 

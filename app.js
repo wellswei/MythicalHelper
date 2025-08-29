@@ -120,10 +120,13 @@
     }
   };
 
-  const state = { lang: guessLang() };
-  function guessLang(){ const l=(navigator.language||'en').slice(0,2); return ['en','zh','es'].includes(l)?l:'en'; }
-  function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key; }
-  function applyI18N(){ $$('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); }); document.documentElement.lang = state.lang; $('#lang').value = state.lang; }
+  const state = { lang: 'en' };
+  function t(key){ return (I18N.en && I18N.en[key]) || key; }
+  function applyI18N(){
+    $$('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+    document.documentElement.lang = state.lang;
+    const sel = $('#lang'); if (sel) sel.value = state.lang;
+  }
 
   // API (with mock)
   const http = async (path, opts={}) => {
@@ -191,13 +194,13 @@
     const emailForm = $('#email-form'); const verifyForm = $('#email-verify-form');
     emailForm?.addEventListener('submit', async (e)=>{
       e.preventDefault(); const { email } = formToJSON(emailForm);
-      try{ const token = window.turnstile?.getResponse?.(tsEl) || 'mock-turnstile-token'; const res = await API.emailOtp({email, turnstileToken:token}); if(res.mock&&res.code) toast(`Mock: ${res.code}`); toast(t('t_sent_email')); setSession({email, emailVerified:false}); emailForm.classList.add('hidden'); verifyForm.classList.remove('hidden'); }
+      try{ const token = window.turnstile?.getResponse?.(tsEl) || 'mock-turnstile-token'; const res = await API.emailOtp({email, turnstileToken:token}); if(res.mock&&res.code) toast(`Mock: ${res.code}`); toast('Code sent to email'); setSession({email, emailVerified:false}); emailForm.classList.add('hidden'); verifyForm.classList.remove('hidden'); }
       catch(err){ toast(err.message||'Send failed'); }
     });
     $('#back-edit-email')?.addEventListener('click', ()=>{ verifyForm.classList.add('hidden'); emailForm.classList.remove('hidden'); });
     verifyForm?.addEventListener('submit', async (e)=>{
       e.preventDefault(); const { email } = session(); const { code } = formToJSON(verifyForm);
-      try{ await API.emailVerify({email, code}); setSession({emailVerified:true}); toast(t('t_email_verified')); await sleep(300); location.hash='#/phone'; }
+      try{ await API.emailVerify({email, code}); setSession({emailVerified:true}); toast('Email verified'); await sleep(300); location.hash='#/phone'; }
       catch(err){ toast(err.message||'Verify failed'); }
     });
   }
@@ -207,13 +210,13 @@
     const phoneForm = $('#phone-form'); const verifyForm = $('#phone-verify-form');
     phoneForm?.addEventListener('submit', async (e)=>{
       e.preventDefault(); const { phone } = formToJSON(phoneForm);
-      try{ const res = await API.smsOtp({phone}); if(res.mock&&res.code) toast(`Mock: ${res.code}`); setSession({phone, phoneVerified:false}); toast(t('t_sent_sms')); phoneForm.classList.add('hidden'); verifyForm.classList.remove('hidden'); }
+      try{ const res = await API.smsOtp({phone}); if(res.mock&&res.code) toast(`Mock: ${res.code}`); setSession({phone, phoneVerified:false}); toast('SMS sent'); phoneForm.classList.add('hidden'); verifyForm.classList.remove('hidden'); }
       catch(err){ toast(err.message||'Send failed'); }
     });
     $('#back-edit-phone')?.addEventListener('click', ()=>{ verifyForm.classList.add('hidden'); phoneForm.classList.remove('hidden'); });
     verifyForm?.addEventListener('submit', async (e)=>{
       e.preventDefault(); const { phone } = session(); const { code } = formToJSON(verifyForm);
-      try{ await API.smsVerify({phone, code}); setSession({phoneVerified:true}); toast(t('t_phone_verified')); await sleep(300); location.hash='#/generate'; }
+      try{ await API.smsVerify({phone, code}); setSession({phoneVerified:true}); toast('Phone verified'); await sleep(300); location.hash='#/generate'; }
       catch(err){ toast(err.message||'Verify failed'); }
     });
   }
@@ -238,27 +241,27 @@
     updatePreview();
     form?.addEventListener('submit', async (e)=>{
       e.preventDefault(); let { role, customRole, youngName, displayPolicy } = formToJSON(form); if(role==='custom'){ if(!customRole) return toast('Please enter a custom role'); role = customRole; }
-      try{ const res = await API.generate({role, youngName, displayPolicy}); $('#res-serial').textContent=res.serial; const dl=$('#res-download'); dl.href=res.download_url; const v=$('#res-verify'); v.href=res.verify_url; v.textContent=res.verify_url; form.classList.add('hidden'); $('#gen-result').classList.remove('hidden'); toast(t('t_gen_ok')); }
+      try{ const res = await API.generate({role, youngName, displayPolicy}); $('#res-serial').textContent=res.serial; const dl=$('#res-download'); dl.href=res.download_url; const v=$('#res-verify'); v.href=res.verify_url; v.textContent=res.verify_url; form.classList.add('hidden'); $('#gen-result').classList.remove('hidden'); toast('Certificate created'); }
       catch(err){ toast(err.message||'Generate failed'); }
     });
   }
 
   // Verify
   async function doLookup(serial){ try{ const r = await API.status({serial}); if(!r.ok) throw new Error(r.status||'not_found'); renderStatus(r); } catch(err){ renderNotFound(); } }
-  function renderStatus(d){ const box=$('#result'); const created=d.createdAt?new Date(d.createdAt).toLocaleString():''; const expires=d.expiresAt?new Date(d.expiresAt).toLocaleDateString():''; box.classList.remove('hidden'); box.className='panel'; box.innerHTML=`
+  function renderStatus(d){ const box=$('#result'); const created=d.createdAt?new Date(d.createdAt).toLocaleString():''; const expires=d.expiresAt?new Date(d.expiresAt).toLocaleDateString():''; const statusMap={valid:'Valid', expired:'Expired', revoked:'Revoked'}; box.classList.remove('hidden'); box.className='panel'; box.innerHTML=`
     <div class="list">
-      <div><strong>${t('label_serial')}</strong> ${d.serial}</div>
+      <div><strong>Serial:</strong> ${d.serial}</div>
       ${d.role?`<div><strong>Role:</strong> ${d.role}</div>`:''}
       ${d.youngName?`<div><strong>Young Dreamer:</strong> ${d.youngName}</div>`:''}
       ${d.createdAt?`<div><strong>Created:</strong> ${created}</div>`:''}
       ${d.expiresAt?`<div><strong>Expires:</strong> ${expires}</div>`:''}
-      <div><strong>Status:</strong> ${t('status_'+d.status)}</div>
+      <div><strong>Status:</strong> ${statusMap[d.status]||d.status}</div>
     </div>`; }
-  function renderNotFound(){ const box=$('#result'); box.classList.remove('hidden'); box.className='alert danger'; box.textContent=t('not_found'); }
+  function renderNotFound(){ const box=$('#result'); box.classList.remove('hidden'); box.className='alert danger'; box.textContent='Certificate not found'; }
   function initVerify(){ const form=$('#verify-form'); form?.addEventListener('submit', async (e)=>{ e.preventDefault(); const { serial } = formToJSON(form); await doLookup(serial.trim()); }); }
 
   // Lang switch
-  function initLang(){ const sel=$('#lang'); sel.addEventListener('change', ()=>{ state.lang=sel.value; applyI18N(); }); applyI18N(); }
+  function initLang(){ const sel=$('#lang'); if (sel) sel.addEventListener('change', ()=>{ state.lang=sel.value; applyI18N(); }); applyI18N(); }
 
   // Sparkles on brand logo + magic button hover
   function spawnSparks(parent, count=6){ const rect = parent.getBoundingClientRect(); for(let i=0;i<count;i++){ const s=document.createElement('span'); s.className='spark'; const x=Math.random()*parent.clientWidth; const y=parent.clientHeight*0.6 + Math.random()*6; s.style.left = (x-3)+'px'; s.style.top = (y-3)+'px'; parent.appendChild(s); setTimeout(()=>s.remove(), 800); } }

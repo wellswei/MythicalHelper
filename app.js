@@ -390,7 +390,7 @@
   // === 在现有 init 钩子里调用 updateNav ===
   window.addEventListener('hashchange', route);
   document.addEventListener('DOMContentLoaded', ()=>{
-    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); initTestAccount();
+    initLang(); initEmail(); initPhone(); initGenerate(); initVerify(); initSparkles(); initApplyLetters(); initTestAccount();
     updateNav(); route();
   });
 
@@ -584,6 +584,42 @@
       `;
       hero.appendChild(sparkle);
     }
+  }
+
+  function initApplyLetters(){
+    const preview = document.getElementById('letter-content');
+    if (!preview) return;
+    const letters = {
+      north_pole: {
+        head: 'North Pole Workshop',
+        body: 'Snow prints mark the season’s path, and we’re seeking steady hands to keep the sleigh on time. If your heart is warm and your steps are sure, the Workshop welcomes you.',
+        sign: '— The Scribes of Winter',
+      },
+      tooth_fairy: {
+        head: 'Tooth Fairy Circle',
+        body: 'Where courage meets a missing tooth, we leave a shimmer of thanks. If you delight in tiny treasures and brave smiles, your wings await their first flutter.',
+        sign: '— The Circle Keeper',
+      },
+      spring_bunny: {
+        head: 'Spring Bunny Caravan',
+        body: 'We scatter bright eggs and good cheer across quiet gardens. If you can hide hope in plain sight, hop aboard — laughter is our favorite map.',
+        sign: '— Caravan Master, Vernal Route',
+      },
+    };
+    const render = (k) => {
+      const l = letters[k] || letters.north_pole;
+      preview.innerHTML = `
+        <div class="letter-head">${l.head}</div>
+        <p>Dear Helper,</p>
+        <p>${l.body}</p>
+        <p class="letter-sign">${l.sign}</p>
+      `;
+    };
+    document.querySelectorAll('.choice').forEach(btn => {
+      const key = btn.getAttribute('data-role');
+      btn.addEventListener('mouseenter', ()=>render(key));
+      btn.addEventListener('focus', ()=>render(key));
+    });
   }
 
   function initTestAccount(){

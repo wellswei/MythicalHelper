@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Mythical Helper</title>
+    <link rel="icon" href="/logo.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -15,12 +16,12 @@
     <header class="site-header">
       <div class="container">
         <div class="brand">
-          <img class="logo" src="/logo.png" alt="Mythical Helper logo" />
+          <span class="logo star" aria-hidden="true">✨</span>
           <span class="name">Mythical Helper</span>
         </div>
         <nav class="nav">
           <a href="#/" class="active">Home</a>
-          <a href="#/signup">Sign in / Join</a>
+          <a href="#/signup">Member</a>
         </nav>
       </div>
     </header>
@@ -28,48 +29,77 @@
     <main class="container" id="app" style="padding: 24px 0 0;">
       <section class="hero" data-view="home">
         <h1>Official Helper Certificates for Young Dreamers</h1>
-        <p class="lead">Welcome to Mythical Helper — a warm little guild where grown‑ups become certified guardians of childhood wonder.</p>
+        <p class="lead">Welcome — the Guild is opening its doors to kind, curious grown‑ups who wish to help keep wonder alive. Answer the call, take the oath, and receive your official parchment.</p>
         <div class="actions">
           <a class="btn primary magic" href="#/signup">Answer the Call</a>
           <button class="btn" id="use-test" type="button">Use test account</button>
         </div>
 
+        <div class="divider" aria-hidden="true"></div>
+
         <section class="section mt-6 band band-help" aria-labelledby="help-title">
           <h2 id="help-title">Guild Notice · Helpers Needed</h2>
-          <p class="section-lead">We’re inviting warm‑hearted grown‑ups to keep the wonder alive — from the North Pole Workshop to the Tooth Fairy Circle and the Spring Bunny Caravan.</p>
-          <div class="box">
-            <ul class="bullets">
-              <li><strong>Simple sign‑in:</strong> quick email + SMS codes</li>
-              <li><strong>Official certificate:</strong> unique serial and QR for verification</li>
-              <li><strong>Privacy‑friendly:</strong> only what’s needed for the magic</li>
-            </ul>
+          <p class="section-lead">Choose a calling on the left. Hover to read the letter of invitation on the right.</p>
+          <div class="apply-grid">
+            <div class="choices" role="list">
+              <button class="choice" data-role="north_pole" role="listitem" aria-describedby="np-desc">
+                <div class="choice-title">North Pole Helper</div>
+                <div id="np-desc" class="choice-desc">Logistics, reindeer, winter routes.</div>
+              </button>
+              <button class="choice" data-role="tooth_fairy" role="listitem" aria-describedby="tf-desc">
+                <div class="choice-title">Tooth Fairy Circle</div>
+                <div id="tf-desc" class="choice-desc">Tiny treasures, brave smiles.</div>
+              </button>
+              <button class="choice" data-role="spring_bunny" role="listitem" aria-describedby="sb-desc">
+                <div class="choice-title">Spring Bunny Caravan</div>
+                <div id="sb-desc" class="choice-desc">Egg trails, garden laughter.</div>
+              </button>
+            </div>
+            <aside class="letter-preview" aria-live="polite">
+              <div class="letter" id="letter-content">
+                <div class="letter-head">North Pole Workshop</div>
+                <p>Dear Helper,</p>
+                <p>Snow prints mark the season’s path, and we’re seeking steady hands to keep the sleigh on time. If your heart is warm and your steps are sure, the Workshop welcomes you.</p>
+                <p class="letter-sign">— The Scribes of Winter</p>
+              </div>
+            </aside>
           </div>
         </section>
-        
+        <div class="divider" aria-hidden="true"></div>
+
         <!-- How it works section (moved under Apply) -->
         <section class="section mt-6 band band-steps is-large" aria-labelledby="how-title">
           <h2 id="how-title">How It Works</h2>
-          <p class="section-lead">A friendly, grown‑up hiring flow — quick, safe, and a little magical.</p>
+          <p class="section-lead">A friendly, welcoming flow — quick, safe, and just a little magical.</p>
           <div class="steps steps-xl">
             <div class="step">
               <span class="step-no">1</span>
               <div>
                 <strong>Messenger Owl</strong>
-                <div class="help">We send a code to your email to greet you at the gate.</div>
+                <div class="help">An owl brings a note to your inbox, making sure letters can find you.</div>
+                <div class="step-illus" aria-hidden="true">
+                  <svg width="64" height="40" viewBox="0 0 64 40" fill="none"><circle cx="50" cy="10" r="6" fill="#fff"/><path d="M6 28c10-6 22-6 32 0 6 4 10 6 16 6-6 6-12 8-20 8C20 42 12 38 6 28z" fill="#cde7ff"/></svg>
+                </div>
               </div>
             </div>
             <div class="step">
               <span class="step-no">2</span>
               <div>
                 <strong>Spring Bunny</strong>
-                <div class="help">A quick SMS confirms you’re a grown‑up Helper.</div>
+                <div class="help">A cheerful hop reaches your number, checking you’re a responsive Helper.</div>
+                <div class="step-illus" aria-hidden="true">
+                  <svg width="64" height="40" viewBox="0 0 64 40" fill="none"><ellipse cx="16" cy="30" rx="10" ry="3" fill="#cde7ff"/><path d="M18 18c2-6 8-8 10-4 4 4-2 8-1 12 4 3 10 5 16 5" stroke="#f8d26a" stroke-width="3" stroke-linecap="round"/></svg>
+                </div>
               </div>
             </div>
             <div class="step">
               <span class="step-no">3</span>
               <div>
                 <strong>Scribes of the North</strong>
-                <div class="help">Your parchment is stamped with a unique serial and QR.</div>
+                <div class="help">The North Pole appoints you, sealing your parchment with a unique serial and QR.</div>
+                <div class="step-illus" aria-hidden="true">
+                  <svg width="64" height="40" viewBox="0 0 64 40" fill="none"><rect x="10" y="8" width="36" height="20" rx="3" fill="#fff"/><circle cx="44" cy="28" r="6" fill="#ffe08a"/></svg>
+                </div>
               </div>
             </div>
           </div>
@@ -78,9 +108,11 @@
           </div>
         </section>
 
+        <div class="divider" aria-hidden="true"></div>
+
         <!-- What you’ll get -->
         <section class="section mt-6 band band-get" aria-labelledby="get-title">
-          <h2 id="get-title">What You’ll Get</h2>
+          <h2 id="get-title">Why Mythical Helper</h2>
           <div class="box">
             <div class="features">
               <div class="feature">
@@ -91,8 +123,8 @@
                     <path d="M42 40l4 10 3-3 3 3 2-8" stroke="#f8d26a" stroke-width="2" fill="none" stroke-linecap="round"/>
                   </svg>
                 </div>
-                <h3>Official Certificate</h3>
-                <p>Unique serial + QR for easy verification anywhere.</p>
+                <h3>Official & Verifiable</h3>
+                <p>A beautiful PDF certificate with a unique serial and QR that anyone can verify on our site.</p>
               </div>
               <div class="feature">
                 <div class="feature-icon-svg" aria-hidden="true">
@@ -107,8 +139,8 @@
                     </defs>
                   </svg>
                 </div>
-                <h3>Simple Two‑Step</h3>
-                <p>Just email + SMS — quick, secure, and friendly.</p>
+                <h3>Gentle & Simple</h3>
+                <p>Just email and SMS to sign in. No passwords, no fuss — designed for grown‑ups.</p>
               </div>
               <div class="feature">
                 <div class="feature-icon-svg" aria-hidden="true">
@@ -118,7 +150,7 @@
                   </svg>
                 </div>
                 <h3>Wonder, Not Data</h3>
-                <p>We collect the minimum — no ads, no resale, just magic.</p>
+                <p>We collect the minimum needed to make the magic work. No ads. No resale.</p>
               </div>
             </div>
           </div>

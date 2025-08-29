@@ -414,9 +414,13 @@
 
   // === Apply Letters 动态展示 ===
   function initApplyLetters() {
+    console.log('initApplyLetters called'); // 调试信息
+    
     const choices = document.querySelectorAll('.choice');
     const letterBox = document.getElementById('letter-box');
     const letterContent = document.getElementById('letter-content');
+    
+    console.log('Found elements:', { choices: choices.length, letterBox: !!letterBox, letterContent: !!letterContent }); // 调试信息
     
     if (!choices.length || !letterBox || !letterContent) return;
     
@@ -452,16 +456,20 @@ You'll help hide colorful eggs in plain sight, create trails of wonder through g
     };
     
     // 悬浮效果
-    choices.forEach(choice => {
+    choices.forEach((choice, index) => {
       choice.addEventListener('mouseenter', () => {
         const role = choice.getAttribute('data-role');
+        console.log('Hovering over:', role); // 调试信息
+        
         const letter = letters[role];
         
         if (letter) {
-          // 更新信件内容
+          // 更新信件内容 - 保持HTML结构
           letterContent.innerHTML = `
             <div class="letter-head">${letter.head}</div>
-            <div class="letter-content">${letter.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>
+            <p>Dear Helper,</p>
+            <p>${letter.content.split('\n\n')[1]}</p>
+            <p>${letter.content.split('\n\n')[2]}</p>
             <div class="letter-sign">${letter.sign}</div>
           `;
           
@@ -471,13 +479,14 @@ You'll help hide colorful eggs in plain sight, create trails of wonder through g
           // 添加活跃状态
           choices.forEach(c => c.classList.remove('active'));
           choice.classList.add('active');
+          
+          console.log('Updated letter for:', role); // 调试信息
         }
       });
       
       // 点击效果
       choice.addEventListener('click', () => {
         const role = choice.getAttribute('data-role');
-        // 可以在这里添加跳转逻辑
         console.log(`Selected role: ${role}`);
       });
     });

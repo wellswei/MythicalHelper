@@ -1,358 +1,328 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mythical Helper</title>
-    <link rel="icon" href="/logo.png" type="image/png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cinzel+Decorative:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles.css" />
-    <script defer src="/app.js"></script>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mythical Helper</title>
+  <link rel="stylesheet" href="styles.css"/>
   </head>
   <body>
+  <!-- 全站星空背景元素 -->
+  <div class="meteor" aria-hidden="true"></div>
+  <div class="meteor" aria-hidden="true"></div>
+  <div class="meteor" aria-hidden="true"></div>
+
+  <!-- Header -->
     <header class="site-header">
       <div class="container">
         <div class="brand">
-          <span class="logo star" aria-hidden="true">✨</span>
-          <span class="name">Mythical Helper</span>
+        <img src="logo_white.png" alt="Logo" class="logo">
+        <span class="name">MythicalHelper</span>
+      </div>
+      <nav class="nav">
+        <a href="#" class="active">Home</a>
+        <a href="#">Member</a>
+        <div class="lang-selector">
+          <select>
+            <option value="en">🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+            <option value="es">🇪🇸 Español</option>
+          </select>
         </div>
-        <nav class="nav">
-          <a href="#/" class="active">Home</a>
-          <a href="#/signup">Member</a>
-          <div class="lang-selector">
-            <select id="lang" aria-label="Select language">
-              <option value="en">🇺🇸 English</option>
-              <option value="zh">🇨🇳 中文</option>
-              <option value="es">🇪🇸 Español</option>
-            </select>
-          </div>
         </nav>
       </div>
     </header>
 
-    <main class="container" id="app" style="padding: 24px 0 0;">
-      <section class="hero" data-view="home">
-        <h1>Enlist in the Mythical Helper Guild</h1>
-        <p class="lead">The Council summons brave grown-ups to a vital mission: guard childhood wonder.</p>
-        <p class="lead">Take the oath, receive your parchment of office, and stand watch over every dreamer's light.</p>
-        <div class="actions">
-          <a class="btn primary magic" href="#/signup">Accept the Mission</a>
-          <button class="btn" id="use-test" type="button">Demo Account</button>
-        </div>
-
-        <p class="verse">"Every dream needs a guardian. Every guardian has a mission."</p>
-
-        <div class="divider" aria-hidden="true"></div>
-
-        <section class="section mt-6 band band-help" aria-labelledby="help-title">
-          <h2 id="help-title">Mythical Helper Needed</h2>
-          <p class="section-lead">Below realms seek grown-up Helpers today. Further roles are in council talks and will join soon.</p>
-          <div class="apply-grid">
-            <div class="choices" role="list">
-              <button class="choice" data-role="north_pole" role="listitem" aria-describedby="np-desc">
-                <div class="choice-title">North Pole Helper</div>
-                <div id="np-desc" class="choice-desc">Logistics, reindeer, winter routes.</div>
-              </button>
-              <button class="choice" data-role="tooth_fairy" role="listitem" aria-describedby="tf-desc">
-                <div class="choice-title">Tooth Fairy Circle</div>
-                <div id="tf-desc" class="choice-desc">Tiny treasures, brave smiles.</div>
-              </button>
-              <button class="choice" data-role="spring_bunny" role="listitem" aria-describedby="sb-desc">
-                <div class="choice-title">Spring Bunny Caravan</div>
-                <div id="sb-desc" class="choice-desc">Egg trails, garden laughter.</div>
-              </button>
-            </div>
-            <aside class="letter-preview role-north" id="letter-box" aria-live="polite">
-              <div class="letter" id="letter-content">
-                <div class="letter-head">North Pole Workshop</div>
-                <p>Dear Helper,</p>
-                <p>Snow prints mark the season's path, and we're seeking steady hands to keep the sleigh on time. If your heart is warm and your steps are sure, the Workshop welcomes you.</p>
-                <p class="letter-sign">— The Scribes of Winter</p>
-              </div>
-            </aside>
-          </div>
-        </section>
-        <div class="divider" aria-hidden="true"></div>
-
-        <!-- How it works section (moved under Apply) -->
-        <section class="section mt-6 band band-steps is-large" aria-labelledby="how-title">
-          <h2 id="how-title">How It Works</h2>
-          <p class="section-lead">A friendly, welcoming flow — quick, safe, and just a little magical.</p>
-          <div class="steps steps-xl">
-            <div class="step">
-              <span class="step-no">1</span>
-              <div>
-                <strong>Messenger Owl</strong>
-                <div class="help">An owl brings a note to your inbox, making sure letters can find you.</div>
-                <div class="step-illus" aria-hidden="true">
-                  <svg width="64" height="40" viewBox="0 0 64 40" fill="none"><circle cx="50" cy="10" r="6" fill="#fff"/><path d="M6 28c10-6 22-6 32 0 6 4 10 6 16 6-6 6-12 8-20 8C20 42 12 38 6 28z" fill="#cde7ff"/></svg>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step-no">2</span>
-              <div>
-                <strong>Spring Bunny</strong>
-                <div class="help">A cheerful hop reaches your number, checking you’re a responsive Helper.</div>
-                <div class="step-illus" aria-hidden="true">
-                  <svg width="64" height="40" viewBox="0 0 64 40" fill="none"><ellipse cx="16" cy="30" rx="10" ry="3" fill="#cde7ff"/><path d="M18 18c2-6 8-8 10-4 4 4-2 8-1 12 4 3 10 5 16 5" stroke="#f8d26a" stroke-width="3" stroke-linecap="round"/></svg>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step-no">3</span>
-              <div>
-                <strong>Scribes of the North</strong>
-                <div class="help">The North Pole appoints you, sealing your parchment with a unique serial and QR.</div>
-                <div class="step-illus" aria-hidden="true">
-                  <svg width="64" height="40" viewBox="0 0 64 40" fill="none"><rect x="10" y="8" width="36" height="20" rx="3" fill="#fff"/><circle cx="44" cy="28" r="6" fill="#ffe08a"/></svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="actions mt-4">
-            <a class="btn primary magic" href="#/signup">Accept the Mission</a>
-          </div>
-        </section>
-
-        <div class="divider" aria-hidden="true"></div>
-
-        <!-- What you’ll get -->
-        <section class="section mt-6 band band-get" aria-labelledby="get-title">
-          <h2 id="get-title">Why Mythical Helper</h2>
-          <div class="box">
-            <div class="badges">
-              <div class="badge">
-                <span class="badge-icon">📜</span>
-                <div class="badge-text">
-                  <div class="badge-title">Official & Verifiable</div>
-                  <div class="badge-desc">Parchment PDF, unique serial, QR ready.</div>
-                </div>
-              </div>
-              <div class="badge">
-                <span class="badge-icon">🕊️</span>
-                <div class="badge-text">
-                  <div class="badge-title">Gentle & Simple</div>
-                  <div class="badge-desc">Email + SMS sign‑in. No passwords.</div>
-                </div>
-              </div>
-              <div class="badge">
-                <span class="badge-icon">🛡️</span>
-                <div class="badge-text">
-                  <div class="badge-title">Wonder, Not Data</div>
-                  <div class="badge-desc">Minimal info. No ads. No resale.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div class="divider" aria-hidden="true"></div>
-
-        <!-- Recruitment-style CTA -->
-        <section class="section mt-6 band band-help" aria-labelledby="cta-apply-title">
-          <h2 id="cta-apply-title">Ready to Join the Guild?</h2>
-          <p class="section-lead">Begin your application in seconds. We’ll send a friendly owl to your inbox.</p>
-          <form id="quick-apply-form" class="form" style="max-width:560px; margin-top: 16px;">
-            <div class="field">
-              <label for="quick-email">Email</label>
-              <input id="quick-email" name="email" type="email" placeholder="you@example.com" required />
-              <div class="help">We’ll send a one‑time code to sign in.</div>
-            </div>
-            <button class="btn primary" type="submit">Begin Application</button>
-          </form>
-        </section>
-
-        
-
-        
-      </section>
-
-      <section data-view="signup" class="hidden" style="max-width:720px; margin: 0 auto;">
-        <h2 data-i18n="signup_title">Join the Guild · Email</h2>
-        <div class="panel">
-          <form class="form" id="email-form">
-            <div class="field">
-              <label for="email" data-i18n="label_email">Email</label>
-              <input id="email" name="email" type="email" placeholder="you@example.com" required />
-            </div>
-            <div class="field">
-              <label data-i18n="label_human">Humanity Check</label>
-              <div id="cf-turnstile" class="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
-              <div class="help" data-i18n="label_human_help">Protected by Cloudflare Turnstile.</div>
-            </div>
-            <button class="btn primary" type="submit" data-i18n="btn_email_send">Send Code</button>
-          </form>
-
-          <form class="form hidden" id="email-verify-form">
-            <div class="field">
-              <label for="email-code" data-i18n="label_email_code">Verification Code</label>
-              <input id="email-code" name="code" inputmode="numeric" pattern="[0-9]{6}" placeholder="6 digits" required />
-              <div class="help" data-i18n="help_email_sent">We've sent a code to your email.</div>
-            </div>
-            <div class="row">
-              <button class="btn" type="button" id="back-edit-email" data-i18n="btn_back">Back</button>
-              <button class="btn primary" type="submit" data-i18n="btn_continue">Verify & Continue</button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section data-view="phone" class="hidden" style="max-width:720px; margin: 0 auto;">
-        <h2 data-i18n="phone_title">Join the Guild · Phone</h2>
-        <div class="panel">
-          <form class="form" id="phone-form">
-            <div class="field">
-              <label for="phone" data-i18n="label_phone">Phone (with country code)</label>
-              <input id="phone" name="phone" type="tel" placeholder="+1 555 123 4567" required />
-              <div class="help" data-i18n="label_phone_help">International numbers (via SNS).
-              </div>
-            </div>
-            <button class="btn primary" type="submit" data-i18n="btn_sms_send">Send SMS Code</button>
-          </form>
-
-          <form class="form hidden" id="phone-verify-form">
-            <div class="field">
-              <label for="sms-code" data-i18n="label_sms_code">SMS Code</label>
-              <input id="sms-code" name="code" inputmode="numeric" pattern="[0-9]{6}" placeholder="6 digits" required />
-            </div>
-            <div class="row">
-              <button class="btn" type="button" id="back-edit-phone" data-i18n="btn_back">Back</button>
-              <button class="btn primary" type="submit" data-i18n="btn_continue">Verify & Continue</button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section data-view="generate" class="hidden" style="max-width:720px; margin: 0 auto;">
-        <h2 data-i18n="gen_title">Create Certificate</h2>
-        <div class="panel">
-          <form class="form" id="gen-form">
-            <div class="field">
-              <label for="role" data-i18n="label_role">Choose a Role</label>
-              <select id="role" name="role" required>
-                <option value="" data-i18n="opt_select">Please select</option>
-                <option value="north_pole" data-i18n="opt_santa">North Pole Helper</option>
-                <option value="tooth_fairy" data-i18n="opt_tooth">Tooth Fairy Circle</option>
-                <option value="spring_bunny" data-i18n="opt_bunny">Spring Bunny Caravan</option>
-                <option value="custom" data-i18n="opt_custom">Custom</option>
-              </select>
-            </div>
-            <div class="field hidden" id="custom-role-field">
-              <label for="customRole" data-i18n="label_custom_role">Custom Role Name</label>
-              <input id="customRole" name="customRole" placeholder="e.g., Starry Night Guardian" />
-            </div>
-            <div class="field">
-              <label for="youngName" data-i18n="label_young">Young Dreamer name (optional)</label>
-              <input id="youngName" name="youngName" placeholder="e.g., Luna" />
-              <div class="help" data-i18n="label_young_help">Shown on the certificate only.</div>
-            </div>
-            <div class="field">
-              <label for="displayPolicy" data-i18n="label_policy">Display policy</label>
-              <select id="displayPolicy" name="displayPolicy" required>
-                <option value="visible" data-i18n="policy_visible">Show on certificate</option>
-                <option value="hidden" data-i18n="policy_hidden">Hide from certificate</option>
-              </select>
-            </div>
-            <button class="btn primary" type="submit" data-i18n="btn_generate">Generate PDF</button>
-          </form>
-
-          <div id="gen-result" class="hidden">
-            <div class="alert success" data-i18n="gen_success">Your certificate is ready. A copy is sent via email.</div>
-            <div class="list">
-              <div><strong data-i18n="serial">Serial:</strong> <span id="res-serial"></span></div>
-              <div><strong data-i18n="download">Download:</strong> <a id="res-download" target="_blank" rel="noopener">PDF</a></div>
-              <div><strong data-i18n="verify_link">Verify link:</strong> <a id="res-verify" target="_blank" rel="noopener"></a></div>
-            </div>
-            <div class="mt-4">
-              <a class="btn" href="#/verify" data-i18n="go_verify">Go verify</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section data-view="verify" class="hidden" style="max-width:720px; margin: 0 auto;">
-        <h2 data-i18n="verify_title">Verify Certificate</h2>
-        <div class="panel">
-          <form class="form" id="verify-form">
-            <div class="field">
-              <label for="serial" data-i18n="label_serial">Enter serial</label>
-              <input id="serial" name="serial" placeholder="e.g., MH-20250101-AB12CD" required />
-            </div>
-            <button class="btn primary" type="submit" data-i18n="btn_lookup">Lookup</button>
-          </form>
-          <div id="result" class="hidden mt-4"></div>
-        </div>
-      </section>
-
-      <!-- Login section -->
-      <section data-view="login" class="hidden" style="max-width:720px; margin: 0 auto;">
-        <h2 data-i18n="login_title">Login</h2>
-        <div class="panel">
-          <p class="note" data-i18n="login_intro">
-            Use your email and SMS codes to sign in. If you're new, you'll create your account along the way.
-          </p>
+  <!-- Hero -->
+  <main class="container">
+    <section class="hero">
+      <h1>Enlist in the Mythical Helper Guild</h1>
+      <p class="lead">The Council summons brave grown-ups to a vital mission: guard childhood wonder.</p>
+      <p class="lead">Take the oath, receive your parchment of office, and stand watch over every dreamer's light.</p>
       <div class="actions">
-            <a class="btn primary" href="#/signup" data-i18n="cta_start">Continue with Email</a>
+        <a class="btn primary" href="#">Accept the Mission</a>
+        <button class="btn" type="button">Returning Member</button>
       </div>
-        </div>
-      </section>
+      <p class="verse">"EVERY DREAM NEEDS A GUARDIAN. EVERY GUARDIAN HAS A MISSION."</p>
+    </section>
 
-      <!-- Account section -->
-      <section data-view="account" class="hidden" style="max-width:920px; margin: 0 auto;">
-        <h2 data-i18n="account_title">Your Account</h2>
-        <div class="panel">
-          <div id="acct-summary" class="list"></div>
-          <h3 class="mt-4" data-i18n="account_certs">Your Certificates</h3>
-          <div id="acct-certs" class="cards mt-2"></div>
-        </div>
-      </section>
+    <!-- 分隔线 -->
+    <div class="section-divider"></div>
 
-      <!-- Billing section -->
-      <section data-view="billing" class="hidden" style="max-width:820px; margin: 0 auto;">
-        <h2 data-i18n="billing_title">Membership</h2>
-        <div class="panel">
-          <div class="plans">
-            <article class="plan">
-              <h3 data-i18n="plan_helper">Helper Guild Membership</h3>
-              <div class="price">$4.99<span class="per">/mo</span></div>
-              <ul class="bullets">
-                <li data-i18n="plan_b1">Create unlimited certificates</li>
-                <li data-i18n="plan_b2">Download printable badges</li>
-                <li data-i18n="plan_b3">Priority support</li>
-              </ul>
-              <button id="btn-subscribe" class="btn primary" data-i18n="subscribe_now">Subscribe (mock)</button>
-            </article>
+    <!-- Board Section -->
+    <section class="board-section" aria-labelledby="board-title">
+      <div class="container">
+        <header class="board-header">
+          <h2 id="board-title" class="board-title">Mythical Helper Needed</h2>
+          <p class="board-subtitle">Realms are calling. More friends are in discussion and will join soon.</p>
+        </header>
+
+        <div class="board" role="list">
+          <!-- 左列：包裹三张卡 -->
+          <div class="choices">
+            <div class="choice" data-role="north" role="listitem" tabindex="0">
+            <div class="choice-body">
+              <h3 class="choice-title">North Pole Helper</h3>
+              <div class="choice-desc">
+                <span class="chip-item">• Logistics</span>
+                <span class="chip-item">• Reindeer</span>
+                <span class="chip-item">• Winter routes</span>
+              </div>
+            </div>
+            <div class="card-stamp" aria-hidden="true">
+              <svg class="stamp stamp-north" viewBox="0 0 120 120" width="120" height="120">
+                <defs>
+                  <radialGradient id="g-north" cx="50%" cy="50%" r="60%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+                    <stop offset="100%" stop-color="#7BC4FF" stop-opacity=".25"/>
+                  </radialGradient>
+                </defs>
+                <circle cx="60" cy="60" r="52" fill="url(#g-north)" stroke="#7BC4FF" stroke-width="4" opacity=".8"/>
+                <circle cx="60" cy="60" r="42" fill="none" stroke="#7BC4FF" stroke-width="2" stroke-dasharray="4 6" opacity=".6"/>
+                <g stroke="#5AAEFF" stroke-width="3" stroke-linecap="round" opacity=".9">
+                  <line x1="60" y1="32" x2="60" y2="88"/>
+                  <line x1="32" y1="60" x2="88" y2="60"/>
+                  <line x1="40" y1="40" x2="80" y2="80"/>
+                  <line x1="80" y1="40" x2="40" y2="80"/>
+                </g>
+              </svg>
+            </div>
           </div>
-          <p class="note mt-3" data-i18n="billing_note">
-            Payments are processed by Stripe (coming soon). For now, this is a demo switch to activate membership.
-          </p>
+
+          <div class="choice" data-role="tooth" role="listitem" tabindex="0">
+            <div class="choice-body">
+              <h3 class="choice-title">Tooth Fairy Circle</h3>
+              <div class="choice-desc">
+                <span class="chip-item">• Tiny treasures</span>
+                <span class="chip-item">• Brave smiles</span>
+                <span class="chip-item">• Pillow exchanges</span>
+              </div>
+            </div>
+            <div class="card-stamp" aria-hidden="true">
+              <svg class="stamp stamp-tooth" viewBox="0 0 120 120" width="120" height="120">
+                <defs>
+                  <radialGradient id="g-tooth" cx="50%" cy="50%" r="60%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+                    <stop offset="100%" stop-color="#D5B8FF" stop-opacity=".25"/>
+                  </radialGradient>
+                </defs>
+                <circle cx="60" cy="60" r="52" fill="url(#g-tooth)" stroke="#C39BFF" stroke-width="4" opacity=".85"/>
+                <circle cx="60" cy="60" r="42" fill="none" stroke="#C39BFF" stroke-width="2" stroke-dasharray="3 5" opacity=".6"/>
+                <g fill="#B285FF" opacity=".9">
+                  <path d="M60 42 l3 6 6 3 -6 3 -3 6 -3-6 -6-3 6-3z"/>
+                  <path d="M86 58 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+                  <path d="M34 58 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+                  <path d="M60 78 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <div class="choice" data-role="bunny" role="listitem" tabindex="0">
+            <div class="choice-body">
+              <h3 class="choice-title">Spring Bunny Caravan</h3>
+              <div class="choice-desc">
+                <span class="chip-item">• Egg trails</span>
+                <span class="chip-item">• Garden laughter</span>
+                <span class="chip-item">• Spring signs</span>
+              </div>
+            </div>
+            <div class="card-stamp" aria-hidden="true">
+              <svg class="stamp stamp-bunny" viewBox="0 0 120 120" width="120" height="120">
+                <defs>
+                  <radialGradient id="g-bunny" cx="50%" cy="50%" r="60%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+                    <stop offset="100%" stop-color="#9BE7B0" stop-opacity=".25"/>
+                  </radialGradient>
+                </defs>
+                <circle cx="60" cy="60" r="52" fill="url(#g-bunny)" stroke="#65D08A" stroke-width="4" opacity=".85"/>
+                <circle cx="60" cy="60" r="42" fill="none" stroke="#65D08A" stroke-width="2" stroke-dasharray="6 6" opacity=".55"/>
+                <g fill="#49C27A" opacity=".9">
+                  <circle cx="60" cy="66" r="12"/>
+                  <circle cx="48" cy="50" r="5"/>
+                  <circle cx="60" cy="46" r="5"/>
+                  <circle cx="72" cy="50" r="5"/>
+                </g>
+              </svg>
+            </div>
+                      </div>
+          </div>
+
+                <!-- 右列：letter（保持原样） -->
+      <div class="letter" data-active="north">
+            <article class="letter-pane role-north">
+              <div class="seal" aria-hidden="true">
+                <img src="logo_white.png" alt="Logo"/>
+              </div>
+              <div class="letter-head">North Pole Workshop</div>
+              <p class="dear">Dear Mythical Helper,</p>
+              <p>Snow prints mark the season's path. We seek steady hands to keep the sleigh on time—lists checked, parcels queued, runways clear.</p>
+              <p>Where care meets craft, schedules become starlight.</p>
+              <p class="sign">— The Scribes of Winter</p>
+            </article>
+
+            <article class="letter-pane role-tooth">
+              <div class="seal" aria-hidden="true">
+                <img src="logo_white.png" alt="Logo"/>
+              </div>
+              <div class="letter-head">Tooth Fairy Circle</div>
+              <p class="dear">Dear Mythical Helper,</p>
+              <p>Brave smiles deserve gentle ceremony. Help place tiny tokens, tidy notes, and quiet sparkle—always respectful of each home's custom.</p>
+              <p>Leave courage seen, never secrets taken.</p>
+              <p class="sign">— The Silver Keepers</p>
+            </article>
+
+            <article class="letter-pane role-bunny">
+              <div class="seal" aria-hidden="true">
+                <img src="logo_white.png" alt="Logo"/>
+              </div>
+              <div class="letter-head">Spring Bunny Caravan</div>
+              <p class="dear">Dear Mythical Helper,</p>
+              <p>Hope hides in plain sight. Lay simple trails, place bright signs of spring, and mind the gardens you cross—each family's ways first.</p>
+              <p>Joy should be gentle—and easy to tidy.</p>
+              <p class="sign">— The Meadow Quartermasters</p>
+            </article>
         </div>
+        </div>
+        </div>
+      </section>
+    
+    <!-- 分隔线 -->
+    <div class="section-divider"></div>
+
+    <!-- Steps Section -->
+    <section class="steps-section" aria-labelledby="steps-title">
+      <div class="container">
+        <header class="steps-header">
+          <h2 id="steps-title" class="steps-title">How it works</h2>
+          <p class="steps-subtitle">A magical flow that maps to everyday steps: clear, quick, and ceremonial.</p>
+        </header>
+
+        <ol class="steps steps--four" role="list">
+          <!-- 1. Owl / Email -->
+          <li class="step">
+            <div class="step-card">
+              <div class="step-icon">🦉</div>
+              <div class="step-badge">1</div>
+              <h3 class="step-title">Messenger Owl</h3>
+              <p class="step-desc">
+                An owl brings a note to your inbox, making sure letters can find you.
+              </p>
+            </div>
+          </li>
+
+          <!-- 2. Bunny / SMS -->
+          <li class="step">
+            <div class="step-card">
+              <div class="step-icon">🐰</div>
+              <div class="step-badge">2</div>
+              <h3 class="step-title">Spring Bunny</h3>
+              <p class="step-desc">
+                A cheerful hop reaches your number, checking you're a responsive Helper.
+              </p>
+            </div>
+          </li>
+
+          <!-- 3. Oath / North -->
+          <li class="step">
+            <div class="step-card">
+              <div class="step-icon">❄️</div>
+              <div class="step-badge">3</div>
+              <h3 class="step-title">Take the Oath</h3>
+              <p class="step-desc">
+                The North Pole appoints you, sealing your parchment with a unique serial and QR.
+              </p>
+            </div>
+          </li>
+
+          <!-- 4. Start Watch -->
+          <li class="step">
+            <div class="step-card">
+              <div class="step-icon">🕯️</div>
+              <div class="step-badge">4</div>
+              <h3 class="step-title">Start Your Watch</h3>
+              <p class="step-desc">
+                Begin quietly: small gestures, tidy exits, and a spark of wonder left behind.
+              </p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+    
+    <!-- 分隔线 -->
+    <div class="section-divider"></div>
+    
+    <!-- Features / The Council Guaranteed -->
+    <section class="features-section" aria-labelledby="features-title">
+      <div class="container">
+        <header class="features-header">
+          <h2 id="features-title" class="features-title">The Council Guaranteed</h2>
+          <p class="features-subtitle">
+            Three gifts sealed by the Guild: a seat in the council, proof of the tale, and only wonder that endures.
+          </p>
+        </header>
+
+        <ul class="features" role="list">
+          <li class="feature">
+            <div class="feature-card">
+              <h3 class="feature-title">A Seat in the Council</h3>
+              <p class="feature-desc">
+                Your name is etched on living parchment, verifiable when shown.
+              </p>
+            </div>
+          </li>
+
+          <li class="feature">
+            <div class="feature-card">
+              <h3 class="feature-title">Proof of the Tale</h3>
+              <p class="feature-desc">
+                Unveil the scroll or glowing code and bedtime talk becomes evidence.
+              </p>
+            </div>
+          </li>
+
+          <li class="feature">
+            <div class="feature-card">
+              <h3 class="feature-title">Only Wonder Endures</h3>
+              <p class="feature-desc">
+                We take nothing but leave awe, no ledgers and no hidden trade.
+              </p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+    
+    <!-- 分隔线 -->
+    <div class="section-divider"></div>
+    
+    <!-- CTA Section -->
+    <section class="cta-section" aria-labelledby="cta-title">
+      <div class="container">
+        <header class="cta-header">
+          <h2 id="cta-title" class="cta-title">For the Smiles That Believe</h2>
+          <p class="cta-subtitle">Join the circle, carry the scroll, and keep their wonder safe.</p>
+        </header>
+
+        <div class="cta-actions">
+          <a class="btn primary" href="#">Become a Mythical Helper</a>
+        </div>
+              </div>
       </section>
     </main>
 
+    <!-- Footer -->
     <footer class="site-footer">
-      <div class="container">
-        <div class="footer-cta">
-          <h3>Ready to be hired?</h3>
-          <div class="footer-actions">
-            <a class="btn primary" href="#/signup">Apply Now</a>
-            <a class="btn" href="#/verify">Verify</a>
-          </div>
+      <div class="container footer-inner">
+        <div class="footer-brand">
+          <img src="logo_white.png" alt="Logo" class="logo">
         </div>
-        <p class="footer-brand">"For every young dream, a gentle grown‑up to keep the lantern lit."</p>
-        <span>© 2025 mythicalhelper.org</span>
+
+        <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>
       </div>
     </footer>
 
-    <!-- Floating Apply button (mobile only) -->
-    <div class="floating-apply" id="floating-apply">
-      <a href="#/signup" class="btn primary">Apply</a>
-    </div>
-
-    <div id="toast"></div>
-  </body>
-  </html>
+    <script src="app.js"></script>
+</body>
+</html>

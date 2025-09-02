@@ -1,0 +1,1909 @@
+// ===== PORTAL JAVASCRIPT =====
+
+// 配置
+const API_BASE = 'http://127.0.0.1:8001';
+
+// 全局状态
+let currentUser = null;
+const portalState = { phoneTxId: '', newPhone: '', phoneResendExpiry: 0, emailTxId: '', newEmail: '', emailResendExpiry: 0 };
+let isInEmailChangeFlow = false; // 添加邮箱修改流程状态
+
+function resetEmailEditorUI(hideSection = true) {
+  // 恢复输入为邮箱模式 + 文案
+  const input = document.getElementById('newEmailInput');
+  const label = document.getElementById('emailLabel');
+  const btn = document.getElementById('btnSendPortalEmail') || document.getElementById('btnVerifyPortalEmail');
+  if (input) {
+    input.type = 'email';
+    input.removeAttribute('maxLength');
+    input.removeAttribute('pattern');
+    input.removeAttribute('inputMode');
+    input.placeholder = 'you@example.com';
+    input.value = '';
+  }
+  if (label) label.textContent = 'New Email';
+  if (btn) {
+    btn.textContent = 'Send Code';
+    if (btn.id !== 'btnSendPortalEmail') btn.id = 'btnSendPortalEmail';
+    btn.disabled = false;
+  }
+  const codeSec = document.getElementById('portalEmailCodeSection');
+  if (codeSec) codeSec.style.display = 'none';
+  if (hideSection) {
+    const sec = document.getElementById('emailChangeSection'); if (sec) sec.style.display = 'none';
+  }
+  const err = document.getElementById('errPortalEmail'); if (err) err.textContent = '';
+}
+
+// ===== 持久化变更流程状态（应对 Live Server 自动刷新） =====
+function savePortalChangeState() {
+  try {
+    const payload = {
+      phone: {
+        txId: portalState.phoneTxId || '',
+        newPhone: portalState.newPhone || '',
+        resendExpiry: portalState.phoneResendExpiry || 0,
+      },
+      email: {
+        txId: portalState.emailTxId || '',
+        newEmail: portalState.newEmail || '',
+        resendExpiry: portalState.emailResendExpiry || 0,
+      }
+    };
+    sessionStorage.setItem('portalChangeState', JSON.stringify(payload));
+  } catch {}
+}
+
+function clearEmailChangeState() {
+  portalState.emailTxId = '';
+  portalState.newEmail = '';
+  portalState.emailResendExpiry = 0;
+  try {
+    const raw = sessionStorage.getItem('portalChangeState');
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    parsed.email = { txId: '', newEmail: '', resendExpiry: 0 };
+    if (!parsed.phone || (!parsed.phone.txId && !parsed.phone.resendExpiry)) {
+      sessionStorage.removeItem('portalChangeState');
+    } else {
+      sessionStorage.setItem('portalChangeState', JSON.stringify(parsed));
+    }
+  } catch {}
+}
+
+function clearPhoneChangeState() {
+  portalState.phoneTxId = '';
+  portalState.newPhone = '';
+  portalState.phoneResendExpiry = 0;
+  try {
+    const raw = sessionStorage.getItem('portalChangeState');
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    parsed.phone = { txId: '', newPhone: '', resendExpiry: 0 };
+    if (!parsed.email || (!parsed.email.txId && !parsed.email.resendExpiry)) {
+      sessionStorage.removeItem('portalChangeState');
+    } else {
+      sessionStorage.setItem('portalChangeState', JSON.stringify(parsed));
+    }
+  } catch {}
+}
+
+function loadPortalChangeState() {
+  try {
+    const raw = sessionStorage.getItem('portalChangeState');
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (parsed.phone) {
+      portalState.phoneTxId = parsed.phone.txId || '';
+      portalState.newPhone = parsed.phone.newPhone || '';
+      portalState.phoneResendExpiry = parsed.phone.resendExpiry || 0;
+    }
+    if (parsed.email) {
+      portalState.emailTxId = parsed.email.txId || '';
+      portalState.newEmail = parsed.email.newEmail || '';
+      portalState.emailResendExpiry = parsed.email.resendExpiry || 0;
+    }
+    return !!(portalState.phoneTxId || portalState.emailTxId || portalState.phoneResendExpiry || portalState.emailResendExpiry);
+  } catch {
+    return false;
+  }
+}
+
+// 邮箱编辑器函数
+function openEmailEditor() {
+  console.log('openEmailEditor function called!');
+  isInEmailChangeFlow = true; // 设置邮箱修改流程状态
+  
+  // 尝试多种方式查找元素
+  const emailSec = document.getElementById('emailChangeSection') || document.querySelector('#emailChangeSection');
+  const phoneSec = document.getElementById('phoneChangeSection') || document.querySelector('#phoneChangeSection');
+  const codeSec = document.getElementById('portalEmailCodeSection') || document.querySelector('#portalEmailCodeSection');
+  const err = document.getElementById('errPortalEmail') || document.querySelector('#errPortalEmail');
+  const input = document.getElementById('newEmailInput') || document.querySelector('#newEmailInput');
+  
+  console.log('Found elements:', {
+    emailSec: emailSec,
+    phoneSec: phoneSec,
+    codeSec: codeSec,
+    status: status,
+    err: err,
+    input: input
+  });
+  
+  // 检查整个文档中是否有这些元素
+  console.log('All elements with emailChangeSection:', document.querySelectorAll('[id*="emailChange"]'));
+  console.log('All elements with phoneChangeSection:', document.querySelectorAll('[id*="phoneChange"]'));
+  
+  if (emailSec) {
+    emailSec.style.display = 'block';
+    console.log('Email section displayed');
+  } else {
+    console.error('Email section not found!');
+    // 尝试直接通过innerHTML查找
+    const allDivs = document.querySelectorAll('div');
+    const emailDiv = Array.from(allDivs).find(div => div.id === 'emailChangeSection');
+    console.log('Found email div through querySelectorAll:', emailDiv);
+  }
+  
+  if (phoneSec) phoneSec.style.display = 'none';
+  if (codeSec) codeSec.style.display = 'none';
+  if (err) err.textContent = '';
+  if (input) input.focus();
+}
+
+// DOM元素
+const $ = (id) => {
+  // 如果传入的是CSS选择器（以#开头），去掉#号
+  if (typeof id === 'string' && id.startsWith('#')) {
+    id = id.substring(1);
+  }
+  return document.getElementById(id);
+};
+
+// ===== 工具函数 =====
+function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
+function formatDateTime(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function formatPhoneNumber(phoneString) {
+  if (!phoneString || phoneString === 'Not provided') return 'Not provided';
+  
+  // 移除所有非数字字符
+  const cleaned = phoneString.replace(/\D/g, '');
+  
+  // 如果是美国号码（10位数字），格式化为 +1 (XXX) XXX-XXXX
+  if (cleaned.length === 10) {
+    return `+1 (${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  }
+  
+  // 如果已经有国家代码（11位数字，以1开头），格式化为 +1 (XXX) XXX-XXXX
+  if (cleaned.length === 11 && cleaned.startsWith('1')) {
+    return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+  }
+  
+  // 其他格式保持原样
+  return phoneString;
+}
+
+// 已移除头像首字母逻辑
+
+function showError(message) {
+  // 简单的错误提示，可以后续改进
+  alert('Error: ' + message);
+}
+
+function showSuccess(message) {
+  // 简单的成功提示，可以后续改进
+  alert('Success: ' + message);
+}
+
+function setupCodeInputs(container) {
+  if (!container) return;
+  const inputs = container.querySelectorAll('input[maxlength="1"][inputmode="numeric"]');
+  inputs.forEach((ipt, idx) => {
+    ipt.addEventListener('input', () => {
+      ipt.value = ipt.value.replace(/\D/g, '').slice(0, 1);
+      if (ipt.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+    });
+    ipt.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !ipt.value && idx > 0) inputs[idx - 1].focus();
+    });
+    ipt.addEventListener('paste', (e) => {
+      const t = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+      if (!t) return;
+      e.preventDefault();
+      inputs.forEach((x, i) => x.value = t[i] || '');
+      (inputs[Math.min(t.length - 1, inputs.length - 1)] || inputs[0]).focus();
+    });
+  });
+}
+
+// ===== 认证相关 =====
+function getAuthToken() {
+  return sessionStorage.getItem('authToken');
+}
+
+function setAuthToken(token) {
+  sessionStorage.setItem('authToken', token);
+}
+
+function clearAuthToken() {
+  sessionStorage.removeItem('authToken');
+}
+
+function isAuthenticated() {
+  return !!getAuthToken();
+}
+
+function redirectToAuth() {
+  window.location.href = '/auth.html?mode=login';
+}
+
+function showNotAuthenticatedMessage() {
+  // 更新所有字段显示未认证状态
+  const fields = ['userName', 'userEmail', 'userPhone', 'userRole', 'userCreatedAt', 'userValidUntil'];
+  fields.forEach(id => {
+    const element = $(id);
+    if (element) {
+      element.textContent = 'Please sign in first';
+    }
+  });
+}
+
+// ===== API调用 =====
+async function apiCall(endpoint, options = {}) {
+  const token = getAuthToken();
+  if (!token) {
+    // 在邮箱修改流程中不跳转
+    if (!isInEmailChangeFlow) {
+      redirectToAuth();
+    }
+    return null;
+  }
+
+  const defaultOptions = {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  };
+
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...defaultOptions,
+    ...options,
+    headers: {
+      ...defaultOptions.headers,
+      ...options.headers,
+    },
+  });
+
+  if (response.status === 401) {
+    clearAuthToken();
+    // 在邮箱修改流程中不跳转
+    if (!isInEmailChangeFlow) {
+      redirectToAuth();
+    }
+    return null;
+  }
+
+  if (!response.ok) {
+    let msg = `HTTP ${response.status}`;
+    try {
+      const j = await response.json();
+      // FastAPI problem+json style packs info under `detail`
+      if (j && typeof j === 'object') {
+        if (typeof j.detail === 'string') msg = j.detail;
+        else if (j.detail && typeof j.detail === 'object') {
+          msg = j.detail.detail || j.detail.title || msg;
+        }
+      }
+    } catch {}
+    throw new Error(msg);
+  }
+
+  return response.json();
+}
+
+// ===== 用户数据加载 =====
+async function loadUserData() {
+  try {
+    console.log('Starting to load user data...');
+    const token = getAuthToken();
+    console.log('Current token:', token ? token.substring(0, 20) + '...' : 'null');
+    
+    currentUser = await apiCall('/users/me');
+    console.log('API response:', currentUser);
+    
+    if (!currentUser) {
+      console.log('No user data received, redirecting to auth');
+      redirectToAuth();
+      return;
+    }
+
+    console.log('User data loaded successfully:', currentUser);
+
+    // 更新用户信息（Profile Section）
+    updateUserInfo();
+    // 徽章区
+    updateBadges();
+    // 历史记录
+    loadPurchaseHistory();
+    const editor = $('#badgesEditor');
+    if (editor) {
+      try { editor.value = JSON.stringify(currentUser.badges || {}, null, 2); } catch {}
+    }
+    // 生成 QR 码（延迟确保库加载完成）
+    setTimeout(() => {
+      generateQRCode(currentUser.user_id);
+    }, 100);
+    
+    // 根据用户角色显示不同的内容
+    if (currentUser.role === 'admin') {
+      console.log('Admin user detected');
+    } else {
+      console.log('Regular user detected');
+    }
+    
+  } catch (error) {
+    console.error('Failed to load user data:', error);
+    // 如果是401或403错误，自动跳转到登录页
+    if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
+      console.log('Authentication error, redirecting to login');
+      redirectToAuth();
+      return;
+    }
+    // 回退：尝试使用注册阶段缓存的用户名/用户ID（如果有）
+    try {
+      const saved = sessionStorage.getItem('authState');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        currentUser = {
+          user_id: parsed.userId || 'unknown',
+          username: parsed.username || 'Unknown',
+          email: 'Not provided',
+          phone: '',
+          role: 'user',
+          created_at: null,
+          valid_until: null,
+          badges: {}
+        };
+        updateUserInfo();
+        updateBadges();
+        const editor = $('#badgesEditor');
+        if (editor) editor.value = JSON.stringify({}, null, 2);
+        setTimeout(() => {
+          generateQRCode(currentUser.user_id);
+        }, 100);
+        return;
+      }
+    } catch {}
+    showError('Failed to load user data: ' + error.message);
+  }
+}
+
+// 目前导航不显示用户名，无需动态更新
+
+function updateUserInfo() {
+  if (!currentUser) {
+    console.log('No currentUser data available');
+    return;
+  }
+
+  console.log('Updating user info with data:', currentUser);
+
+  // 更新用户详情
+  const fields = {
+    'userName': currentUser.username || 'Unknown',
+    'userEmail': currentUser.email || 'Not provided',
+    'userPhone': formatPhoneNumber(currentUser.phone) || 'Not provided',
+    'userRole': currentUser.role || 'user',
+    'userCreatedAt': formatDate(currentUser.created_at),
+    'userValidUntil': formatDate(currentUser.valid_until)
+  };
+
+  console.log('Fields to update:', fields);
+
+  Object.entries(fields).forEach(([id, value]) => {
+    const element = $(id);
+    if (element) {
+      element.textContent = value;
+      
+      // 为Valid Until添加颜色判断
+      if (id === 'userValidUntil' && currentUser.valid_until) {
+        const validUntilDate = new Date(currentUser.valid_until);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // 重置时间到当天开始
+        validUntilDate.setHours(0, 0, 0, 0); // 重置时间到当天开始
+        
+        // 移除之前的颜色类
+        element.classList.remove('valid', 'expired');
+        
+        if (validUntilDate >= today) {
+          element.classList.add('valid');
+        } else {
+          element.classList.add('expired');
+        }
+      }
+      
+      console.log(`Updated ${id} with value: ${value}`);
+    } else {
+      console.log(`Element with id ${id} not found`);
+    }
+  });
+
+  // Validity chip已移除
+}
+
+function updateValidityChip() {
+  if (!currentUser || !currentUser.valid_until) return;
+  
+  const validChip = $('#daysLeftChip');
+  if (!validChip) return;
+  
+  const now = new Date();
+  const validUntil = new Date(currentUser.valid_until);
+  const diffTime = validUntil - now;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays > 0) {
+    validChip.textContent = `${diffDays} days left`;
+    validChip.style.color = '#7af2a1';
+    validChip.style.background = 'rgba(122,242,161,.12)';
+    validChip.style.borderColor = 'rgba(122,242,161,.35)';
+  } else if (diffDays === 0) {
+    validChip.textContent = 'Expires today';
+    validChip.style.color = '#ffa726';
+    validChip.style.background = 'rgba(255,167,38,.12)';
+    validChip.style.borderColor = 'rgba(255,167,38,.35)';
+  } else {
+    validChip.textContent = 'Expired';
+    validChip.style.color = '#f44336';
+    validChip.style.background = 'rgba(244,67,54,.12)';
+    validChip.style.borderColor = 'rgba(244,67,54,.35)';
+  }
+}
+
+function updateBadges() {
+  if (!currentUser) return;
+
+  const badgesGrid = $('#badgesGrid');
+  const noBadges = $('#noBadges');
+  if (!badgesGrid || !noBadges) return;
+
+  // 清空现有徽章
+  badgesGrid.innerHTML = '';
+
+  // 获取用户徽章
+  const userBadges = currentUser.badges || {};
+  const badgeEntries = Object.entries(userBadges);
+
+  if (badgeEntries.length === 0) {
+    // 没有徽章时显示提示
+    badgesGrid.style.display = 'none';
+    noBadges.style.display = 'block';
+  } else {
+    // 有徽章时显示徽章列表 - 改为block布局，每个badge占一行
+    badgesGrid.style.display = 'block';
+    noBadges.style.display = 'none';
+
+    badgeEntries.forEach(([id, badge]) => {
+      const realmNames = {
+        'north': 'North Pole',
+        'tooth': 'Tooth Fairy',
+        'bunny': 'Spring Bunny'
+      };
+      
+      const badgeElement = document.createElement('div');
+      badgeElement.className = `badge-item realm-${badge.realm} ${badge.active ? 'active' : 'inactive'}`;
+      badgeElement.style.marginBottom = '10px';
+      badgeElement.innerHTML = `
+        <div class="badge-header">
+          <div class="badge-status ${badge.active ? 'active' : 'inactive'}">
+            ${badge.active ? 'Active' : 'Inactive'}
+          </div>
+          <h3 class="badge-title">${realmNames[badge.realm] || 'Unknown Realm'}</h3>
+        </div>
+        <div class="badge-content">
+          <div class="badge-field">
+            <span class="badge-label">Agent Name:</span>
+            <span class="badge-value">${currentUser.username || 'Unknown'}</span>
+          </div>
+          <div class="badge-field">
+            <span class="badge-label">Whom you watch over:</span>
+            <span class="badge-value">${badge.care_description || 'Not specified'}</span>
+          </div>
+          <div class="badge-field">
+            <span class="badge-label">Enchanted Until:</span>
+            <span class="badge-value">${getEnchantedUntil(currentUser.valid_until)}</span>
+          </div>
+        </div>
+        <div class="badge-seal" aria-hidden="true">
+          ${getBadgeSeal(badge.realm)}
+        </div>
+      `;
+      badgesGrid.appendChild(badgeElement);
+    });
+  }
+
+  // 同时更新编辑模式的列表
+  updateBadgesEditList();
+}
+
+function updateBadgesEditList() {
+  if (!currentUser) return;
+
+  const badgesEditList = $('#badgesEditList');
+  if (!badgesEditList) return;
+
+  // 清空现有编辑列表
+  badgesEditList.innerHTML = '';
+
+  // 获取用户徽章
+  const userBadges = currentUser.badges || {};
+  const badgeEntries = Object.entries(userBadges);
+
+  // 获取所有已存在的realm（除了当前正在编辑的badge）
+  const allRealms = [
+    { value: 'north', label: 'North Pole' },
+    { value: 'tooth', label: 'Tooth Fairy' },
+    { value: 'bunny', label: 'Spring Bunny' }
+  ];
+
+  badgeEntries.forEach(([id, badge]) => {
+    // 获取其他badge已使用的realm
+    const otherBadgeRealms = Object.entries(userBadges)
+      .filter(([otherId, otherBadge]) => otherId !== id && otherBadge.realm)
+      .map(([otherId, otherBadge]) => otherBadge.realm);
+
+    // 生成可用的realm选项
+    const availableRealms = allRealms.filter(realm => 
+      !otherBadgeRealms.includes(realm.value) || realm.value === badge.realm
+    );
+
+    const realmOptions = availableRealms.map(realm => 
+      `<option value="${realm.value}" ${badge.realm === realm.value ? 'selected' : ''}>${realm.label}</option>`
+    ).join('');
+
+    const badgeEditElement = document.createElement('div');
+    badgeEditElement.className = 'badge-edit-item';
+    badgeEditElement.innerHTML = `
+      <div class="form-row realm-active-row">
+        <div class="realm-group">
+          <label class="form-label">Realm of Service:</label>
+          <select class="form-select badge-realm-select" data-badge-id="${id}">
+            ${badge.realm ? '' : '<option value="">Select a realm...</option>'}
+            ${realmOptions}
+          </select>
+        </div>
+        <div class="active-group">
+          <label class="form-label">Still Enchanted?</label>
+          <div class="toggle-switch">
+            <input type="checkbox" class="toggle-input badge-active-checkbox" data-badge-id="${id}" ${badge.active ? 'checked' : ''} id="toggle-${id}">
+            <label class="toggle-label" for="toggle-${id}"></label>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Whom You Watch Over:</label>
+        <input type="text" class="form-input badge-description-input" data-badge-id="${id}" value="${badge.care_description || ''}" placeholder="e.g., Caring for Emma and Lucas, Watching over little dreamers">
+      </div>
+    `;
+    badgesEditList.appendChild(badgeEditElement);
+  });
+
+  // 添加事件监听器
+  addBadgeEditEventListeners();
+}
+
+function addBadgeEditEventListeners() {
+  // 为每个badge的编辑控件添加事件监听器
+  const realmSelects = document.querySelectorAll('.badge-realm-select');
+  const descriptionInputs = document.querySelectorAll('.badge-description-input');
+  const activeCheckboxes = document.querySelectorAll('.badge-active-checkbox');
+  const removeButtons = document.querySelectorAll('.remove-badge');
+
+  realmSelects.forEach(select => {
+    select.addEventListener('change', (e) => {
+      const badgeId = e.target.dataset.badgeId;
+      updateBadgeField(badgeId, 'realm', e.target.value);
+      // 当realm改变时，重新生成所有下拉框以确保选项正确
+      updateBadgesEditList();
+    });
+  });
+
+  descriptionInputs.forEach(input => {
+    input.addEventListener('input', (e) => {
+      const badgeId = e.target.dataset.badgeId;
+      updateBadgeField(badgeId, 'care_description', e.target.value);
+    });
+  });
+
+  activeCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      const badgeId = e.target.dataset.badgeId;
+      updateBadgeField(badgeId, 'active', e.target.checked);
+    });
+  });
+
+  removeButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      const badgeId = e.target.dataset.badgeId;
+      removeBadge(badgeId);
+    });
+  });
+}
+
+function updateBadgeField(badgeId, field, value) {
+  if (!currentUser || !currentUser.badges) return;
+  
+  if (!currentUser.badges[badgeId]) {
+    currentUser.badges[badgeId] = {};
+  }
+  
+  currentUser.badges[badgeId][field] = value;
+}
+
+function removeBadge(badgeId) {
+  if (!currentUser || !currentUser.badges) return;
+  
+  delete currentUser.badges[badgeId];
+  updateBadgesEditList();
+  updateAddBadgeButtonVisibility();
+}
+
+function addNewBadge() {
+  if (!currentUser) return;
+  
+  if (!currentUser.badges) {
+    currentUser.badges = {};
+  }
+  
+  // 获取所有已存在的realm
+  const existingRealms = Object.values(currentUser.badges).map(badge => badge.realm);
+  
+  // 定义所有可用的realm
+  const allRealms = ['north', 'tooth', 'bunny'];
+  
+  // 检查是否所有realm都已存在
+  if (existingRealms.length >= allRealms.length) {
+    showError('All realms have been added. You cannot add more badges.');
+    return;
+  }
+  
+  const badgeId = 'badge_' + Date.now();
+  currentUser.badges[badgeId] = {
+    realm: '', // 初始为空，让用户从下拉框选择
+    care_description: '',
+    active: true
+  };
+  
+  updateBadgesEditList();
+  updateAddBadgeButtonVisibility();
+}
+
+function updateAddBadgeButtonVisibility() {
+  if (!currentUser) return;
+  
+  const addBadgeBtn = $('#btnAddBadge');
+  if (!addBadgeBtn) return;
+  
+  // 获取所有已存在的realm
+  const existingRealms = Object.values(currentUser.badges || {}).map(badge => badge.realm);
+  
+  // 定义所有可用的realm
+  const allRealms = ['north', 'tooth', 'bunny'];
+  
+  // 检查是否所有realm都已被创建
+  const allRealmsCreated = allRealms.every(realm => existingRealms.includes(realm));
+  
+  if (allRealmsCreated) {
+    // 所有realm都已创建，隐藏Add New Badge按钮
+    addBadgeBtn.style.display = 'none';
+  } else {
+    // 还有realm可以创建，显示Add New Badge按钮
+    addBadgeBtn.style.display = 'inline-block';
+  }
+}
+
+function toggleEditMode() {
+  const editModeBtn = $('#btnToggleEditMode');
+  const headerEditActions = $('#headerEditActions');
+  const badgesDisplay = $('#badgesDisplay');
+  const badgesEdit = $('#badgesEdit');
+  const addBadgeBtn = $('#btnAddBadge');
+  
+  if (!editModeBtn || !headerEditActions || !badgesDisplay || !badgesEdit) return;
+  
+  const isEditMode = editModeBtn.style.display === 'none';
+  
+  if (isEditMode) {
+    // 退出编辑模式
+    editModeBtn.style.display = 'inline-block';
+    headerEditActions.style.display = 'none';
+    badgesDisplay.style.display = 'block';
+    badgesEdit.style.display = 'none';
+  } else {
+    // 进入编辑模式
+    editModeBtn.style.display = 'none';
+    headerEditActions.style.display = 'flex';
+    badgesDisplay.style.display = 'none';
+    badgesEdit.style.display = 'block';
+    
+    // 检查是否所有realm都已被创建
+    updateAddBadgeButtonVisibility();
+  }
+}
+
+async function saveBadges() {
+  if (!currentUser) return;
+  
+  try {
+    // 调用API保存badges
+    const updatedUser = await apiCall('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        badges: currentUser.badges
+      })
+    });
+    
+    if (updatedUser) {
+      currentUser = updatedUser;
+      updateBadges();
+      toggleEditMode(); // 退出编辑模式
+    }
+  } catch (error) {
+    console.error('Failed to save badges:', error);
+    showError('Failed to save badges');
+  }
+}
+
+function cancelEdit() {
+  // 重新加载用户数据，丢弃未保存的更改
+  loadUserData();
+  toggleEditMode(); // 退出编辑模式
+}
+
+// ===== QR码功能 =====
+function generateQRCode(userId) {
+  console.log('Generating QR code for user:', userId);
+  
+  const qrContainer = $('#qrCode');
+  if (!qrContainer) {
+    console.error('QR container not found');
+    return;
+  }
+
+  // Point QR to the public scan page instead of raw API JSON
+  const origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+  const qrUrl = `${origin}/scan.html?id=${userId}`;
+  console.log('QR URL:', qrUrl);
+  
+  // 使用 qrcode.js 库生成真正的 QR 码
+  if (window.QRCode) {
+    console.log('QRCode library available, generating QR code...');
+    
+    try {
+      // 清空容器
+      qrContainer.innerHTML = '';
+      
+      // 创建 QR 码
+      const qr = new QRCode(qrContainer, {
+        text: qrUrl,
+        width: 220,
+        height: 220,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      
+      // 确保QR码在容器中居中
+      const qrImg = qrContainer.querySelector('img');
+      if (qrImg) {
+        qrImg.style.display = 'block';
+        qrImg.style.margin = 'auto';
+      }
+      
+      console.log('QR code generated successfully');
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      // 如果生成失败，显示占位符
+      qrContainer.innerHTML = `
+        <div class="qr-placeholder">
+          <div class="qr-icon">❌</div>
+          <p>QR Generation Failed</p>
+          <div style="font-size: 10px; color: #999; margin-top: 8px; word-break: break-all;">
+            ${qrUrl}
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    console.error('QRCode library not available, showing placeholder');
+    // 如果 QRCode 库未加载，显示占位符
+    qrContainer.innerHTML = `
+      <div class="qr-placeholder">
+        <div class="qr-icon">📱</div>
+        <p>QR Code</p>
+        <div style="font-size: 10px; color: #999; margin-top: 8px; word-break: break-all;">
+          ${qrUrl}
+        </div>
+      </div>
+    `;
+  }
+}
+
+function showQRModal() {
+  if (!currentUser) return;
+  
+  setTimeout(() => {
+    generateQRCode(currentUser.user_id);
+  }, 100);
+  
+  const modal = $('#qrModal');
+  if (modal) {
+    modal.hidden = false;
+  }
+}
+
+function hideQRModal() {
+  const modal = $('#qrModal');
+  if (modal) {
+    modal.hidden = true;
+  }
+}
+
+// ===== 设置功能 =====
+function showSettingsModal() {
+  if (!currentUser) return;
+  
+  // 填充表单数据
+  const settingsEmail = $('#settingsEmail');
+  const settingsPhone = $('#settingsPhone');
+  
+  if (settingsEmail) settingsEmail.value = currentUser.email;
+  if (settingsPhone) settingsPhone.value = currentUser.phone || '';
+  
+  const modal = $('#settingsModal');
+  if (modal) {
+    modal.hidden = false;
+  }
+}
+
+function hideSettingsModal() {
+  const modal = $('#settingsModal');
+  if (modal) {
+    modal.hidden = true;
+  }
+}
+
+async function saveSettings(event) {
+  event.preventDefault();
+  
+  if (!currentUser) return;
+  
+  const settingsPhone = $('#settingsPhone');
+  if (!settingsPhone) return;
+  
+  const newPhone = settingsPhone.value.trim();
+  
+  try {
+    // 调用API更新用户信息
+    const updatedUser = await apiCall('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        phone: newPhone
+      })
+    });
+    
+    if (updatedUser) {
+      currentUser = updatedUser;
+      updateUserInfo();
+      hideSettingsModal();
+      showSuccess('Settings updated successfully');
+    }
+  } catch (error) {
+    console.error('Failed to update settings:', error);
+    showError('Failed to update settings');
+  }
+}
+
+// ===== 登出功能 =====
+function logout(event) {
+  try { event && event.preventDefault && event.preventDefault(); } catch {}
+  // 清理所有可能的认证相关缓存
+  try { clearAuthToken(); } catch {}
+  try { sessionStorage.removeItem('loginState'); } catch {}
+  try { sessionStorage.removeItem('authState'); } catch {}
+  try { localStorage.removeItem('authToken'); } catch {}
+  
+  // 更可靠的跳转（不保留历史）到主页
+  try { window.location.replace('/index.html'); } catch {}
+  // 兜底：如果 replace 被阻止，再尝试一次
+  setTimeout(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.indexOf('index.html') === -1) {
+      window.location.href = '/index.html';
+    }
+  }, 200);
+}
+
+// ===== 事件监听器 =====
+function setupEventListeners() {
+  // QR 全屏查看（打开新窗口至公开扫二维码地址）
+  // QR 码按钮已移除
+
+  // 修改邮箱（占位）
+  const changeEmailBtn = $('#btnChangeEmail');
+  
+  // 注意：直接绑定可能在某些情况下失败，所以我们主要依赖全局事件委托
+  if (changeEmailBtn) {
+    changeEmailBtn.addEventListener('click', openEmailEditor);
+  }
+
+  // 内联修改手机号
+  const startPhoneBtn = $('#btnStartPhoneChange');
+  if (startPhoneBtn) startPhoneBtn.addEventListener('click', () => {
+    const sec = $('#phoneChangeSection'); if (sec) sec.style.display = 'block';
+    const emailSec = $('#emailChangeSection'); if (emailSec) emailSec.style.display = 'none';
+    // 初始化带区号选择与格式化的输入
+    initPortalPhoneInput();
+    setTimeout(() => {
+      const el = document.getElementById('newPhoneInput');
+      if (el) el.focus();
+    }, 50);
+  });
+  const cancelPhoneBtn = $('#btnCancelPhoneChange');
+  if (cancelPhoneBtn) cancelPhoneBtn.addEventListener('click', () => {
+    clearPhoneChangeState();
+    resetPhoneEditorUI(true);
+  });
+  const sendPhoneBtn = $('#btnSendPhoneCode');
+  if (sendPhoneBtn) sendPhoneBtn.addEventListener('click', onPhonePrimaryClick);
+  const verifyPhoneBtn = $('#btnVerifyPortalPhone');
+  if (verifyPhoneBtn) verifyPhoneBtn.addEventListener('click', onVerifyPortalPhone);
+  const backPhoneBtn = $('#btnBackPortalPhone');
+  if (backPhoneBtn) backPhoneBtn.addEventListener('click', () => { /* 移除对旧验证码区域的引用 */ });
+
+  // 邮箱变更
+  const sendEmailBtn = $('#btnSendEmailCode');
+  if (sendEmailBtn) sendEmailBtn.addEventListener('click', onEmailPrimaryClick);
+  const verifyEmailBtn = $('#btnVerifyPortalEmail');
+  if (verifyEmailBtn) verifyEmailBtn.addEventListener('click', onVerifyPortalEmail);
+  const backEmailBtn = $('#btnBackPortalEmail');
+  if (backEmailBtn) backEmailBtn.addEventListener('click', () => { const cs = $('#portalEmailCodeSection'); if (cs) cs.style.display = 'none'; });
+  const cancelEmailBtn = $('#btnCancelEmailChange');
+  if (cancelEmailBtn) cancelEmailBtn.addEventListener('click', () => {
+    console.log('Cancel email change clicked');
+    isInEmailChangeFlow = false; // 重置邮箱修改流程状态
+    clearEmailChangeState();
+    resetEmailEditorUI(true);
+  });
+
+  // Badges 管理
+  const toggleEditModeBtn = $('#btnToggleEditMode');
+  if (toggleEditModeBtn) toggleEditModeBtn.addEventListener('click', toggleEditMode);
+  
+  const addBadgeBtn = $('#btnAddBadge');
+  if (addBadgeBtn) addBadgeBtn.addEventListener('click', addNewBadge);
+  
+  const saveBadgesBtn = $('#btnSaveBadges');
+  if (saveBadgesBtn) saveBadgesBtn.addEventListener('click', saveBadges);
+  
+  const cancelEditBtn = $('#btnCancelEdit');
+  if (cancelEditBtn) cancelEditBtn.addEventListener('click', cancelEdit);
+
+  // 续费相关按钮
+  const renewMembershipBtn = $('#btnRenewMembership');
+  if (renewMembershipBtn) renewMembershipBtn.addEventListener('click', showRenewalModal);
+  
+  const makeDonationBtn = $('#btnMakeDonation');
+  if (makeDonationBtn) makeDonationBtn.addEventListener('click', showDonationModal);
+
+  // 全局兜底：若局部监听未绑定成功，使用事件委托捕获按钮点击
+  try {
+    document.addEventListener('click', (e) => {
+      // Start phone change (delegation)
+      const phoneBtn = e.target && (e.target.closest ? e.target.closest('#btnStartPhoneChange') : null);
+      if (phoneBtn) {
+        e.preventDefault();
+        const sec = document.getElementById('phoneChangeSection'); if (sec) sec.style.display = 'block';
+        const emailSec = document.getElementById('emailChangeSection'); if (emailSec) emailSec.style.display = 'none';
+        initPortalPhoneInput();
+        setTimeout(() => { const el = document.getElementById('newPhoneInput'); if (el) el.focus(); }, 50);
+      }
+      const target = e.target && (e.target.closest ? e.target.closest('#btnChangeEmail') : null);
+      if (target) {
+        console.log('Change email button clicked via event delegation');
+        e.preventDefault();
+        openEmailEditor();
+      }
+      
+      // 添加Cancel按钮的事件委托
+      const cancelTarget = e.target && (e.target.closest ? e.target.closest('#btnCancelEmailChange') : null);
+      if (cancelTarget) {
+        console.log('Cancel email button clicked via event delegation');
+        e.preventDefault();
+        isInEmailChangeFlow = false;
+        clearEmailChangeState();
+        resetEmailEditorUI(true);
+      }
+      
+      // 添加Send Code按钮的事件委托
+      const sendCodeTarget = e.target && (e.target.closest ? e.target.closest('#btnSendEmailCode') : null);
+      if (sendCodeTarget) {
+        console.log('Send Code button clicked via event delegation');
+        e.preventDefault();
+        e.stopPropagation(); // 阻止事件冒泡
+        e.stopImmediatePropagation(); // 阻止其他事件处理器
+        console.log('Preventing default behavior and propagation');
+        
+        // 延迟执行，确保事件完全处理完毕
+        setTimeout(() => {
+          console.log('Executing onEmailPrimaryClick after delay');
+          onEmailPrimaryClick();
+        }, 10);
+        
+        return false; // 确保不执行默认行为
+      }
+      
+      // 添加Verify按钮的事件委托
+      const verifyTarget = e.target && (e.target.closest ? e.target.closest('#btnVerifyPortalEmail') : null);
+      if (verifyTarget) {
+        console.log('Verify button clicked via event delegation');
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        console.log('Preventing default behavior and propagation for verify');
+        
+        setTimeout(() => {
+          console.log('Executing onVerifyPortalEmail after delay');
+          onVerifyPortalEmail();
+        }, 10);
+        
+        return false;
+      }
+
+      // Phone: Send Code 按钮事件委托
+      const phoneSend = e.target && (e.target.closest ? e.target.closest('#btnSendPhoneCode') : null);
+      if (phoneSend) {
+        console.log('Phone Send Code via delegation');
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        setTimeout(() => { onPhonePrimaryClick(); }, 10);
+        return false;
+      }
+
+      // Phone: Cancel 按钮事件委托
+      const phoneCancel = e.target && (e.target.closest ? e.target.closest('#btnCancelPhoneChange') : null);
+      if (phoneCancel) {
+        console.log('Phone Cancel via delegation');
+        e.preventDefault();
+        clearPhoneChangeState();
+        resetPhoneEditorUI(true);
+        return false;
+      }
+    }, { capture: true });
+  } catch {}
+
+
+  
+  // 登出
+  const btnLogout = $('#btnLogout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', logout);
+  }
+
+  // 删除账号
+  const del = $('#btnDeleteAccount');
+  if (del) del.addEventListener('click', onDeleteAccount);
+
+  // 兜底委托：确保删除按钮在任何情况下都可触发
+  try {
+    document.addEventListener('click', (e) => {
+      const delTarget = e.target && (e.target.closest ? e.target.closest('#btnDeleteAccount') : null);
+      if (delTarget) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        onDeleteAccount();
+        return false;
+      }
+    }, { capture: true });
+  } catch {}
+}
+
+async function onSendPortalPhone() {
+  console.log('onSendPortalPhone function called!');
+  
+  // 使用原生DOM方法查找元素
+  const input = document.getElementById('newPhoneInput');
+  const err = document.getElementById('errPortalPhone');
+  const btn = document.getElementById('btnSendPortalPhone');
+  
+  console.log('Phone elements found:', { input, err, btn });
+  
+  if (!input) return;
+  // 使用 intl-tel-input 校验并取 E164
+  initPortalPhoneInput();
+  const e164 = getPortalE164();
+  console.log('Phone E164 result:', e164);
+  
+  if (!e164) {
+    console.error('Failed to get E164 phone number. Input element:', input);
+    console.error('Input _iti property:', input._iti);
+    console.error('Window intlTelInput:', window.intlTelInput);
+    if (err) err.textContent = 'Please enter a valid phone number';
+    return;
+  }
+  
+  if (err) err.textContent = '';
+  
+  try {
+    // 与后端 tickets 路由对齐：直接创建变更手机号的 ticket
+    const res = await apiCall('/tickets', {
+      method: 'POST',
+      body: JSON.stringify({
+        channel: 'sms',
+        destination: e164,
+        purpose: 'change_phone',
+        subject_id: currentUser?.user_id
+      })
+    });
+    
+    if (res && res.ticket_id) {
+      portalState.phoneTxId = res.ticket_id;
+      portalState.newPhone = e164;
+      savePortalChangeState();
+      // 切换为验证码输入阶段（单输入模式，参照 Email）
+      const inputEl = document.getElementById('newPhoneInput');
+      const label = document.getElementById('phoneLabel');
+      const primary = document.getElementById('btnSendPhoneCode');
+      
+      console.log('Phone transformation elements:', { inputEl, label, primary });
+      
+      if (inputEl && inputEl._iti) { try { inputEl._iti.destroy(); } catch {} delete inputEl._iti; delete inputEl.dataset.itiReady; }
+      if (label) label.textContent = 'Enter 6-digit code';
+      if (inputEl) {
+        inputEl.type = 'text';
+        inputEl.maxLength = 6;
+        inputEl.pattern = '[0-9]*';
+        inputEl.inputMode = 'numeric';
+        inputEl.placeholder = 'Enter 6-digit code';
+        inputEl.value = '';
+        inputEl.classList.remove('tel-invalid');
+        inputEl.focus();
+      }
+      if (primary) {
+        primary.textContent = 'Verify Code';
+        // 不改变按钮ID，保持和email一致
+      }
+      
+      console.log('Phone transformation completed. New input properties:', {
+        type: inputEl?.type,
+        maxLength: inputEl?.maxLength,
+        placeholder: inputEl?.placeholder,
+        value: inputEl?.value
+      });
+      console.log('New label text:', label?.textContent);
+      console.log('New button text and id:', primary?.textContent, primary?.id);
+      
+      // 移除状态提示，保持和email一致
+    }
+  } catch (error) {
+    console.error('Failed to send phone code:', error);
+    if (err) err.textContent = error.message || 'Failed to send code';
+  }
+}
+
+async function onSendPortalEmail() {
+  console.log('onSendPortalEmail function called!');
+  
+  // 防止在邮箱修改流程中的任何跳转
+  if (isInEmailChangeFlow) {
+    console.log('In email change flow, preventing any redirects');
+  }
+  
+  // 使用多种方式查找元素
+  const input = document.getElementById('newEmailInput') || document.querySelector('#newEmailInput');
+  const err = document.getElementById('errPortalEmail') || document.querySelector('#errPortalEmail');
+  const btn = document.getElementById('btnSendPortalEmail') || document.querySelector('#btnSendPortalEmail');
+  
+  console.log('Found elements:', { input, err, btn });
+  
+  // 检查整个文档中是否有这些元素
+  console.log('All elements with newEmailInput:', document.querySelectorAll('[id*="newEmail"]'));
+  console.log('All elements with btnSendPortalEmail:', document.querySelectorAll('[id*="btnSendPortal"]'));
+  
+  if (!input) {
+    console.error('Input element not found!');
+    // 尝试延迟查找
+    setTimeout(() => {
+      const delayedInput = document.getElementById('newEmailInput');
+      console.log('Delayed input search:', delayedInput);
+    }, 100);
+    return;
+  }
+  const email = input.value.trim();
+  console.log('Email value:', email);
+  
+  if (!email) {
+    if (err) err.textContent = 'Please enter your new email address';
+    console.log('No email entered');
+    return;
+  }
+  if (!isValidEmail(email)) {
+    if (err) err.textContent = 'Please enter a valid email address';
+    console.log('Invalid email format');
+    return;
+  }
+  if (err) err.textContent = '';
+  console.log('Sending email code to:', email);
+  
+  try {
+    const res = await apiCall('/tickets', {
+      method: 'POST',
+      body: JSON.stringify({
+        channel: 'email',
+        destination: email,
+        purpose: 'change_email',
+        subject_id: currentUser?.user_id
+      })
+    });
+    console.log('API response:', res);
+    
+    if (res && res.ticket_id) {
+      portalState.emailTxId = res.ticket_id;
+      portalState.newEmail = email;
+      portalState.emailResendExpiry = res.cooldown_sec ? (Date.now() + res.cooldown_sec * 1000) : 0;
+      savePortalChangeState();
+      
+      // 转换输入框为验证码输入
+      // 转换输入框为验证码输入
+      const input = document.getElementById('newEmailInput');
+      const label = document.getElementById('emailLabel');
+      const sendBtn = document.getElementById('btnSendEmailCode');
+      
+      console.log('Found elements for transformation:', { input, label, sendBtn });
+      
+      if (input && label && sendBtn) {
+        console.log('Transforming input field to code input...');
+        // 保存原始邮箱值
+        input.dataset.originalEmail = email;
+        
+        // 转换输入框为验证码输入
+        input.type = 'text';
+        input.maxLength = 6;
+        input.pattern = '[0-9]*';
+        input.inputMode = 'numeric';
+        input.placeholder = 'Enter 6-digit code';
+        input.value = '';
+        
+        // 更新标签和按钮
+        label.textContent = 'Enter 6-digit code';
+        sendBtn.textContent = 'Verify Code';
+        
+        console.log('Transformation completed. New input properties:', {
+          type: input.type,
+          maxLength: input.maxLength,
+          placeholder: input.placeholder,
+          value: input.value
+        });
+        console.log('New label text:', label.textContent);
+        console.log('New button text and id:', sendBtn.textContent, sendBtn.id);
+        
+        // 聚焦到输入框
+        input.focus();
+      } else {
+        console.error('Some elements not found for transformation:', { input, label, sendBtn });
+      }
+      
+      // 不启用60秒重发倒计时（按你的新设计）
+    }
+  } catch (error) {
+    console.error('Failed to send email code:', error);
+    if (err) err.textContent = error.message || 'Failed to send code';
+  }
+}
+
+// 主按钮根据阶段切换：发送 或 验证
+function onEmailPrimaryClick() {
+  if (portalState.emailTxId) {
+    return onVerifyPortalEmail();
+  }
+  return onSendPortalEmail();
+}
+
+// Phone 主按钮：发送 或 验证
+function onPhonePrimaryClick() {
+  console.log('onPhonePrimaryClick called, portalState.phoneTxId:', portalState.phoneTxId);
+  if (portalState.phoneTxId) {
+    console.log('Phone ticket exists, calling onVerifyPortalPhone');
+    return onVerifyPortalPhone();
+  }
+  console.log('No phone ticket, calling onSendPortalPhone');
+  return onSendPortalPhone();
+}
+
+async function onVerifyPortalPhone() {
+  // 使用原生DOM方法查找元素
+  const err = document.getElementById('errPortalPhone');
+  const btn = document.getElementById('btnSendPhoneCode'); // 只查找原始按钮ID，保持和email一致
+  
+  if (!portalState.phoneTxId) { 
+    if (err) err.textContent = 'Please send the code first'; 
+    return; 
+  }
+  
+  // 单输入读取6位验证码
+  let code = '';
+  const codeInput = document.getElementById('newPhoneInput');
+  if (codeInput) code = (codeInput.value || '').replace(/\D/g, '');
+  if (code.length !== 6) { 
+    if (err) err.textContent = 'Please enter the complete 6-digit code'; 
+    return; 
+  }
+  
+  if (btn) btn.textContent = 'Verifying...';
+  if (btn) btn.disabled = true;
+  
+  try {
+    console.log('Verifying phone code:', code);
+    // 第一步：确认验证码
+    const confirmRes = await apiCall(`/tickets/${portalState.phoneTxId}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({ code })
+    });
+    
+    console.log('Phone code confirmation response:', confirmRes);
+    
+    if (confirmRes && confirmRes.proof_token) {
+      // 第二步：更新手机号
+      const updateRes = await apiCall('/contacts/phone', {
+        method: 'PATCH',
+        body: JSON.stringify({ proof_token: confirmRes.proof_token })
+      });
+      
+      console.log('Phone update response:', updateRes);
+      
+      if (updateRes) {
+        await loadUserData();
+        clearPhoneChangeState();
+        resetPhoneEditorUI(true);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to verify phone code:', error);
+    if (err) err.textContent = 'The code is incorrect or expired.';
+  } finally {
+    if (btn) {
+      btn.textContent = 'Verify Code';
+      btn.disabled = false;
+    }
+  }
+}
+
+async function onVerifyPortalEmail() {
+  const err = $('#errPortalEmail');
+  const btn = document.getElementById('btnSendEmailCode');
+  if (!portalState.emailTxId) { if (err) err.textContent = 'Please send the code first'; return; }
+  // 从单个输入框读取验证码
+  const input = document.getElementById('newEmailInput');
+  const code = input ? (input.value || '').replace(/\D/g, '') : '';
+  if (code.length !== 6) { if (err) err.textContent = 'Please enter the complete 6-digit code'; return; }
+  if (btn) { btn.textContent = 'Verifying...'; btn.disabled = true; }
+  try {
+    // 1) confirm ticket
+    const confirmRes = await apiCall(`/tickets/${portalState.emailTxId}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({ code })
+    });
+    if (confirmRes && confirmRes.proof_token) {
+      // 2) patch contact email
+      const updateRes = await apiCall('/contacts/email', {
+        method: 'PATCH',
+        body: JSON.stringify({ proof_token: confirmRes.proof_token })
+      });
+      if (updateRes) {
+        await loadUserData();
+        // reset UI + 清持久化
+        clearEmailChangeState();
+        // 恢复输入为邮箱模式
+        const input = document.getElementById('newEmailInput');
+        const label = document.getElementById('emailLabel');
+        const btnP = document.getElementById('btnSendEmailCode');
+        if (input) {
+          input.type = 'email';
+          input.removeAttribute('maxLength');
+          input.removeAttribute('pattern');
+          input.removeAttribute('inputMode');
+          input.placeholder = 'you@example.com';
+          input.value = '';
+        }
+        if (label) label.textContent = 'New Email';
+        if (btnP) btnP.textContent = 'Send Code';
+        const sec = document.getElementById('emailChangeSection'); if (sec) sec.style.display = 'none';
+        if (err) err.textContent = '';
+        // Success toast removed; profile reflects change after reload above
+      }
+    }
+  } catch (error) {
+    console.error('Failed to verify email code:', error);
+    if (err) err.textContent = 'The code is incorrect or expired.';
+  } finally {
+    if (btn) { btn.textContent = 'Verify Code'; btn.disabled = false; }
+  }
+}
+
+async function onDeleteAccount() {
+  // 按钮禁用/文案切换，避免重复点击
+  const btn = document.getElementById('btnDeleteAccount');
+  const oldText = btn ? btn.textContent : '';
+  const ok = confirm('Delete your account? This action is permanent.');
+  if (!ok) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Deleting...'; }
+  try { 
+    await apiCall('/users/me', { method: 'DELETE' }); 
+    // 删除成功后清理并跳转
+    clearAuthToken(); 
+    try { sessionStorage.removeItem('authState'); } catch {}
+    try { sessionStorage.removeItem('loginState'); } catch {}
+    try { localStorage.removeItem('authToken'); } catch {}
+    redirectToAuth();
+  } catch (error) {
+    console.error('Failed to delete account:', error);
+    alert(error?.message || 'Failed to delete account');
+    if (btn) { btn.disabled = false; btn.textContent = oldText || 'Delete Account'; }
+  }
+}
+
+// ===== 辅助函数 =====
+function isValidPhone(phone) {
+  // 简单的手机号验证，可以根据需要调整
+  const cleaned = phone.replace(/\D/g, '');
+  return cleaned.length >= 10 && cleaned.length <= 15;
+}
+
+// ===== Portal Phone (intl-tel-input) =====
+function resetPhoneEditorUI(hideSection = true) {
+  const label = document.getElementById('phoneLabel');
+  const input = document.getElementById('newPhoneInput');
+  const btn = document.getElementById('btnSendPhoneCode'); // 只查找原始按钮ID，保持和email一致
+  if (input && input._iti) {
+    try { input._iti.destroy(); } catch {}
+    delete input._iti;
+    delete input.dataset.itiReady;
+  }
+  if (input) {
+    input.type = 'tel';
+    input.placeholder = 'Enter your new phone';
+    input.value = '';
+    input.classList.remove('tel-invalid');
+  }
+  if (label) label.textContent = 'New Phone';
+  if (btn) {
+    btn.textContent = 'Send Code';
+    // 不改变按钮ID，保持和email一致
+    btn.disabled = false;
+  }
+  const err = document.getElementById('errPortalPhone'); if (err) err.textContent = '';
+  // 移除状态提示，保持和email一致
+  if (hideSection) { const sec = document.getElementById('phoneChangeSection'); if (sec) sec.style.display = 'none'; }
+}
+function initPortalPhoneInput() {
+  const el = document.getElementById('newPhoneInput');
+  if (!el || el.dataset.itiReady) return;
+  if (!window.intlTelInput) {
+    console.warn('intl-tel-input not loaded for portal phone');
+    return;
+  }
+  try {
+    const iti = window.intlTelInput(el, {
+      initialCountry: 'us',
+      preferredCountries: ['us','cn','gb','ca','au'],
+      separateDialCode: true,
+      nationalMode: true,
+      autoPlaceholder: 'aggressive',
+      formatOnDisplay: true,
+      utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js'
+    });
+    el.dataset.itiReady = '1';
+    el._iti = iti;
+
+    // 实时格式化与校验
+    const validate = () => {
+      if (!el._iti) return;
+      try {
+        const ok = el._iti.isValidNumber();
+        if (el.value.trim() === '') { el.classList.remove('tel-invalid'); return; }
+        if (ok) el.classList.remove('tel-invalid');
+        else el.classList.add('tel-invalid');
+      } catch {}
+    };
+    el.addEventListener('input', () => {
+      try {
+        if (window.intlTelInputUtils && el._iti) {
+          const number = el.value;
+          if (number) {
+            const data = el._iti.getSelectedCountryData();
+            if (data && data.iso2) {
+              const formatted = window.intlTelInputUtils.formatNumber(number, data.iso2, window.intlTelInputUtils.numberFormat.NATIONAL);
+              if (formatted && formatted !== number) el.value = formatted;
+            }
+          }
+        }
+      } catch {}
+      validate();
+    });
+    el.addEventListener('blur', validate);
+    el.addEventListener('countrychange', validate);
+  } catch (e) {
+    console.error('initPortalPhoneInput failed', e);
+  }
+}
+
+function getPortalE164() {
+  const el = document.getElementById('newPhoneInput');
+  if (!el || !el._iti) return null;
+  try {
+    if (window.intlTelInputUtils && window.intlTelInputUtils.numberFormat) {
+      return el._iti.getNumber(window.intlTelInputUtils.numberFormat.E164);
+    }
+    return el._iti.getNumber();
+  } catch { return null; }
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function startResendTimer(btn, cooldownSec) {
+  if (!btn) return;
+  
+  let remaining = cooldownSec;
+  btn.disabled = true;
+  
+  const timer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      // 根据按钮ID决定恢复的文本
+      if (btn.id === 'btnSendEmailCode') {
+        btn.textContent = 'Send Code';
+      } else if (btn.id === 'btnSendPhoneCode') {
+        btn.textContent = 'Send Code';
+      } else {
+        btn.textContent = 'Send Code';
+      }
+      btn.disabled = false;
+      clearInterval(timer);
+    } else {
+      btn.textContent = `Resend in ${remaining}s`;
+    }
+  }, 1000);
+}
+
+// 上方已定义了 clearAuthToken / redirectToAuth / isAuthenticated / showNotAuthenticatedMessage
+
+// ===== 徽章保存 =====
+async function onSaveBadges() {
+  if (!currentUser) return;
+  const editor = $('#badgesEditor');
+  if (!editor) return;
+  let parsed;
+  try {
+    parsed = JSON.parse(editor.value || '{}');
+    if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Badges must be a JSON object');
+  } catch (e) {
+    showError('Invalid JSON: ' + (e.message || 'Parse error'));
+    return;
+  }
+  try {
+    const updated = await apiCall('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ badges: parsed })
+    });
+    if (updated) {
+      currentUser = updated;
+      updateBadges();
+      showSuccess('Badges saved');
+    }
+  } catch (e) {
+    showError(e.message || 'Failed to save badges');
+  }
+}
+
+// ===== 初始化 =====
+async function initializePortal() {
+  // 检查认证状态
+  const token = getAuthToken();
+  console.log('Portal initialization - Token exists:', !!token);
+  console.log('Portal initialization - Token value:', token ? token.substring(0, 20) + '...' : 'null');
+  
+  if (!isAuthenticated()) {
+    console.log('Not authenticated, redirecting to login');
+    // 自动跳转到登录页
+    redirectToAuth();
+    return;
+  }
+  
+  // 加载用户数据
+  await loadUserData();
+  
+  // 设置事件监听器（在用户数据加载完成后）
+  // 添加一个小延迟确保DOM完全加载
+  setTimeout(() => {
+    setupEventListeners();
+    // 确保电话输入启用国际区号控件（如果用户直接点击了 Change Phone）
+    initPortalPhoneInput();
+    // 恢复邮箱/手机号变更进行中的状态（防止 Live Server 刷新中断）
+    if (loadPortalChangeState()) {
+      // Email 恢复（新的单输入模式）
+      if (portalState.emailTxId) {
+        const emailSec = document.getElementById('emailChangeSection'); if (emailSec) emailSec.style.display = 'block';
+        const phoneSec = document.getElementById('phoneChangeSection'); if (phoneSec) phoneSec.style.display = 'none';
+        const label = document.getElementById('emailLabel'); if (label) label.textContent = 'Enter 6-digit code';
+        const input = document.getElementById('newEmailInput');
+        if (input) {
+          input.type = 'text';
+          input.maxLength = 6;
+          input.pattern = '[0-9]*';
+          input.inputMode = 'numeric';
+          input.placeholder = 'Enter 6-digit code';
+          input.value = '';
+        }
+        const primary = document.getElementById('btnSendEmailCode'); if (primary) primary.textContent = 'Verify Code';
+        const codeSec = document.getElementById('portalEmailCodeSection'); if (codeSec) codeSec.style.display = 'none';
+      }
+      // Phone 恢复
+      if (portalState.phoneTxId) {
+        const phoneSec = document.getElementById('phoneChangeSection'); if (phoneSec) phoneSec.style.display = 'block';
+        const emailSec = document.getElementById('emailChangeSection'); if (emailSec) emailSec.style.display = 'none';
+        // 恢复到验证码阶段（单输入模式）
+        const label = document.getElementById('phoneLabel'); if (label) label.textContent = 'Enter 6-digit code';
+        const input = document.getElementById('newPhoneInput');
+        if (input) {
+          if (input._iti) { try { input._iti.destroy(); } catch {} delete input._iti; delete input.dataset.itiReady; }
+          input.type = 'text';
+          input.maxLength = 6;
+          input.pattern = '[0-9]*';
+          input.inputMode = 'numeric';
+          input.placeholder = 'Enter 6-digit code';
+          input.value = '';
+        }
+        const primary = document.getElementById('btnSendPhoneCode'); if (primary) primary.textContent = 'Verify Code';
+        // 移除对旧验证码区域的引用
+      }
+    }
+  }, 100);
+  
+  // 全局兜底：确保登出按钮点击事件一定能捕获
+  try {
+    document.addEventListener('click', (e) => {
+      const target = e.target && (e.target.closest ? e.target.closest('#btnLogout') : null);
+      if (target) {
+        logout(e);
+      }
+    }, { capture: true });
+  } catch {}
+  
+  // Header Member 跳转：已登录去 portal，未登录去 login（与其他页面一致）
+  const navMember = document.getElementById('navMember');
+  if (navMember) {
+    navMember.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (isAuthenticated()) {
+        window.location.href = '/portal.html';
+      } else {
+        window.location.href = '/auth.html?mode=login';
+      }
+    });
+  }
+}
+
+// ===== 页面加载完成后初始化 =====
+document.addEventListener('DOMContentLoaded', initializePortal);
+
+// ===== Badge 工具函数 =====
+function getEnchantedUntil(validUntil) {
+  if (!validUntil) return 'Not specified';
+  
+  const today = new Date();
+  const validDate = new Date(validUntil);
+  
+  // 返回今天和valid_until中较早的日期
+  const earlierDate = today < validDate ? today : validDate;
+  
+  return formatDate(earlierDate);
+}
+
+// ===== Badge Seal 生成函数 =====
+function getBadgeSeal(realm) {
+  const seals = {
+    'north': `
+      <svg class="stamp stamp-north" viewBox="0 0 120 120" width="100" height="100">
+        <defs>
+          <radialGradient id="g-north-badge" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+            <stop offset="100%" stop-color="#7BC4FF" stop-opacity=".25"/>
+          </radialGradient>
+        </defs>
+        <circle cx="60" cy="60" r="52" fill="url(#g-north-badge)" stroke="#7BC4FF" stroke-width="4" opacity=".8"/>
+        <circle cx="60" cy="60" r="42" fill="none" stroke="#7BC4FF" stroke-width="2" stroke-dasharray="4 6" opacity=".6"/>
+        <g stroke="#5AAEFF" stroke-width="3" stroke-linecap="round" opacity=".9">
+          <line x1="60" y1="32" x2="60" y2="88"/>
+          <line x1="32" y1="60" x2="88" y2="60"/>
+          <line x1="40" y1="40" x2="80" y2="80"/>
+          <line x1="80" y1="40" x2="40" y2="80"/>
+        </g>
+      </svg>
+    `,
+    'tooth': `
+      <svg class="stamp stamp-tooth" viewBox="0 0 120 120" width="100" height="100">
+        <defs>
+          <radialGradient id="g-tooth-badge" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+            <stop offset="100%" stop-color="#D5B8FF" stop-opacity=".25"/>
+          </radialGradient>
+        </defs>
+        <circle cx="60" cy="60" r="52" fill="url(#g-tooth-badge)" stroke="#C39BFF" stroke-width="4" opacity=".85"/>
+        <circle cx="60" cy="60" r="42" fill="none" stroke="#C39BFF" stroke-width="2" stroke-dasharray="3 5" opacity=".6"/>
+        <g fill="#B285FF" opacity=".9">
+          <path d="M60 42 l3 6 6 3 -6 3 -3 6 -3-6 -6-3 6-3z"/>
+          <path d="M86 58 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+          <path d="M34 58 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+          <path d="M60 78 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+        </g>
+      </svg>
+    `,
+    'bunny': `
+      <svg class="stamp stamp-bunny" viewBox="0 0 120 120" width="100" height="100">
+        <defs>
+          <radialGradient id="g-bunny-badge" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+            <stop offset="100%" stop-color="#9BE7B0" stop-opacity=".25"/>
+          </radialGradient>
+        </defs>
+        <circle cx="60" cy="60" r="52" fill="url(#g-bunny-badge)" stroke="#65D08A" stroke-width="4" opacity=".85"/>
+        <circle cx="60" cy="60" r="42" fill="none" stroke="#65D08A" stroke-width="2" stroke-dasharray="6 6" opacity=".55"/>
+        <g fill="#49C27A" opacity=".9">
+          <circle cx="60" cy="66" r="12"/>
+          <circle cx="48" cy="50" r="5"/>
+          <circle cx="60" cy="46" r="5"/>
+          <circle cx="72" cy="50" r="5"/>
+        </g>
+      </svg>
+    `
+  };
+  
+  return seals[realm] || seals['north'];
+}
+
+// ===== 续费功能 =====
+function updateRenewalInfo() {
+  if (!currentUser) return;
+
+  const validUntilElement = $('#renewalValidUntil');
+  const statusElement = $('#renewalStatus');
+
+  if (validUntilElement) {
+    validUntilElement.textContent = formatDate(currentUser.valid_until) || 'Not specified';
+  }
+
+  if (statusElement) {
+    if (currentUser.valid_until) {
+      const validUntilDate = new Date(currentUser.valid_until);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      validUntilDate.setHours(0, 0, 0, 0);
+      
+      if (validUntilDate >= today) {
+        statusElement.textContent = 'Active';
+        statusElement.className = 'validity-status active';
+      } else {
+        statusElement.textContent = 'Expired';
+        statusElement.className = 'validity-status expired';
+      }
+    } else {
+      statusElement.textContent = 'No membership';
+      statusElement.className = 'validity-status inactive';
+    }
+  }
+}
+
+async function loadPurchaseHistory() {
+  if (!currentUser) return;
+
+  const historyLoading = $('#historyLoading');
+  const noHistory = $('#noHistory');
+  const historyList = $('#historyList');
+
+  if (historyLoading) historyLoading.style.display = 'block';
+  if (noHistory) noHistory.style.display = 'none';
+
+  try {
+    // 这里应该调用API获取购买历史
+    // const history = await apiCall('/users/me/purchases');
+    
+    // 模拟数据，实际应该从API获取
+    const mockHistory = [
+      {
+        id: 'transaction_1',
+        date: '2024-01-15',
+        amount: '$9.99',
+        type: 'Membership Renewal'
+      },
+      {
+        id: 'transaction_2', 
+        date: '2023-12-20',
+        amount: '$25.00',
+        type: 'Donation'
+      },
+      {
+        id: 'transaction_3', 
+        date: '2023-01-15',
+        amount: '$9.99',
+        type: 'Initial Membership'
+      }
+    ];
+
+    if (historyLoading) historyLoading.style.display = 'none';
+    
+    if (mockHistory.length === 0) {
+      if (noHistory) noHistory.style.display = 'block';
+    } else {
+      displayPurchaseHistory(mockHistory);
+    }
+  } catch (error) {
+    console.error('Failed to load purchase history:', error);
+    if (historyLoading) historyLoading.style.display = 'none';
+    if (noHistory) noHistory.style.display = 'block';
+  }
+}
+
+function displayPurchaseHistory(history) {
+  const historyList = $('#historyList');
+  if (!historyList) return;
+
+  // 清空现有内容
+  historyList.innerHTML = '';
+
+  history.forEach(transaction => {
+    const historyItem = document.createElement('div');
+    historyItem.className = 'history-item';
+    historyItem.innerHTML = `
+      <div class="history-item-simple">
+        <div class="history-item-date">${formatDate(transaction.date)}</div>
+        <div class="history-item-type">${transaction.type}</div>
+        <div class="history-item-amount">${transaction.amount}</div>
+      </div>
+    `;
+    historyList.appendChild(historyItem);
+  });
+}
+
+function showRenewalModal() {
+  // 这里可以显示续费模态框
+  showSuccess('Renewal feature coming soon!');
+}
+
+function showDonationModal() {
+  // 这里可以显示捐献模态框
+  showSuccess('Donation feature coming soon!');
+}

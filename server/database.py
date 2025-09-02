@@ -1,0 +1,245 @@
+# database.py
+from __future__ import annotations
+from datetime import datetime, timedelta, timezone
+from typing import Optional, List, Dict, Any
+from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_
+import json
+from models import (
+    User, Registration, Ticket, Proof, Session as DBSession, 
+    RefreshToken, Purchase, RateLimit, get_session
+)
+
+UTC = timezone.utc
+
+class DatabaseService:
+    def __init__(self):
+        self.db: Session = get_session()
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.db.close()
+    
+    # User operations
+    def create_user(self, user_id: str, **kwargs) -> User:
+        user = User(id=user_id, **kwargs)
+        self.db.add(user)
+        self.db.commit()
+        return user
+    
+    def get_user_by_id(self, user_id: str) -> Optional[User]:
+        return self.db.query(User).filter(User.id == user_id).first()
+    
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        return self.db.query(User).filter(User.email == email).first()
+    
+    def get_user_by_phone(self, phone: str) -> Optional[User]:
+        return self.db.query(User).filter(User.phone == phone).first()
+    
+    def get_user_by_username(self, username: str) -> Optional[User]:
+        return self.db.query(User).filter(User.username == username).first()
+    
+    def update_user(self, user_id: str, **kwargs) -> Optional[User]:
+        user = self.get_user_by_id(user_id)
+        if user:
+            for key, value in kwargs.items():
+                if hasattr(user, key):
+                    setattr(user, key, value)
+            user.updated_at = datetime.utcnow()
+            self.db.commit()
+        return user
+    
+    def delete_user(self, user_id: str) -> bool:
+        user = self.get_user_by_id(user_id)
+        if user:
+            user.deleted_at = datetime.utcnow()
+            self.db.commit()
+            return True
+        return False
+    
+    # Registration operations
+    def create_registration(self, reg_id: str, user_id: str) -> Registration:
+        reg = Registration(id=reg_id, user_id=user_id)
+        self.db.add(reg)
+        self.db.commit()
+        return reg
+    
+    def get_registration_by_id(self, reg_id: str) -> Optional[Registration]:
+        return self.db.query(Registration).filter(Registration.id == reg_id).first()
+    
+    def update_registration(self, reg_id: str, **kwargs) -> Optional[Registration]:
+        reg = self.get_registration_by_id(reg_id)
+        if reg:
+            for key, value in kwargs.items():
+                if hasattr(reg, key):
+                    setattr(reg, key, value)
+            reg.updated_at = datetime.utcnow()
+            self.db.commit()
+        return reg
+    
+    # Ticket operations
+    def create_ticket(self, ticket_id: str, channel: str, destination: str, 
+                     purpose: str, code_hash: str, expires_at: datetime, 
+                     subject_id: Optional[str] = None) -> Ticket:
+        ticket = Ticket(
+            id=ticket_id, channel=channel, destination=destination,
+            purpose=purpose, code_hash=code_hash, expires_at=expires_at,
+            subject_id=subject_id
+        )
+        self.db.add(ticket)
+        self.db.commit()
+        return ticket
+    
+    def get_ticket_by_id(self, ticket_id: str) -> Optional[Ticket]:
+        return self.db.query(Ticket).filter(Ticket.id == ticket_id).first()
+    
+    def delete_ticket(self, ticket_id: str) -> bool:
+        ticket = self.get_ticket_by_id(ticket_id)
+        if ticket:
+            self.db.delete(ticket)
+            self.db.commit()
+            return True
+        return False
+    
+    def cleanup_expired_tickets(self) -> int:
+        count = self.db.query(Ticket).filter(Ticket.expires_at < datetime.utcnow()).delete()
+        self.db.commit()
+        return count
+    
+    # Proof operations
+    def create_proof(self, token: str, channel: str, destination: str,
+                    purpose: str, expires_at: datetime, 
+                    subject_id: Optional[str] = None) -> Proof:
+        proof = Proof(
+            token=token, channel=channel, destination=destination,
+            purpose=purpose, expires_at=expires_at, subject_id=subject_id
+        )
+        self.db.add(proof)
+        self.db.commit()
+        return proof
+    
+    def get_proof_by_token(self, token: str) -> Optional[Proof]:
+        return self.db.query(Proof).filter(Proof.token == token).first()
+    
+    def delete_proof(self, token: str) -> bool:
+        proof = self.get_proof_by_token(token)
+        if proof:
+            self.db.delete(proof)
+            self.db.commit()
+            return True
+        return False
+    
+    def cleanup_expired_proofs(self) -> int:
+        count = self.db.query(Proof).filter(Proof.expires_at < datetime.utcnow()).delete()
+        self.db.commit()
+        return count
+    
+    # Session operations
+    def create_session(self, access_token: str, user_id: str, role: str, 
+                      expires_at: datetime) -> DBSession:
+        session = DBSession(
+            access_token=access_token, user_id=user_id,
+            role=role, expires_at=expires_at
+        )
+        self.db.add(session)
+        self.db.commit()
+        return session
+    
+    def get_session_by_token(self, access_token: str) -> Optional[DBSession]:
+        return self.db.query(DBSession).filter(DBSession.access_token == access_token).first()
+    
+    def delete_session(self, access_token: str) -> bool:
+        session = self.get_session_by_token(access_token)
+        if session:
+            self.db.delete(session)
+            self.db.commit()
+            return True
+        return False
+    
+    def cleanup_expired_sessions(self) -> int:
+        count = self.db.query(DBSession).filter(DBSession.expires_at < datetime.utcnow()).delete()
+        self.db.commit()
+        return count
+    
+    # Refresh token operations
+    def create_refresh_token(self, refresh_token: str, user_id: str, role: str,
+                           expires_at: datetime) -> RefreshToken:
+        refresh = RefreshToken(
+            refresh_token=refresh_token, user_id=user_id,
+            role=role, expires_at=expires_at
+        )
+        self.db.add(refresh)
+        self.db.commit()
+        return refresh
+    
+    def get_refresh_token(self, refresh_token: str) -> Optional[RefreshToken]:
+        return self.db.query(RefreshToken).filter(RefreshToken.refresh_token == refresh_token).first()
+    
+    def delete_refresh_token(self, refresh_token: str) -> bool:
+        refresh = self.get_refresh_token(refresh_token)
+        if refresh:
+            self.db.delete(refresh)
+            self.db.commit()
+            return True
+        return False
+    
+    def cleanup_expired_refresh_tokens(self) -> int:
+        count = self.db.query(RefreshToken).filter(RefreshToken.expires_at < datetime.utcnow()).delete()
+        self.db.commit()
+        return count
+    
+    # Rate limit operations
+    def get_rate_limit(self, key: str) -> Optional[RateLimit]:
+        return self.db.query(RateLimit).filter(RateLimit.key == key).first()
+    
+    def create_or_update_rate_limit(self, key: str, window_start: datetime, 
+                                   count: int, limit: int) -> RateLimit:
+        rate_limit = self.get_rate_limit(key)
+        if rate_limit:
+            rate_limit.count = count
+            rate_limit.updated_at = datetime.utcnow()
+        else:
+            rate_limit = RateLimit(
+                key=key, window_start=window_start, count=count, limit=limit
+            )
+            self.db.add(rate_limit)
+        self.db.commit()
+        return rate_limit
+    
+    def cleanup_expired_rate_limits(self, window_start: datetime) -> int:
+        count = self.db.query(RateLimit).filter(RateLimit.window_start < window_start).delete()
+        self.db.commit()
+        return count
+    
+    # Purchase operations
+    def create_purchase(self, purchase_id: str, user_id: str, **kwargs) -> Purchase:
+        purchase = Purchase(id=purchase_id, user_id=user_id, **kwargs)
+        self.db.add(purchase)
+        self.db.commit()
+        return purchase
+    
+    def get_purchase_by_id(self, purchase_id: str) -> Optional[Purchase]:
+        return self.db.query(Purchase).filter(Purchase.id == purchase_id).first()
+    
+    # Utility methods
+    def get_all_users(self) -> List[User]:
+        return self.db.query(User).filter(User.deleted_at.is_(None)).all()
+    
+    def get_user_by_email_or_phone(self, email: Optional[str] = None, 
+                                  phone: Optional[str] = None) -> Optional[User]:
+        if email and phone:
+            return self.db.query(User).filter(
+                or_(User.email == email, User.phone == phone),
+                User.deleted_at.is_(None)
+            ).first()
+        elif email:
+            return self.get_user_by_email(email)
+        elif phone:
+            return self.get_user_by_phone(phone)
+        return None
+
+# Convenience function
+def get_db() -> DatabaseService:
+    return DatabaseService()

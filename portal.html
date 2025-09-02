@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mythical Helper – Portal</title>
+  <!-- intl-tel-input CSS for phone input (match signup UX) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="page-portal">
+  <!-- 全站星空背景元素 -->
+  <div class="meteor" aria-hidden="true"></div>
+  <div class="meteor" aria-hidden="true"></div>
+  <div class="meteor" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container">
+      <div class="brand">
+        <img src="logo.png" alt="Logo" class="logo">
+        <span class="name">MythicalHelper</span>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="#" id="navMember" class="active">Member</a>
+        <div class="lang-selector">
+          <select>
+            <option value="en">🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+            <option value="es">🇪🇸 Español</option>
+          </select>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Section 1: Profile -->
+    <section class="portal-section" id="profileSection">
+      <div class="portal-card profile-grid">
+        <!-- 资料卡（左） -->
+        <section class="profile-card">
+          <div class="profile-header">
+            <h2>Profile</h2>
+            <button class="btn logout-btn" id="btnLogout" type="button">Logout</button>
+          </div>
+
+          <div class="profile-fields">
+            <div class="field">
+              <span class="label">Name</span>
+              <span class="value" id="userName">Loading…</span>
+            </div>
+            <div class="field">
+              <span class="label">Email</span>
+              <span class="value" id="userEmail">Loading…</span>
+            </div>
+            <!-- Inline Email Change Flow -->
+            <div id="emailChangeSection" class="email-change-section" style="display:none;">
+              <div class="form-row">
+                <label for="newEmailInput" class="form-label" id="emailLabel">New Email</label>
+                <input type="email" id="newEmailInput" class="form-input" placeholder="you@example.com" />
+              </div>
+              <div class="actions">
+                <button class="btn primary" id="btnSendEmailCode" type="button">Send Code</button>
+                <button class="btn" id="btnCancelEmailChange" type="button">Cancel</button>
+              </div>
+              <div class="error" id="errPortalEmail"></div>
+            </div>
+            <div class="field">
+              <span class="label">Phone</span>
+              <span class="value" id="userPhone">Loading…</span>
+            </div>
+            <!-- Inline Phone Change Flow (moved under Phone) -->
+            <div id="phoneChangeSection" class="phone-change-section" style="display:none;">
+              <div class="form-row">
+                <label for="newPhoneInput" class="form-label" id="phoneLabel">New Phone</label>
+                <input type="tel" id="newPhoneInput" class="form-input" placeholder="Enter your new phone" />
+              </div>
+              <div class="actions">
+                <button class="btn primary" id="btnSendPhoneCode" type="button">Send Code</button>
+                <button class="btn" id="btnCancelPhoneChange" type="button">Cancel</button>
+              </div>
+              <div class="error" id="errPortalPhone"></div>
+            </div>
+            <div class="field">
+              <span class="label">Member Since</span>
+              <span class="value" id="userCreatedAt">Loading…</span>
+            </div>
+            <div class="field">
+              <span class="label">Valid Until</span>
+              <span class="value" id="userValidUntil">Loading…</span>
+            </div>
+            <div class="button-row">
+              <button class="btn link" id="btnChangeEmail" type="button">Change Email</button>
+              <button class="btn link" id="btnStartPhoneChange" type="button">Change Phone</button>
+              <button class="btn link" id="btnDeleteAccount" type="button">Delete Account</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 动作卡（右） -->
+        <aside class="action-card">
+          <div class="action-header">
+            <h4 class="card-title">QRcode</h4>
+          </div>
+          <div class="qr-container">
+            <div class="qr-box" id="qrCode">
+              <div class="qr-placeholder">
+                <div class="qr-icon">📱</div>
+                <p>QR Code</p>
+              </div>
+            </div>
+            <p class="muted">Scan to preview your badges</p>
+          </div>
+        </aside>
+      </div>
+      
+      <!-- 分割线 -->
+      <div class="section-divider"></div>
+    </section>
+
+    <!-- Section 2: Badges -->
+    <section class="portal-section" id="badgesSection">
+      <div class="portal-card badges-card">
+        <div class="badges-header">
+          <h2>Your Badges</h2>
+          <div class="header-actions">
+            <button class="btn edit-mode-btn" id="btnToggleEditMode" type="button">Edit Mode</button>
+            <div class="edit-actions" id="headerEditActions" style="display: none;">
+              <button class="btn primary" id="btnSaveBadges" type="button">Save Changes</button>
+              <button class="btn" id="btnCancelEdit" type="button">Cancel</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 展示模式 -->
+        <div class="badges-display" id="badgesDisplay">
+          <div class="badges-grid" id="badgesGrid">
+            <!-- Badges will be populated here -->
+          </div>
+          <div class="no-badges" id="noBadges" style="display: none;">
+            <p>Your scroll is still blank</p>
+            <p class="muted">Begin your tale — create your very first badge!</p>
+          </div>
+        </div>
+        
+        <!-- 编辑模式 -->
+        <div class="badges-edit" id="badgesEdit" style="display: none;">
+          <div class="badges-list" id="badgesEditList">
+            <!-- Editable badges will be here -->
+          </div>
+          <div class="add-badge-section">
+            <button class="btn add-badge-btn" id="btnAddBadge" type="button">
+              <span class="add-icon">+</span>
+              Add New Badge
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 分割线 -->
+    <div class="section-divider"></div>
+
+    <!-- Section 3: Renewal & History -->
+    <section class="portal-section" id="renewalSection">
+      <div class="portal-card renewal-card">
+        <div class="renewal-header">
+          <h2>Membership & Goodwill</h2>
+        </div>
+        
+        <!-- 按钮和介绍部分 -->
+        <div class="renewal-actions-section">
+          <div class="action-item">
+            <button class="btn primary fancy-btn" id="btnRenewMembership" type="button">
+              RENEW YOUR ENCHANTMENT
+            </button>
+            <p class="action-desc">Keep the wonder alive with a full year of magic for $9.99.</p>
+          </div>
+          
+          <div class="action-item">
+            <button class="btn secondary fancy-btn" id="btnMakeDonation" type="button">
+              SHARE A GIFT OF KINDNESS
+            </button>
+            <p class="action-desc">Any amount you give will help our guild shine brighter.</p>
+          </div>
+        </div>
+        
+        <!-- 历史记录部分 -->
+        <div class="history-content">
+          <div class="history-list" id="historyList">
+            <div class="history-loading" id="historyLoading">
+              <p>Loading purchase history...</p>
+            </div>
+            <div class="no-history" id="noHistory" style="display: none;">
+              <p>No purchase history found</p>
+              <p class="muted">Your purchase records will appear here</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="logo.png" alt="Logo" class="logo">
+      </div>
+      <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>
+    </div>
+  </footer>
+
+  <!-- QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- intl-tel-input JS + utils (before portal.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/intlTelInput.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js" defer></script>
+  <!-- 确保QR码库加载完成后再加载portal.js -->
+  <script>
+    // 等待QR码库加载完成
+    window.addEventListener('load', function() {
+      if (window.QRCode) {
+        console.log('QR Code library loaded successfully');
+      } else {
+        console.error('QR Code library failed to load');
+      }
+    });
+  </script>
+  <script src="portal.js"></script>
+</body>
+</html>

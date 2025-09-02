@@ -26,7 +26,7 @@ A whimsical, storybook‑style platform for issuing Official Helper Certificates
 
 - `index.html`: Single‑page app with hash routing (`#/`, `#/signup`, `#/phone`, `#/generate`, `#/verify`)
 - `styles.css`: Minimal, responsive dark theme
-- `app.js`: All logic (i18n, mock API, session, router, views)
+- `index.js`: Home page logic (i18n, mock API, session, router, views)
 
 ## 🎨 设计特色
 
@@ -40,7 +40,7 @@ A whimsical, storybook‑style platform for issuing Official Helper Certificates
 
 Open `index.html` directly or serve the folder with any static server.
 
-Config lives in `app.js` → `CFG`:
+Config lives in `index.js` → `CFG`:
 
 - `apiBaseUrl`: real FastAPI endpoint later
 - `mock`: set `false` to call backend
@@ -50,7 +50,7 @@ Config lives in `app.js` → `CFG`:
 
 ```
 MythicalHelper/
-├── app.js
+├── index.js
 ├── styles.css
 ├── index.html
 └── README.md

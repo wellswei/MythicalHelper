@@ -6,7 +6,7 @@
   <title>Mythical Helper</title>
   <link rel="stylesheet" href="styles.css"/>
   </head>
-  <body>
+  <body class="page-home">
   <!-- 全站星空背景元素 -->
   <div class="meteor" aria-hidden="true"></div>
   <div class="meteor" aria-hidden="true"></div>
@@ -16,12 +16,12 @@
     <header class="site-header">
       <div class="container">
         <div class="brand">
-        <img src="logo_white.png" alt="Logo" class="logo">
+        <img src="logo.png" alt="Logo" class="logo">
         <span class="name">MythicalHelper</span>
       </div>
       <nav class="nav">
         <a href="#" class="active">Home</a>
-        <a href="#">Member</a>
+        <a href="#" id="navMember">Member</a>
         <div class="lang-selector">
           <select>
             <option value="en">🇺🇸 English</option>
@@ -35,13 +35,13 @@
 
   <!-- Hero -->
   <main class="container">
-    <section class="hero">
+    <section class="section-hero">
       <h1>Enlist in the Mythical Helper Guild</h1>
       <p class="lead">The Council summons brave grown-ups to a vital mission: guard childhood wonder.</p>
       <p class="lead">Take the oath, receive your parchment of office, and stand watch over every dreamer's light.</p>
       <div class="actions">
-        <a class="btn primary" href="#">Accept the Mission</a>
-        <button class="btn" type="button">Returning Member</button>
+        <a class="btn primary" href="/auth.html?mode=signup">Accept the Mission</a>
+        <a class="btn" href="/auth.html?mode=login">Returning Member</a>
       </div>
       <p class="verse">"EVERY DREAM NEEDS A GUARDIAN. EVERY GUARDIAN HAS A MISSION."</p>
     </section>
@@ -50,7 +50,7 @@
     <div class="section-divider"></div>
 
     <!-- Board Section -->
-    <section class="board-section" aria-labelledby="board-title">
+    <section class="section-board" aria-labelledby="board-title">
       <div class="container">
         <header class="board-header">
           <h2 id="board-title" class="board-title">Mythical Helper Needed</h2>
@@ -152,7 +152,7 @@
       <div class="letter" data-active="north">
             <article class="letter-pane role-north">
               <div class="seal" aria-hidden="true">
-                <img src="logo_white.png" alt="Logo"/>
+                <img src="logo.png" alt="Logo"/>
               </div>
               <div class="letter-head">North Pole Workshop</div>
               <p class="dear">Dear Mythical Helper,</p>
@@ -163,7 +163,7 @@
 
             <article class="letter-pane role-tooth">
               <div class="seal" aria-hidden="true">
-                <img src="logo_white.png" alt="Logo"/>
+                <img src="logo.png" alt="Logo"/>
               </div>
               <div class="letter-head">Tooth Fairy Circle</div>
               <p class="dear">Dear Mythical Helper,</p>
@@ -174,7 +174,7 @@
 
             <article class="letter-pane role-bunny">
               <div class="seal" aria-hidden="true">
-                <img src="logo_white.png" alt="Logo"/>
+                <img src="logo.png" alt="Logo"/>
               </div>
               <div class="letter-head">Spring Bunny Caravan</div>
               <p class="dear">Dear Mythical Helper,</p>
@@ -306,7 +306,7 @@
         </header>
 
         <div class="cta-actions">
-          <a class="btn primary" href="#">Become a Mythical Helper</a>
+          <a class="btn primary" href="/auth.html?mode=signup">Become a Mythical Helper</a>
         </div>
               </div>
       </section>
@@ -316,13 +316,13 @@
     <footer class="site-footer">
       <div class="container footer-inner">
         <div class="footer-brand">
-          <img src="logo_white.png" alt="Logo" class="logo">
+          <img src="logo.png" alt="Logo" class="logo">
         </div>
 
         <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>
       </div>
     </footer>
 
-    <script src="app.js"></script>
-</body>
+    <script src="index.js"></script>
+  </body>
 </html>

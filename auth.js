@@ -486,6 +486,7 @@ function onTurnstileSuccess(token) {
 }
 
 function onTurnstileExpired() {
+  console.log('Turnstile token expired, clearing token...');
   state.turnstileToken = null;
   
   // 更新状态提示
@@ -581,12 +582,14 @@ async function waitForTurnstileToken(timeoutMs = 10000) {
   return new Promise((resolve, reject) => {
     const start = Date.now();
     let lastTokenLength = 0;
+    let lastTokenValue = '';
     
     (function poll() {
       if (state.turnstileToken && state.turnstileToken.length > 0) {
         // 确保这是一个新的token（长度不同或内容不同）
-        if (state.turnstileToken.length !== lastTokenLength) {
+        if (state.turnstileToken.length !== lastTokenLength || state.turnstileToken !== lastTokenValue) {
           console.log('New Turnstile token received, length:', state.turnstileToken.length);
+          console.log('Token preview:', state.turnstileToken.substring(0, 20) + '...');
           return resolve(state.turnstileToken);
         }
       }
@@ -981,6 +984,13 @@ async function onTakeOath(e) {
     if (!state.turnstileToken || state.turnstileToken.length === 0) {
       throw new Error('Failed to generate fresh Turnstile token');
     }
+    
+    // 记录token信息用于调试
+    console.log('Using Turnstile token for registration:', {
+      length: state.turnstileToken.length,
+      preview: state.turnstileToken.substring(0, 20) + '...',
+      timestamp: new Date().toISOString()
+    });
 
     // 1. 创建注册记录
     const regResponse = await postJSON(ENDPOINTS.createRegistration, {});

@@ -467,7 +467,7 @@ def create_registration():
         return RegistrationCreateOut(registration_id=reg_id)
 
 @registrations.post("/{registration_id}/contacts/attach")
-def attach_contact(registration_id: str, inb: RegistrationAttachIn, _: None = Depends(verify_turnstile)):
+def attach_contact(registration_id: str, inb: RegistrationAttachIn):
     with get_db() as db:
         reg = db.get_registration_by_id(registration_id)
         if not reg:

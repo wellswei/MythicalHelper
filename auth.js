@@ -978,19 +978,11 @@ async function onTakeOath(e) {
     state.registrationId = regResponse.registration_id;
     console.log('Registration created:', state.registrationId);
     
-    // 2. 分别附加邮箱和手机号proof token（需要Turnstile验证）
-    // 重置Turnstile token，为附加邮箱请求准备
-    resetTurnstile();
-    await waitForTurnstileToken();
-    
+    // 2. 分别附加邮箱和手机号proof token（不需要Turnstile验证）
     await postJSON(ENDPOINTS.attachRegistration(state.registrationId), {
       proof_token: state.emailProofToken
     });
     console.log('Email proof attached');
-    
-    // 重置Turnstile token，为附加手机号请求准备
-    resetTurnstile();
-    await waitForTurnstileToken();
     
     await postJSON(ENDPOINTS.attachRegistration(state.registrationId), {
       proof_token: state.phoneProofToken

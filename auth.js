@@ -1648,11 +1648,13 @@ function initializeApp() {
   if (navMember) {
     navMember.addEventListener('click', (e) => {
       e.preventDefault();
-      if (sessionStorage.getItem('authToken')) {
-        window.location.href = '/portal.html';
-      } else {
-        window.location.href = '/auth.html?mode=login';
-      }
+      console.log('=== navMember click DEBUG START ===');
+      const authToken = sessionStorage.getItem('authToken');
+      console.log('navMember - Auth token exists:', !!authToken);
+      console.log('navMember - Token preview:', authToken ? authToken.substring(0, 20) + '...' : 'null');
+      console.log('navMember - NOT redirecting automatically - just printing debug info');
+      alert('navMember clicked. Check console for token details. No automatic redirect.');
+      console.log('=== navMember click DEBUG END ===');
     });
   }
 

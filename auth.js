@@ -544,14 +544,23 @@ function updateTurnstileMessage(text, color) {
 // 重置Turnstile
 function resetTurnstile() {
   console.log('Resetting Turnstile...');
+  
+  // 清除当前token
+  state.turnstileToken = null;
+  console.log('Turnstile token cleared');
+  
+  // 重置Turnstile组件
   if (window.turnstile) {
     const turnstileElements = document.querySelectorAll('.cf-turnstile');
     turnstileElements.forEach(element => {
-      window.turnstile.reset(element);
+      try {
+        window.turnstile.reset(element);
+        console.log('Turnstile element reset successfully');
+      } catch (e) {
+        console.warn('Failed to reset Turnstile element:', e);
+      }
     });
   }
-  state.turnstileToken = null;
-  console.log('Turnstile token cleared');
   
   // 重置状态提示
   updateTurnstileMessage('Security verification required', 'rgba(255,255,255,0.7)');
@@ -571,15 +580,22 @@ async function waitForTurnstileToken(timeoutMs = 10000) {
   console.log('Waiting for Turnstile token...');
   return new Promise((resolve, reject) => {
     const start = Date.now();
+    let lastTokenLength = 0;
+    
     (function poll() {
-      if (state.turnstileToken) {
-        console.log('Turnstile token received, length:', state.turnstileToken.length);
-        return resolve(state.turnstileToken);
+      if (state.turnstileToken && state.turnstileToken.length > 0) {
+        // 确保这是一个新的token（长度不同或内容不同）
+        if (state.turnstileToken.length !== lastTokenLength) {
+          console.log('New Turnstile token received, length:', state.turnstileToken.length);
+          return resolve(state.turnstileToken);
+        }
       }
+      
       if (Date.now() - start > timeoutMs) {
-        console.log('Turnstile token timeout');
+        console.log('Turnstile token timeout after', timeoutMs, 'ms');
         return reject(new Error("Turnstile token timeout"));
       }
+      
       setTimeout(poll, 100);
     })();
   });
@@ -953,8 +969,18 @@ async function onTakeOath(e) {
   lockButton(btn, 'Taking Oath…');
   try {
     // 为避免使用上一步（手机确认）已用过的 token，这里强制刷新并等待新 token
+    console.log('Force resetting Turnstile before oath...');
     resetTurnstile();
-    await waitForTurnstileToken();
+    
+    // 等待更长时间确保新token生成
+    console.log('Waiting for fresh Turnstile token...');
+    await waitForTurnstileToken(15000); // 增加超时时间到15秒
+    console.log('Fresh Turnstile token received, length:', state.turnstileToken?.length);
+    
+    // 额外验证：确保token确实不同
+    if (!state.turnstileToken || state.turnstileToken.length === 0) {
+      throw new Error('Failed to generate fresh Turnstile token');
+    }
 
     // 1. 创建注册记录
     const regResponse = await postJSON(ENDPOINTS.createRegistration, {});

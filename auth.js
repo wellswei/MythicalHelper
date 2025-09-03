@@ -472,18 +472,16 @@ function onTurnstileSuccess(token) {
   state.turnstileToken = token;
   console.log('Turnstile success, token received, length:', token.length);
   
-  // 更新状态提示
-  const messageEl = document.getElementById('turnstileMessage');
-  if (messageEl) {
-    messageEl.textContent = '✓ Security verified';
-    messageEl.style.color = '#10b981'; // 绿色
-  }
+  // 更新状态提示（支持多个Turnstile组件）
+  updateTurnstileMessage('✓ Security verified', '#10b981');
   
   // 启用当前步骤的发送按钮
   if (state.currentStep === 1) {
     $('#btnSend').disabled = false;
   } else if (state.currentStep === 2) {
     $('#btnSendPhone').disabled = false;
+  } else if (state.currentStep === 3) {
+    $('#btnSubmitOath').disabled = false;
   }
 }
 
@@ -491,17 +489,15 @@ function onTurnstileExpired() {
   state.turnstileToken = null;
   
   // 更新状态提示
-  const messageEl = document.getElementById('turnstileMessage');
-  if (messageEl) {
-    messageEl.textContent = '⚠ Verification expired - please refresh';
-    messageEl.style.color = '#f59e0b'; // 橙色
-  }
+  updateTurnstileMessage('⚠ Verification expired - please refresh', '#f59e0b');
   
   // 禁用当前步骤的发送按钮
   if (state.currentStep === 1) {
     $('#btnSend').disabled = true;
   } else if (state.currentStep === 2) {
     $('#btnSendPhone').disabled = true;
+  } else if (state.currentStep === 3) {
+    $('#btnSubmitOath').disabled = true;
   }
 }
 
@@ -509,17 +505,32 @@ function onTurnstileError(error) {
   state.turnstileToken = null;
   
   // 更新状态提示
-  const messageEl = document.getElementById('turnstileMessage');
-  if (messageEl) {
-    messageEl.textContent = '❌ Verification failed - please try again';
-    messageEl.style.color = '#ef4444'; // 红色
-  }
+  updateTurnstileMessage('❌ Verification failed - please try again', '#ef4444');
   
   // 禁用当前步骤的发送按钮
   if (state.currentStep === 1) {
     $('#btnSend').disabled = true;
   } else if (state.currentStep === 2) {
     $('#btnSendPhone').disabled = true;
+  } else if (state.currentStep === 3) {
+    $('#btnSubmitOath').disabled = true;
+  }
+}
+
+// 更新Turnstile状态消息的辅助函数
+function updateTurnstileMessage(text, color) {
+  // 更新Step 1的消息
+  const messageEl1 = document.getElementById('turnstileMessage');
+  if (messageEl1) {
+    messageEl1.textContent = text;
+    messageEl1.style.color = color;
+  }
+  
+  // 更新Step 3的消息
+  const messageEl3 = document.getElementById('turnstileMessageOath');
+  if (messageEl3) {
+    messageEl3.textContent = text;
+    messageEl3.style.color = color;
   }
 }
 
@@ -536,11 +547,7 @@ function resetTurnstile() {
   console.log('Turnstile token cleared');
   
   // 重置状态提示
-  const messageEl = document.getElementById('turnstileMessage');
-  if (messageEl) {
-    messageEl.textContent = 'Security verification required';
-    messageEl.style.color = 'rgba(255,255,255,0.7)'; // 恢复默认颜色
-  }
+  updateTurnstileMessage('Security verification required', 'rgba(255,255,255,0.7)');
 }
 
 // 等待Turnstile token就绪

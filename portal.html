@@ -224,12 +224,74 @@
     // 等待QR码库加载完成
     window.addEventListener('load', function() {
       if (window.QRCode) {
-        console.log('QR Code library loaded successfully');
+
       } else {
         console.error('QR Code library failed to load');
       }
     });
   </script>
+  
+  <!-- Turnstile 脚本 -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <!-- Turnstile 容器（Managed 模式），成功后会回调 onTsSuccess(token) -->
+  <div class="cf-turnstile"
+       data-sitekey="0x4AAAAAAABkMYinukE8nz0Y"
+       data-callback="onTsSuccess"
+       data-action="submit">
+  </div>
+
+  <script>
+    // 保存 token（5 分钟有效、一次性）
+    window.tsToken = null;
+    function onTsSuccess(token) {
+      window.tsToken = token;
+    }
+
+    // 等待 token 就绪的小工具（最多等 10 秒）
+    function waitForToken(timeoutMs = 10000) {
+      return new Promise((resolve, reject) => {
+        const start = Date.now();
+        (function poll() {
+          if (window.tsToken) return resolve(window.tsToken);
+          if (Date.now() - start > timeoutMs) return reject(new Error("Turnstile token timeout"));
+          setTimeout(poll, 100);
+        })();
+      });
+    }
+
+    // 带 Turnstile 自动重试的一次性 fetch
+    async function apiFetch(path, options = {}) {
+      // 1) 确保有可用 token
+      if (!window.tsToken) await waitForToken();
+
+      // 2) 首次请求（携带 token）
+      const doReq = (token) => fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          "cf-turnstile-response": token,
+          "Content-Type": "application/json",
+        },
+      });
+
+      let res = await doReq(window.tsToken);
+
+      // 3) 若命中 403（token 过期/已用过），重置、等新 token、重试一次
+      if (res.status === 403) {
+        try {
+          if (window.turnstile) window.turnstile.reset(); // 触发组件重新签发
+          window.tsToken = null;
+          await waitForToken(); // 等新的 token
+          res = await doReq(window.tsToken); // 带新 token 重试
+        } catch (e) {
+          // 忽略，让后续统一处理
+        }
+      }
+      return res;
+    }
+  </script>
+  
   <script src="portal.js"></script>
 </body>
 </html>

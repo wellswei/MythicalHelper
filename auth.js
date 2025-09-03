@@ -1007,17 +1007,28 @@ async function onTakeOath(e) {
     
     // 自动登录用户（保存认证token）
     try {
-      // 使用邮箱proof token进行登录
+      // 使用手机proof token进行登录（手机验证是最后一步，token更新）
       const sessionResponse = await postJSON(ENDPOINTS.exchangeSession, {
-        proof_token: state.emailProofToken
+        proof_token: state.phoneProofToken
       });
       
       // 保存token到sessionStorage
       sessionStorage.setItem('authToken', sessionResponse.access_token);
-      console.log('User automatically logged in after registration');
+      console.log('User automatically logged in after registration with phone proof token');
     } catch (e) {
-      console.warn('Failed to auto-login after registration:', e);
-      // 即使自动登录失败，也继续显示badge页面
+      console.warn('Failed to auto-login with phone token, trying email token:', e);
+      try {
+        // 如果手机token失败，尝试邮箱token
+        const sessionResponse = await postJSON(ENDPOINTS.exchangeSession, {
+          proof_token: state.emailProofToken
+        });
+        
+        sessionStorage.setItem('authToken', sessionResponse.access_token);
+        console.log('User automatically logged in after registration with email proof token');
+      } catch (e2) {
+        console.warn('Failed to auto-login with both tokens:', e2);
+        // 即使自动登录失败，也继续显示badge页面
+      }
     }
     
     // 进入Get Badge步骤
@@ -1041,11 +1052,16 @@ function onBackToHome(e) {
 function onGoToMember() {
   // 检查用户是否已经登录
   const authToken = sessionStorage.getItem('authToken');
+  console.log('onGoToMember - Auth token exists:', !!authToken);
+  console.log('onGoToMember - Token preview:', authToken ? authToken.substring(0, 20) + '...' : 'null');
+  
   if (authToken) {
     // 已登录，直接跳转到portal
+    console.log('User is authenticated, redirecting to portal');
     window.location.href = '/portal.html';
   } else {
     // 未登录，跳转到登录页面
+    console.log('User not authenticated, redirecting to login');
     window.location.href = '/auth.html?mode=login';
   }
 }

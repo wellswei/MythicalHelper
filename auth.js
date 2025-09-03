@@ -470,6 +470,7 @@ function startEmailResend() {
 // ===== Cloudflare Turnstile =====
 function onTurnstileSuccess(token) {
   state.turnstileToken = token;
+  console.log('Turnstile success, token received, length:', token.length);
   
   // 更新状态提示
   const messageEl = document.getElementById('turnstileMessage');
@@ -562,6 +563,9 @@ async function postJSON(path, body, method = 'POST') {
   const headers = { 'Content-Type': 'application/json' };
   if (state.turnstileToken) {
     headers['cf-turnstile-response'] = state.turnstileToken;
+    console.log('Sending request with Turnstile token:', path, 'Token length:', state.turnstileToken.length);
+  } else {
+    console.log('Sending request WITHOUT Turnstile token:', path);
   }
   const res = await fetch(`${API_BASE}${path}`, {
     method: method,
@@ -571,6 +575,7 @@ async function postJSON(path, body, method = 'POST') {
   });
   if (!res.ok) {
     const j = await res.json().catch(() => ({ detail: 'Request failed' }));
+    console.error('Request failed:', path, res.status, j);
     throw new Error(j.detail || 'Request failed');
   }
   return res.json();

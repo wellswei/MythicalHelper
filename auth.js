@@ -1028,15 +1028,25 @@ function onBackToHome(e) {
 
 // ===== Get Badge =====
 async function onGoToMember() {
+  console.log('=== onGoToMember DEBUG START ===');
+  
   // 检查用户是否已经登录
   const authToken = sessionStorage.getItem('authToken');
   console.log('onGoToMember - Auth token exists:', !!authToken);
   console.log('onGoToMember - Token preview:', authToken ? authToken.substring(0, 20) + '...' : 'null');
+  console.log('onGoToMember - Full token length:', authToken ? authToken.length : 0);
+  console.log('onGoToMember - API_BASE:', API_BASE);
   
   if (authToken) {
     // 验证token是否有效
     try {
       console.log('Validating token before redirect...');
+      console.log('Making request to:', `${API_BASE}/users/me`);
+      console.log('Request headers:', {
+        'Authorization': `Bearer ${authToken.substring(0, 20)}...`,
+        'Content-Type': 'application/json',
+      });
+      
       const response = await fetch(`${API_BASE}/users/me`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -1044,34 +1054,44 @@ async function onGoToMember() {
         },
       });
       
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (response.ok) {
         // Token有效，直接跳转到portal
         console.log('Token is valid, redirecting to portal');
+        const responseData = await response.json();
+        console.log('User data received:', responseData);
         window.location.href = '/portal.html';
       } else if (response.status === 401) {
-        // Token无效，清空并跳转到登录页面
-        console.log('Token is invalid, clearing and redirecting to login');
-        sessionStorage.removeItem('authToken');
-        alert('Session expired. Please sign in again to access your Helper portal.');
-        window.location.href = '/auth.html?mode=login';
+        // Token无效，只打印错误，不跳转
+        console.log('Token is invalid (401 Unauthorized)');
+        const errorText = await response.text();
+        console.log('Error response body:', errorText);
+        console.log('NOT redirecting to login - just printing error');
+        alert('Token validation failed (401). Check console for details.');
       } else {
-        // 其他错误，也跳转到登录页面
-        console.log('API error, redirecting to login');
-        alert('Unable to verify your session. Please sign in again.');
-        window.location.href = '/auth.html?mode=login';
+        // 其他错误，只打印错误，不跳转
+        console.log('API error, status:', response.status);
+        const errorText = await response.text();
+        console.log('Error response body:', errorText);
+        console.log('NOT redirecting to login - just printing error');
+        alert(`API error (${response.status}). Check console for details.`);
       }
     } catch (error) {
       console.error('Error validating token:', error);
-      alert('Unable to verify your session. Please sign in again.');
-      window.location.href = '/auth.html?mode=login';
+      console.log('NOT redirecting to login - just printing error');
+      alert('Network error during token validation. Check console for details.');
     }
   } else {
-    // 未登录，跳转到登录页面
-    console.log('User not authenticated, redirecting to login');
-    // 显示友好提示
-    alert('Welcome! Please sign in with your email or phone to access your Helper portal.');
-    window.location.href = '/auth.html?mode=login';
+    // 未登录，只打印错误，不跳转
+    console.log('User not authenticated - no token found');
+    console.log('NOT redirecting to login - just printing error');
+    alert('No authentication token found. Check console for details.');
   }
+  
+  console.log('=== onGoToMember DEBUG END ===');
 }
 
 // ===== 模式选择 =====

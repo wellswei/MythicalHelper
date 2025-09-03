@@ -1027,16 +1027,44 @@ function onBackToHome(e) {
 }
 
 // ===== Get Badge =====
-function onGoToMember() {
+async function onGoToMember() {
   // 检查用户是否已经登录
   const authToken = sessionStorage.getItem('authToken');
   console.log('onGoToMember - Auth token exists:', !!authToken);
   console.log('onGoToMember - Token preview:', authToken ? authToken.substring(0, 20) + '...' : 'null');
   
   if (authToken) {
-    // 已登录，直接跳转到portal
-    console.log('User is authenticated, redirecting to portal');
-    window.location.href = '/portal.html';
+    // 验证token是否有效
+    try {
+      console.log('Validating token before redirect...');
+      const response = await fetch(`${API_BASE}/users/me`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        // Token有效，直接跳转到portal
+        console.log('Token is valid, redirecting to portal');
+        window.location.href = '/portal.html';
+      } else if (response.status === 401) {
+        // Token无效，清空并跳转到登录页面
+        console.log('Token is invalid, clearing and redirecting to login');
+        sessionStorage.removeItem('authToken');
+        alert('Session expired. Please sign in again to access your Helper portal.');
+        window.location.href = '/auth.html?mode=login';
+      } else {
+        // 其他错误，也跳转到登录页面
+        console.log('API error, redirecting to login');
+        alert('Unable to verify your session. Please sign in again.');
+        window.location.href = '/auth.html?mode=login';
+      }
+    } catch (error) {
+      console.error('Error validating token:', error);
+      alert('Unable to verify your session. Please sign in again.');
+      window.location.href = '/auth.html?mode=login';
+    }
   } else {
     // 未登录，跳转到登录页面
     console.log('User not authenticated, redirecting to login');

@@ -920,6 +920,12 @@ async function onTakeOath(e) {
   
   lockButton(btn, 'Taking Oath…');
   try {
+    // 确保有新的Turnstile token
+    if (!state.turnstileToken) {
+      console.log('No Turnstile token, waiting for one...');
+      await waitForTurnstileToken();
+    }
+    
     // 1. 创建注册记录
     const regResponse = await postJSON(ENDPOINTS.createRegistration, {});
     state.registrationId = regResponse.registration_id;

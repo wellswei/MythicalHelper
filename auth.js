@@ -1005,7 +1005,22 @@ async function onTakeOath(e) {
     state.userId = activateResponse.user_id;
     saveState();
     
-    // 进入Get Badge步骤（不自动登录）
+    // 自动登录用户（保存认证token）
+    try {
+      // 使用邮箱proof token进行登录
+      const sessionResponse = await postJSON(ENDPOINTS.exchangeSession, {
+        proof_token: state.emailProofToken
+      });
+      
+      // 保存token到sessionStorage
+      sessionStorage.setItem('authToken', sessionResponse.access_token);
+      console.log('User automatically logged in after registration');
+    } catch (e) {
+      console.warn('Failed to auto-login after registration:', e);
+      // 即使自动登录失败，也继续显示badge页面
+    }
+    
+    // 进入Get Badge步骤
     updateStep(4);
     $('#badgeName').textContent = state.username;
   } catch (ex) {
@@ -1024,8 +1039,15 @@ function onBackToHome(e) {
 
 // ===== Get Badge =====
 function onGoToMember() {
-  // 跳转到会员页面
-  window.location.href = '/portal.html';
+  // 检查用户是否已经登录
+  const authToken = sessionStorage.getItem('authToken');
+  if (authToken) {
+    // 已登录，直接跳转到portal
+    window.location.href = '/portal.html';
+  } else {
+    // 未登录，跳转到登录页面
+    window.location.href = '/auth.html?mode=login';
+  }
 }
 
 // ===== 模式选择 =====

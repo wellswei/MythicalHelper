@@ -1005,31 +1005,9 @@ async function onTakeOath(e) {
     state.userId = activateResponse.user_id;
     saveState();
     
-    // 自动登录用户（保存认证token）
-    try {
-      // 使用手机proof token进行登录（手机验证是最后一步，token更新）
-      const sessionResponse = await postJSON(ENDPOINTS.exchangeSession, {
-        proof_token: state.phoneProofToken
-      });
-      
-      // 保存token到sessionStorage
-      sessionStorage.setItem('authToken', sessionResponse.access_token);
-      console.log('User automatically logged in after registration with phone proof token');
-    } catch (e) {
-      console.warn('Failed to auto-login with phone token, trying email token:', e);
-      try {
-        // 如果手机token失败，尝试邮箱token
-        const sessionResponse = await postJSON(ENDPOINTS.exchangeSession, {
-          proof_token: state.emailProofToken
-        });
-        
-        sessionStorage.setItem('authToken', sessionResponse.access_token);
-        console.log('User automatically logged in after registration with email proof token');
-      } catch (e2) {
-        console.warn('Failed to auto-login with both tokens:', e2);
-        // 即使自动登录失败，也继续显示badge页面
-      }
-    }
+    // 注意：proof token在attach_contact时已经被消费，无法用于自动登录
+    // 用户需要手动登录一次，这是正常的安全流程
+    console.log('Registration completed successfully. User needs to sign in manually.');
     
     // 进入Get Badge步骤
     updateStep(4);
@@ -1062,6 +1040,8 @@ function onGoToMember() {
   } else {
     // 未登录，跳转到登录页面
     console.log('User not authenticated, redirecting to login');
+    // 显示友好提示
+    alert('Welcome! Please sign in with your email or phone to access your Helper portal.');
     window.location.href = '/auth.html?mode=login';
   }
 }

@@ -284,8 +284,8 @@ function updateStep(n) {
   state.currentStep = n;
   saveState();
   
-  // 重置Turnstile当切换到需要验证的步骤时
-  if (n === 1 || n === 2) {
+  // 重置Turnstile当切换到需要验证的步骤时（1: email, 2: phone, 3: oath）
+  if (n === 1 || n === 2 || n === 3) {
     resetTurnstile();
   }
 }
@@ -555,6 +555,15 @@ function resetTurnstile() {
   
   // 重置状态提示
   updateTurnstileMessage('Security verification required', 'rgba(255,255,255,0.7)');
+  
+  // 禁用当前步骤的发送按钮，直到新的token生成
+  if (state.currentStep === 1) {
+    $('#btnSend').disabled = true;
+  } else if (state.currentStep === 2) {
+    $('#btnSendPhone').disabled = true;
+  } else if (state.currentStep === 3) {
+    $('#btnSubmitOath').disabled = true;
+  }
 }
 
 // 等待Turnstile token就绪
@@ -943,26 +952,24 @@ async function onTakeOath(e) {
   
   lockButton(btn, 'Taking Oath…');
   try {
-    // 确保有新的Turnstile token
-    if (!state.turnstileToken) {
-      console.log('No Turnstile token, waiting for one...');
-      await waitForTurnstileToken();
-    }
-    
+    // 为避免使用上一步（手机确认）已用过的 token，这里强制刷新并等待新 token
+    resetTurnstile();
+    await waitForTurnstileToken();
+
     // 1. 创建注册记录
     const regResponse = await postJSON(ENDPOINTS.createRegistration, {});
     state.registrationId = regResponse.registration_id;
     
-    // 重置Turnstile token，为下一个请求准备
+    // 2. 分别附加邮箱和手机号proof token（需要Turnstile验证）
+    // 重置Turnstile token，为附加邮箱请求准备
     resetTurnstile();
     await waitForTurnstileToken();
     
-    // 2. 分别附加邮箱和手机号proof token
     await postJSON(ENDPOINTS.attachRegistration(state.registrationId), {
       proof_token: state.emailProofToken
     });
     
-    // 重置Turnstile token，为下一个请求准备
+    // 重置Turnstile token，为附加手机号请求准备
     resetTurnstile();
     await waitForTurnstileToken();
     
@@ -970,21 +977,17 @@ async function onTakeOath(e) {
       proof_token: state.phoneProofToken
     });
     
-    // 重置Turnstile token，为下一个请求准备
-    resetTurnstile();
-    await waitForTurnstileToken();
-    
-    // 3. 更新注册信息（用户名和宣誓）
+    // 3. 更新注册信息（用户名和宣誓）（不需要Turnstile验证）
     await postJSON(ENDPOINTS.patchRegistration(state.registrationId), {
       username: username,
       oath_accept: true
     }, 'PATCH');
     
-    // 重置Turnstile token，为下一个请求准备
+    // 4. 激活注册（需要新的Turnstile token）
+    // 重置Turnstile token，为激活请求准备
     resetTurnstile();
     await waitForTurnstileToken();
     
-    // 4. 激活注册
     const activateResponse = await postJSON(ENDPOINTS.activateRegistration(state.registrationId), {});
     
     // 保存到状态中

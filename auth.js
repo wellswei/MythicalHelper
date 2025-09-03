@@ -540,6 +540,18 @@ function resetTurnstile() {
   }
 }
 
+// 等待Turnstile token就绪
+async function waitForTurnstileToken(timeoutMs = 10000) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    (function poll() {
+      if (state.turnstileToken) return resolve(state.turnstileToken);
+      if (Date.now() - start > timeoutMs) return reject(new Error("Turnstile token timeout"));
+      setTimeout(poll, 100);
+    })();
+  });
+}
+
 // 导出Turnstile回调到window
 window.onTurnstileSuccess = onTurnstileSuccess;
 window.onTurnstileExpired = onTurnstileExpired;
@@ -907,19 +919,36 @@ async function onTakeOath(e) {
     const regResponse = await postJSON(ENDPOINTS.createRegistration, {});
     state.registrationId = regResponse.registration_id;
     
+    // 重置Turnstile token，为下一个请求准备
+    resetTurnstile();
+    await waitForTurnstileToken();
+    
     // 2. 分别附加邮箱和手机号proof token
     await postJSON(ENDPOINTS.attachRegistration(state.registrationId), {
       proof_token: state.emailProofToken
     });
+    
+    // 重置Turnstile token，为下一个请求准备
+    resetTurnstile();
+    await waitForTurnstileToken();
+    
     await postJSON(ENDPOINTS.attachRegistration(state.registrationId), {
       proof_token: state.phoneProofToken
     });
+    
+    // 重置Turnstile token，为下一个请求准备
+    resetTurnstile();
+    await waitForTurnstileToken();
     
     // 3. 更新注册信息（用户名和宣誓）
     await postJSON(ENDPOINTS.patchRegistration(state.registrationId), {
       username: username,
       oath_accept: true
     }, 'PATCH');
+    
+    // 重置Turnstile token，为下一个请求准备
+    resetTurnstile();
+    await waitForTurnstileToken();
     
     // 4. 激活注册
     const activateResponse = await postJSON(ENDPOINTS.activateRegistration(state.registrationId), {});

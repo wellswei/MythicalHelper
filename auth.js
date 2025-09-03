@@ -2,7 +2,7 @@
 // Flow: Email → Email Code → Phone → Phone Code (done)
 
 // ===== Config =====
-const API_BASE = "http://127.0.0.1:8001";
+const API_BASE = "https://api.mythicalhelper.org";
 const ENDPOINTS = {
   // 新的Ticket-based API
   createTicket: "/tickets",
@@ -249,13 +249,13 @@ const showOk  = (el, msg) => {
   if (el) { 
     el.textContent = msg; 
     el.style.display = "block"; 
-    console.log('showOk:', msg, 'display:', el.style.display);
+
   } 
 };
 const hideOk  = (el) => { 
   if (el) { 
     el.style.display = "none"; 
-    console.log('hideOk called on:', el.id || el.className);
+
   } 
 };
 
@@ -469,8 +469,14 @@ function startEmailResend() {
 
 // ===== Cloudflare Turnstile =====
 function onTurnstileSuccess(token) {
-  console.log('Turnstile success:', token);
   state.turnstileToken = token;
+  
+  // 更新状态提示
+  const messageEl = document.getElementById('turnstileMessage');
+  if (messageEl) {
+    messageEl.textContent = '✓ Security verified';
+    messageEl.style.color = '#10b981'; // 绿色
+  }
   
   // 启用当前步骤的发送按钮
   if (state.currentStep === 1) {
@@ -481,8 +487,14 @@ function onTurnstileSuccess(token) {
 }
 
 function onTurnstileExpired() {
-  console.log('Turnstile expired');
   state.turnstileToken = null;
+  
+  // 更新状态提示
+  const messageEl = document.getElementById('turnstileMessage');
+  if (messageEl) {
+    messageEl.textContent = '⚠ Verification expired - please refresh';
+    messageEl.style.color = '#f59e0b'; // 橙色
+  }
   
   // 禁用当前步骤的发送按钮
   if (state.currentStep === 1) {
@@ -493,8 +505,14 @@ function onTurnstileExpired() {
 }
 
 function onTurnstileError(error) {
-  console.error('Turnstile error:', error);
   state.turnstileToken = null;
+  
+  // 更新状态提示
+  const messageEl = document.getElementById('turnstileMessage');
+  if (messageEl) {
+    messageEl.textContent = '❌ Verification failed - please try again';
+    messageEl.style.color = '#ef4444'; // 红色
+  }
   
   // 禁用当前步骤的发送按钮
   if (state.currentStep === 1) {
@@ -513,6 +531,13 @@ function resetTurnstile() {
     });
   }
   state.turnstileToken = null;
+  
+  // 重置状态提示
+  const messageEl = document.getElementById('turnstileMessage');
+  if (messageEl) {
+    messageEl.textContent = 'Security verification required';
+    messageEl.style.color = 'rgba(255,255,255,0.7)'; // 恢复默认颜色
+  }
 }
 
 // 导出Turnstile回调到window

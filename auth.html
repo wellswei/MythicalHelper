@@ -8,9 +8,6 @@
 
   <!-- intl-tel-input -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css"/>
-  
-  <!-- Cloudflare Turnstile -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body class="page-auth">
   <!-- 背景 -->
@@ -349,6 +346,22 @@
     <div class="container footer-inner">
       <div class="footer-brand"><img src="logo.png" alt="Logo" class="logo"></div>
       <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>
+      
+      <!-- Turnstile 容器（Managed 模式） -->
+      <div class="turnstile-container" style="display: flex; flex-direction: column; align-items: center; margin-top: 20px;">
+        <div class="cf-turnstile"
+             data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
+             data-callback="onTurnstileSuccess"
+             data-expired-callback="onTurnstileExpired"
+             data-error-callback="onTurnstileError"
+             data-action="submit">
+        </div>
+        
+        <!-- Turnstile 状态提示 -->
+        <div id="turnstileStatus" style="margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; min-height: 20px;">
+          <span id="turnstileMessage">Security verification required</span>
+        </div>
+      </div>
     </div>
   </footer>
 
@@ -359,12 +372,7 @@
   <!-- Turnstile 脚本 -->
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
-  <!-- Turnstile 容器（Managed 模式），成功后会回调 onTsSuccess(token) -->
-  <div class="cf-turnstile"
-       data-sitekey="0x4AAAAAAABkMYinukE8nz0Y"
-       data-callback="onTsSuccess"
-       data-action="submit">
-  </div>
+
 
   <script>
     // 保存 token（5 分钟有效、一次性）

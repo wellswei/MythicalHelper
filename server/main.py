@@ -11,9 +11,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional, List, Any, Tuple
 from uuid import uuid4
 
-from fastapi import FastAPI, APIRouter, Header, HTTPException, Depends, Request
+from fastapi import FastAPI, APIRouter, Header, HTTPException, Depends, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+import os
+import httpx
 
 from models import create_database
 from database import DatabaseService, get_db
@@ -31,6 +33,40 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# =========================
+# Turnstile 校验
+# =========================
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+TURNSTILE_SECRET = os.getenv("TURNSTILE_SECRET")
+
+async def verify_turnstile(request: Request) -> None:
+    if not TURNSTILE_SECRET:
+        print("[TURNSTILE] ERROR: TURNSTILE_SECRET not set")
+        raise HTTPException(500, "Server missing TURNSTILE_SECRET")
+
+    # 只从请求头获取 token，避免读取请求体
+    token = request.headers.get("cf-turnstile-response")
+    print(f"[TURNSTILE] Token received: {'YES' if token else 'NO'}, length: {len(token) if token else 0}")
+    
+    if not token:
+        print("[TURNSTILE] ERROR: Missing Turnstile token in headers")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Missing Turnstile token")
+
+    payload = {"secret": TURNSTILE_SECRET, "response": token, "remoteip": request.client.host}
+    print(f"[TURNSTILE] Verifying token with Cloudflare...")
+    
+    async with httpx.AsyncClient(timeout=5) as c:
+        r = await c.post(TURNSTILE_VERIFY_URL, json=payload)
+    data = r.json()
+    
+    print(f"[TURNSTILE] Cloudflare response: {data}")
+
+    if not data.get("success"):
+        print(f"[TURNSTILE] ERROR: Verification failed: {data.get('error-codes')}")
+        raise HTTPException(status.HTTP_403_FORBIDDEN, {"turnstile":"verification_failed","errors":data.get("error-codes")})
+    
+    print("[TURNSTILE] SUCCESS: Token verified")
 
 # =========================
 # 工具函数
@@ -208,7 +244,7 @@ def require_admin(su: SessionUser = Depends(get_session_user)) -> SessionUser:
 tickets = APIRouter(prefix="/tickets", tags=["Tickets"])
 
 @tickets.post("", response_model=TicketCreateOut)
-def create_ticket(inb: TicketCreateIn, request: Request = None, authorization: str | None = Header(default=None)):
+def create_ticket(inb: TicketCreateIn, request: Request = None, authorization: str | None = Header(default=None), _: None = Depends(verify_turnstile)):
     with get_db() as db:
         # 验证输入
         if inb.channel == "email":
@@ -288,7 +324,7 @@ def create_ticket(inb: TicketCreateIn, request: Request = None, authorization: s
         )
 
 @tickets.post("/{ticket_id}/confirm", response_model=TicketConfirmOut)
-def confirm_ticket(ticket_id: str, inb: TicketConfirmIn):
+def confirm_ticket(ticket_id: str, inb: TicketConfirmIn, _: None = Depends(verify_turnstile)):
     with get_db() as db:
         ticket = db.get_ticket_by_id(ticket_id)
         if not ticket:
@@ -332,7 +368,7 @@ def confirm_ticket(ticket_id: str, inb: TicketConfirmIn):
 sessions = APIRouter(prefix="/sessions", tags=["Sessions"])
 
 @sessions.post("", response_model=SessionsExchangeOut)
-def exchange_session(inb: SessionsExchangeIn):
+def exchange_session(inb: SessionsExchangeIn, _: None = Depends(verify_turnstile)):
     with get_db() as db:
         proof = db.get_proof_by_token(inb.proof_token)
         if not proof:
@@ -412,6 +448,7 @@ registrations = APIRouter(prefix="/registrations", tags=["Registrations"])
 
 @registrations.post("", response_model=RegistrationCreateOut)
 def create_registration():
+    print("[REGISTRATION] create_registration function called")
     with get_db() as db:
         user_id = f"u_{uuid4().hex[:10]}"
         reg_id = f"r_{uuid4().hex[:10]}"
@@ -430,7 +467,7 @@ def create_registration():
         return RegistrationCreateOut(registration_id=reg_id)
 
 @registrations.post("/{registration_id}/contacts/attach")
-def attach_contact(registration_id: str, inb: RegistrationAttachIn):
+def attach_contact(registration_id: str, inb: RegistrationAttachIn, _: None = Depends(verify_turnstile)):
     with get_db() as db:
         reg = db.get_registration_by_id(registration_id)
         if not reg:

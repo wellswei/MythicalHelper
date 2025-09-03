@@ -525,6 +525,7 @@ function onTurnstileError(error) {
 
 // 重置Turnstile
 function resetTurnstile() {
+  console.log('Resetting Turnstile...');
   if (window.turnstile) {
     const turnstileElements = document.querySelectorAll('.cf-turnstile');
     turnstileElements.forEach(element => {
@@ -532,6 +533,7 @@ function resetTurnstile() {
     });
   }
   state.turnstileToken = null;
+  console.log('Turnstile token cleared');
   
   // 重置状态提示
   const messageEl = document.getElementById('turnstileMessage');
@@ -543,11 +545,18 @@ function resetTurnstile() {
 
 // 等待Turnstile token就绪
 async function waitForTurnstileToken(timeoutMs = 10000) {
+  console.log('Waiting for Turnstile token...');
   return new Promise((resolve, reject) => {
     const start = Date.now();
     (function poll() {
-      if (state.turnstileToken) return resolve(state.turnstileToken);
-      if (Date.now() - start > timeoutMs) return reject(new Error("Turnstile token timeout"));
+      if (state.turnstileToken) {
+        console.log('Turnstile token received, length:', state.turnstileToken.length);
+        return resolve(state.turnstileToken);
+      }
+      if (Date.now() - start > timeoutMs) {
+        console.log('Turnstile token timeout');
+        return reject(new Error("Turnstile token timeout"));
+      }
       setTimeout(poll, 100);
     })();
   });

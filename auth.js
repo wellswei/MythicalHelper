@@ -526,6 +526,13 @@ function updateTurnstileMessage(text, color) {
     messageEl1.style.color = color;
   }
   
+  // 更新Step 2的消息
+  const messageEl2 = document.getElementById('turnstileMessagePhone');
+  if (messageEl2) {
+    messageEl2.textContent = text;
+    messageEl2.style.color = color;
+  }
+  
   // 更新Step 3的消息
   const messageEl3 = document.getElementById('turnstileMessageOath');
   if (messageEl3) {

@@ -1,5 +1,5 @@
 // === Mythical Helper – index.js (Home page only) ===
-console.log('index.js loaded, current path:', window.location.pathname);
+
 
 // 随机组合系统
 const roleCombinations = {
@@ -90,13 +90,7 @@ function initButtonHandlers() {
       window.location.href = 'auth.html';
     });
   });
-  // 移除这个部分，因为returning member是链接，不是按钮，由wireReturningMember处理
-  // const returningButton = document.querySelector('button.btn[type="button"]');
-  // if (returningButton) {
-  //   returningButton.addEventListener('click', () => {
-  //     window.location.href = 'auth.html';
-  //   });
-  // }
+
 }
 
 function isLoggedIn() {
@@ -134,10 +128,10 @@ document.addEventListener('DOMContentLoaded', () => {
                      document.querySelector('.auth-section') || 
                      document.querySelector('#emailInput');
   if (isAuthPage) {
-    console.log('Skipping index.js on auth page');
+
     return;
   }
-  console.log('Running index.js on main page');
+
   initApplyBoard();
   populateLettersRandom();
   initRandomLetterDefault();

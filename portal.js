@@ -1,7 +1,7 @@
 // ===== PORTAL JAVASCRIPT =====
 
 // 配置
-const API_BASE = 'http://127.0.0.1:8001';
+const API_BASE = 'https://api.mythicalhelper.org';
 
 // 全局状态
 let currentUser = null;
@@ -111,7 +111,7 @@ function loadPortalChangeState() {
 
 // 邮箱编辑器函数
 function openEmailEditor() {
-  console.log('openEmailEditor function called!');
+
   isInEmailChangeFlow = true; // 设置邮箱修改流程状态
   
   // 尝试多种方式查找元素
@@ -121,28 +121,12 @@ function openEmailEditor() {
   const err = document.getElementById('errPortalEmail') || document.querySelector('#errPortalEmail');
   const input = document.getElementById('newEmailInput') || document.querySelector('#newEmailInput');
   
-  console.log('Found elements:', {
-    emailSec: emailSec,
-    phoneSec: phoneSec,
-    codeSec: codeSec,
-    status: status,
-    err: err,
-    input: input
-  });
+
   
-  // 检查整个文档中是否有这些元素
-  console.log('All elements with emailChangeSection:', document.querySelectorAll('[id*="emailChange"]'));
-  console.log('All elements with phoneChangeSection:', document.querySelectorAll('[id*="phoneChange"]'));
+
   
   if (emailSec) {
     emailSec.style.display = 'block';
-    console.log('Email section displayed');
-  } else {
-    console.error('Email section not found!');
-    // 尝试直接通过innerHTML查找
-    const allDivs = document.querySelectorAll('div');
-    const emailDiv = Array.from(allDivs).find(div => div.id === 'emailChangeSection');
-    console.log('Found email div through querySelectorAll:', emailDiv);
   }
   
   if (phoneSec) phoneSec.style.display = 'none';
@@ -325,20 +309,18 @@ async function apiCall(endpoint, options = {}) {
 // ===== 用户数据加载 =====
 async function loadUserData() {
   try {
-    console.log('Starting to load user data...');
     const token = getAuthToken();
-    console.log('Current token:', token ? token.substring(0, 20) + '...' : 'null');
     
     currentUser = await apiCall('/users/me');
-    console.log('API response:', currentUser);
+
     
     if (!currentUser) {
-      console.log('No user data received, redirecting to auth');
+
       redirectToAuth();
       return;
     }
 
-    console.log('User data loaded successfully:', currentUser);
+
 
     // 更新用户信息（Profile Section）
     updateUserInfo();
@@ -356,17 +338,12 @@ async function loadUserData() {
     }, 100);
     
     // 根据用户角色显示不同的内容
-    if (currentUser.role === 'admin') {
-      console.log('Admin user detected');
-    } else {
-      console.log('Regular user detected');
-    }
     
   } catch (error) {
     console.error('Failed to load user data:', error);
     // 如果是401或403错误，自动跳转到登录页
     if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
-      console.log('Authentication error, redirecting to login');
+
       redirectToAuth();
       return;
     }
@@ -403,11 +380,11 @@ async function loadUserData() {
 
 function updateUserInfo() {
   if (!currentUser) {
-    console.log('No currentUser data available');
+  
     return;
   }
 
-  console.log('Updating user info with data:', currentUser);
+
 
   // 更新用户详情
   const fields = {
@@ -419,7 +396,7 @@ function updateUserInfo() {
     'userValidUntil': formatDate(currentUser.valid_until)
   };
 
-  console.log('Fields to update:', fields);
+
 
   Object.entries(fields).forEach(([id, value]) => {
     const element = $(id);
@@ -443,9 +420,6 @@ function updateUserInfo() {
         }
       }
       
-      console.log(`Updated ${id} with value: ${value}`);
-    } else {
-      console.log(`Element with id ${id} not found`);
     }
   });
 
@@ -1839,7 +1813,6 @@ async function loadPurchaseHistory() {
 
   try {
     // 这里应该调用API获取购买历史
-    // const history = await apiCall('/users/me/purchases');
     
     // 模拟数据，实际应该从API获取
     const mockHistory = [

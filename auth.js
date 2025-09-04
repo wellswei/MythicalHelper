@@ -999,19 +999,35 @@ async function onTakeOath(e) {
     // 4. 激活注册（不需要Turnstile验证）
     const activateResponse = await postJSON(ENDPOINTS.activateRegistration(state.registrationId), {});
     console.log('Registration activated:', activateResponse.user_id);
+    console.log('Signup session token received:', !!activateResponse.signup_session_token);
     
     // 保存到状态中
     state.username = username;
     state.userId = activateResponse.user_id;
     saveState();
     
-    // 注意：proof token在attach_contact时已经被消费，无法用于自动登录
-    // 用户需要手动登录一次，这是正常的安全流程
-    console.log('Registration completed successfully. User needs to sign in manually.');
-    
-    // 进入Get Badge步骤
-    updateStep(4);
-    $('#badgeName').textContent = state.username;
+    // === 新增：注册后自动换会话 ===
+    if (activateResponse.signup_session_token) {
+      console.log('Exchanging signup session token for access token...');
+      const sessionResp = await postJSON(ENDPOINTS.exchangeSession, {
+        signup_session_token: activateResponse.signup_session_token
+      });
+      console.log('Access token received:', !!sessionResp.access_token);
+      
+      // 保存access token到sessionStorage
+      sessionStorage.setItem('authToken', sessionResp.access_token);
+      console.log('Access token saved to sessionStorage');
+      
+      // 直接跳转到portal，无需进入Step 4
+      console.log('Registration completed successfully. Redirecting to portal...');
+      window.location.href = '/portal.html';
+      return;
+    } else {
+      console.log('No signup session token received, falling back to manual login');
+      // 进入Get Badge步骤
+      updateStep(4);
+      $('#badgeName').textContent = state.username;
+    }
   } catch (ex) {
     showErr(err, ex.message || 'Failed to take oath');
   } finally {

@@ -16,6 +16,7 @@ let currentTurnstileOperation = null; // 'email', 'phone', 'delete'
 function onPortalTurnstileSuccess(token) {
   portalTurnstileToken = token;
   console.log('Portal Turnstile success, token received, length:', token.length);
+  console.log('Current operation:', currentTurnstileOperation);
   
   // 更新状态提示
   updatePortalTurnstileMessage('✓ Security verified', '#10b981');
@@ -175,6 +176,38 @@ async function portalApiFetch(path, options = {}) {
   }
 }
 
+// 初始化Turnstile组件
+function initPortalTurnstile(operation) {
+  console.log('Initializing Turnstile for operation:', operation);
+  currentTurnstileOperation = operation;
+  
+  // 重置Turnstile状态
+  portalTurnstileToken = null;
+  
+  // 等待Turnstile脚本加载
+  if (window.turnstile) {
+    console.log('Turnstile script loaded, initializing components');
+    const turnstileElements = document.querySelectorAll('.cf-turnstile');
+    turnstileElements.forEach(element => {
+      try {
+        window.turnstile.reset(element);
+        console.log('Turnstile element reset for operation:', operation);
+      } catch (e) {
+        console.error('Failed to reset Turnstile element:', e);
+      }
+    });
+  } else {
+    console.log('Turnstile script not loaded yet, waiting...');
+    // 等待Turnstile脚本加载
+    const checkTurnstile = setInterval(() => {
+      if (window.turnstile) {
+        clearInterval(checkTurnstile);
+        initPortalTurnstile(operation);
+      }
+    }, 100);
+  }
+}
+
 // 导出Turnstile回调到window
 window.onPortalTurnstileSuccess = onPortalTurnstileSuccess;
 window.onPortalTurnstileExpired = onPortalTurnstileExpired;
@@ -299,6 +332,10 @@ function openEmailEditor() {
   
   if (emailSec) {
     emailSec.style.display = 'block';
+    // 初始化Turnstile组件
+    setTimeout(() => {
+      initPortalTurnstile('email');
+    }, 100);
   }
   
   if (phoneSec) phoneSec.style.display = 'none';
@@ -1108,6 +1145,10 @@ function setupEventListeners() {
   if (startPhoneBtn) startPhoneBtn.addEventListener('click', () => {
     const sec = $('#phoneChangeSection'); if (sec) sec.style.display = 'block';
     const emailSec = $('#emailChangeSection'); if (emailSec) emailSec.style.display = 'none';
+    // 初始化Turnstile组件
+    setTimeout(() => {
+      initPortalTurnstile('phone');
+    }, 100);
     // 初始化带区号选择与格式化的输入
     initPortalPhoneInput();
     setTimeout(() => {
@@ -1171,6 +1212,10 @@ function setupEventListeners() {
         e.preventDefault();
         const sec = document.getElementById('phoneChangeSection'); if (sec) sec.style.display = 'block';
         const emailSec = document.getElementById('emailChangeSection'); if (emailSec) emailSec.style.display = 'none';
+        // 初始化Turnstile组件
+        setTimeout(() => {
+          initPortalTurnstile('phone');
+        }, 100);
         initPortalPhoneInput();
         setTimeout(() => { const el = document.getElementById('newPhoneInput'); if (el) el.focus(); }, 50);
       }
@@ -1443,6 +1488,7 @@ async function onSendPortalEmail() {
   
   // 设置当前操作类型
   currentTurnstileOperation = 'email';
+  console.log('Set currentTurnstileOperation to:', currentTurnstileOperation);
   
   // 禁用按钮直到Turnstile验证完成
   if (btn) {
@@ -1450,10 +1496,16 @@ async function onSendPortalEmail() {
     btn.textContent = 'Verifying...';
   }
   
+  // 检查Turnstile组件是否存在
+  const turnstileElement = document.querySelector('#emailChangeSection .cf-turnstile');
+  console.log('Turnstile element found:', !!turnstileElement);
+  console.log('Current portalTurnstileToken:', portalTurnstileToken);
+  
   try {
     // 等待Turnstile验证
     updatePortalTurnstileMessage('Verifying security...', '#3b82f6');
     const turnstileToken = await waitForPortalTurnstileToken(10000);
+    console.log('Turnstile token received:', !!turnstileToken, 'Length:', turnstileToken?.length);
     if (!turnstileToken) {
       throw new Error('Security verification required');
     }

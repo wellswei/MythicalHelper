@@ -49,12 +49,43 @@ function onPortalTurnstileError(error) {
 
 // 更新Turnstile状态消息
 function updatePortalTurnstileMessage(text, color) {
-  const operations = ['email', 'phone', 'delete'];
-  operations.forEach(op => {
-    const messageEl = document.getElementById(`turnstileMessage${op.charAt(0).toUpperCase() + op.slice(1)}`);
-    if (messageEl) {
-      messageEl.textContent = text;
-      messageEl.style.color = color;
+  const statusElements = [
+    'turnstileStatusEmail',
+    'turnstileStatusPhone', 
+    'turnstileStatusDelete'
+  ];
+  
+  statusElements.forEach(statusId => {
+    const statusEl = document.getElementById(statusId);
+    if (statusEl) {
+      const textEl = statusEl.querySelector('.turnstile-status-text');
+      const iconEl = statusEl.querySelector('.turnstile-status-icon');
+      
+      if (textEl) textEl.textContent = text;
+      
+      // 根据颜色确定状态类
+      let statusClass = 'default';
+      let icon = '🔒';
+      
+      if (color === '#10b981') {
+        statusClass = 'success';
+        icon = '✓';
+      } else if (color === '#3b82f6') {
+        statusClass = 'verifying';
+        icon = '⏳';
+      } else if (color === '#f59e0b') {
+        statusClass = 'warning';
+        icon = '⚠️';
+      } else if (color === '#ef4444') {
+        statusClass = 'error';
+        icon = '❌';
+      }
+      
+      // 更新状态类
+      statusEl.className = `turnstile-status ${statusClass}`;
+      
+      // 更新图标
+      if (iconEl) iconEl.textContent = icon;
     }
   });
 }

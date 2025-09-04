@@ -553,40 +553,47 @@ function onTurnstileError(error) {
 
 // 更新Turnstile状态消息的辅助函数
 function updateTurnstileMessage(text, color) {
-  // 更新Step 1的消息
-  const messageEl1 = document.getElementById('turnstileMessage');
-  if (messageEl1) {
-    messageEl1.textContent = text;
-    messageEl1.style.color = color;
-  }
+  const statusElements = [
+    'turnstileStatus',
+    'turnstileStatusPhone', 
+    'turnstileStatusLogin',
+    'turnstileStatusLoginSms',
+    'turnstileStatusOath'
+  ];
   
-  // 更新Step 2的消息
-  const messageEl2 = document.getElementById('turnstileMessagePhone');
-  if (messageEl2) {
-    messageEl2.textContent = text;
-    messageEl2.style.color = color;
-  }
-  
-  // 更新Login Email的消息
-  const messageElLogin = document.getElementById('turnstileMessageLogin');
-  if (messageElLogin) {
-    messageElLogin.textContent = text;
-    messageElLogin.style.color = color;
-  }
-  
-  // 更新Login SMS的消息
-  const messageElLoginSms = document.getElementById('turnstileMessageLoginSms');
-  if (messageElLoginSms) {
-    messageElLoginSms.textContent = text;
-    messageElLoginSms.style.color = color;
-  }
-  
-  // 更新Step 3的消息
-  const messageEl3 = document.getElementById('turnstileMessageOath');
-  if (messageEl3) {
-    messageEl3.textContent = text;
-    messageEl3.style.color = color;
-  }
+  statusElements.forEach(statusId => {
+    const statusEl = document.getElementById(statusId);
+    if (statusEl) {
+      const textEl = statusEl.querySelector('.turnstile-status-text');
+      const iconEl = statusEl.querySelector('.turnstile-status-icon');
+      
+      if (textEl) textEl.textContent = text;
+      
+      // 根据颜色确定状态类
+      let statusClass = 'default';
+      let icon = '🔒';
+      
+      if (color === '#10b981') {
+        statusClass = 'success';
+        icon = '✓';
+      } else if (color === '#3b82f6') {
+        statusClass = 'verifying';
+        icon = '⏳';
+      } else if (color === '#f59e0b') {
+        statusClass = 'warning';
+        icon = '⚠️';
+      } else if (color === '#ef4444') {
+        statusClass = 'error';
+        icon = '❌';
+      }
+      
+      // 更新状态类
+      statusEl.className = `turnstile-status ${statusClass}`;
+      
+      // 更新图标
+      if (iconEl) iconEl.textContent = icon;
+    }
+  });
 }
 
 // 重置Turnstile

@@ -68,6 +68,17 @@ async def verify_turnstile(request: Request) -> None:
     
     print("[TURNSTILE] SUCCESS: Token verified")
 
+# 条件性Turnstile验证 - 只对特定purpose要求Turnstile
+async def verify_turnstile_conditional(request: Request, purpose: str = None) -> None:
+    # 需要Turnstile的purpose：signup, change_email, change_phone
+    turnstile_required_purposes = {"signup", "change_email", "change_phone"}
+    
+    if purpose in turnstile_required_purposes:
+        print(f"[TURNSTILE] Purpose '{purpose}' requires Turnstile verification")
+        await verify_turnstile(request)
+    else:
+        print(f"[TURNSTILE] Purpose '{purpose}' does not require Turnstile verification")
+
 # =========================
 # 工具函数
 # =========================
@@ -246,7 +257,10 @@ def require_admin(su: SessionUser = Depends(get_session_user)) -> SessionUser:
 tickets = APIRouter(prefix="/tickets", tags=["Tickets"])
 
 @tickets.post("", response_model=TicketCreateOut)
-def create_ticket(inb: TicketCreateIn, request: Request = None, authorization: str | None = Header(default=None), _: None = Depends(verify_turnstile)):
+async def create_ticket(inb: TicketCreateIn, request: Request = None, authorization: str | None = Header(default=None)):
+    # 条件性Turnstile验证
+    await verify_turnstile_conditional(request, inb.purpose)
+    
     with get_db() as db:
         # 验证输入
         if inb.channel == "email":
@@ -326,7 +340,7 @@ def create_ticket(inb: TicketCreateIn, request: Request = None, authorization: s
         )
 
 @tickets.post("/{ticket_id}/confirm", response_model=TicketConfirmOut)
-def confirm_ticket(ticket_id: str, inb: TicketConfirmIn, _: None = Depends(verify_turnstile)):
+def confirm_ticket(ticket_id: str, inb: TicketConfirmIn):
     with get_db() as db:
         ticket = db.get_ticket_by_id(ticket_id)
         if not ticket:
@@ -681,7 +695,10 @@ def patch_me(inb: UsersPatchIn, su: SessionUser = Depends(get_session_user)):
         return user_payload(user)
 
 @users.delete("/me")
-def delete_me(su: SessionUser = Depends(get_session_user)):
+async def delete_me(request: Request, su: SessionUser = Depends(get_session_user)):
+    # 账户删除是敏感操作，需要Turnstile验证
+    await verify_turnstile(request)
+    
     with get_db() as db:
         ok = db.delete_user(su.user_id)
         if not ok:

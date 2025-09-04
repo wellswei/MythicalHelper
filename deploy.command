@@ -21,7 +21,7 @@ fi
 
 # 检查服务器连接
 echo "📡 检查服务器连接..."
-ssh -6 -i "$KEY_PATH" -o ConnectTimeout=10 $USERNAME@$SERVER_IP "echo '服务器连接成功'" || {
+ssh -6 -i "$KEY_PATH" -o ConnectTimeout=10 $USERNAME@[$SERVER_IP] "echo '服务器连接成功'" || {
     echo "❌ 无法连接到服务器"
     read -p "按任意键退出..."
     exit 1
@@ -29,12 +29,12 @@ ssh -6 -i "$KEY_PATH" -o ConnectTimeout=10 $USERNAME@$SERVER_IP "echo '服务器
 
 # 上传所有Python文件
 echo "📤 上传Python文件..."
-scp -6 -i "$KEY_PATH" server/*.py $USERNAME@$SERVER_IP:$SERVER_PATH/
-scp -6 -i "$KEY_PATH" server/requirements.txt $USERNAME@$SERVER_IP:$SERVER_PATH/
+scp -6 -i "$KEY_PATH" server/*.py $USERNAME@[$SERVER_IP]:$SERVER_PATH/
+scp -6 -i "$KEY_PATH" server/requirements.txt $USERNAME@[$SERVER_IP]:$SERVER_PATH/
 
 # 在服务器上重启服务
 echo "🔄 重启服务器..."
-ssh -6 -i "$KEY_PATH" $USERNAME@$SERVER_IP << 'EOF'
+ssh -6 -i "$KEY_PATH" $USERNAME@[$SERVER_IP] << 'EOF'
     cd /home/ubuntu/mythicalhelper
     
     # 激活虚拟环境
@@ -68,7 +68,7 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "🎉 部署完成！"
     echo "🌐 API地址: http://[$SERVER_IP]:8000"
-    echo "📋 查看日志: ssh -6 -i \"$KEY_PATH\" $USERNAME@$SERVER_IP 'cd $SERVER_PATH && tail -f server.log'"
+    echo "📋 查看日志: ssh -6 -i \"$KEY_PATH\" $USERNAME@[$SERVER_IP] 'cd $SERVER_PATH && tail -f server.log'"
 else
     echo "❌ 部署失败，请检查错误信息"
 fi

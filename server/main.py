@@ -370,7 +370,7 @@ def confirm_ticket(ticket_id: str, inb: TicketConfirmIn, _: None = Depends(verif
 sessions = APIRouter(prefix="/sessions", tags=["Sessions"])
 
 @sessions.post("", response_model=SessionsExchangeOut)
-def exchange_session(inb: SessionsExchangeIn, _: None = Depends(verify_turnstile)):
+def exchange_session(inb: SessionsExchangeIn, request: Request = None):
     with get_db() as db:
         user = None
         

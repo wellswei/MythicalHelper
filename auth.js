@@ -663,6 +663,7 @@ window.onTurnstileError = onTurnstileError;
 // ===== API (no credentials by default; enable if your backend needs cookies) =====
 async function postJSON(path, body, method = 'POST') {
   const headers = { 'Content-Type': 'application/json' };
+  const hadTurnstileToken = !!state.turnstileToken;
   if (state.turnstileToken) {
     headers['cf-turnstile-response'] = state.turnstileToken;
     console.log('Sending request with Turnstile token:', path, 'Token length:', state.turnstileToken.length);
@@ -680,6 +681,15 @@ async function postJSON(path, body, method = 'POST') {
     console.error('Request failed:', path, res.status, j);
     throw new Error(j.detail || 'Request failed');
   }
+  
+  // 如果请求成功且使用了Turnstile token，清除token以防止重复使用
+  if (hadTurnstileToken && res.ok) {
+    console.log('Request successful, clearing Turnstile token to prevent reuse');
+    state.turnstileToken = null;
+    // 重置Turnstile组件以获取新token
+    resetTurnstile();
+  }
+  
   return res.json();
 }
 

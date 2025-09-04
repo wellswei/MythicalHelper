@@ -8,6 +8,178 @@ let currentUser = null;
 const portalState = { phoneTxId: '', newPhone: '', phoneResendExpiry: 0, emailTxId: '', newEmail: '', emailResendExpiry: 0 };
 let isInEmailChangeFlow = false; // 添加邮箱修改流程状态
 
+// Turnstile状态管理
+let portalTurnstileToken = null;
+let currentTurnstileOperation = null; // 'email', 'phone', 'delete'
+
+// ===== Turnstile 处理函数 =====
+function onPortalTurnstileSuccess(token) {
+  portalTurnstileToken = token;
+  console.log('Portal Turnstile success, token received, length:', token.length);
+  
+  // 更新状态提示
+  updatePortalTurnstileMessage('✓ Security verified', '#10b981');
+  
+  // 启用当前操作的按钮
+  enableCurrentOperationButtons();
+}
+
+function onPortalTurnstileExpired() {
+  console.log('Portal Turnstile token expired, clearing token...');
+  portalTurnstileToken = null;
+  
+  // 更新状态提示
+  updatePortalTurnstileMessage('⚠ Verification expired - please refresh', '#f59e0b');
+  
+  // 禁用当前操作的按钮
+  disableCurrentOperationButtons();
+}
+
+function onPortalTurnstileError(error) {
+  console.log('Portal Turnstile error:', error);
+  portalTurnstileToken = null;
+  
+  // 更新状态提示
+  updatePortalTurnstileMessage('❌ Verification failed - please try again', '#ef4444');
+  
+  // 禁用当前操作的按钮
+  disableCurrentOperationButtons();
+}
+
+// 更新Turnstile状态消息
+function updatePortalTurnstileMessage(text, color) {
+  const operations = ['email', 'phone', 'delete'];
+  operations.forEach(op => {
+    const messageEl = document.getElementById(`turnstileMessage${op.charAt(0).toUpperCase() + op.slice(1)}`);
+    if (messageEl) {
+      messageEl.textContent = text;
+      messageEl.style.color = color;
+    }
+  });
+}
+
+// 启用当前操作的按钮
+function enableCurrentOperationButtons() {
+  if (currentTurnstileOperation === 'email') {
+    const btn = document.getElementById('btnSendEmailCode');
+    if (btn) btn.disabled = false;
+  } else if (currentTurnstileOperation === 'phone') {
+    const btn = document.getElementById('btnSendPhoneCode');
+    if (btn) btn.disabled = false;
+  } else if (currentTurnstileOperation === 'delete') {
+    const btn = document.getElementById('btnConfirmDelete');
+    if (btn) btn.disabled = false;
+  }
+}
+
+// 禁用当前操作的按钮
+function disableCurrentOperationButtons() {
+  if (currentTurnstileOperation === 'email') {
+    const btn = document.getElementById('btnSendEmailCode');
+    if (btn) btn.disabled = true;
+  } else if (currentTurnstileOperation === 'phone') {
+    const btn = document.getElementById('btnSendPhoneCode');
+    if (btn) btn.disabled = true;
+  } else if (currentTurnstileOperation === 'delete') {
+    const btn = document.getElementById('btnConfirmDelete');
+    if (btn) btn.disabled = true;
+  }
+}
+
+// 重置Turnstile
+function resetPortalTurnstile() {
+  console.log('Resetting Portal Turnstile...');
+  portalTurnstileToken = null;
+  
+  // 重置Turnstile组件
+  if (window.turnstile) {
+    const turnstileElements = document.querySelectorAll('.cf-turnstile');
+    turnstileElements.forEach(element => {
+      try {
+        window.turnstile.reset(element);
+        console.log('Portal Turnstile element reset successfully');
+      } catch (e) {
+        console.error('Failed to reset Portal Turnstile element:', e);
+      }
+    });
+  }
+  
+  // 重置状态提示
+  updatePortalTurnstileMessage('Security verification required', 'rgba(255,255,255,0.7)');
+  
+  // 禁用当前操作的按钮
+  disableCurrentOperationButtons();
+}
+
+// 等待Turnstile token
+async function waitForPortalTurnstileToken(timeoutMs = 10000) {
+  console.log('Waiting for Portal Turnstile token...');
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    (function poll() {
+      if (portalTurnstileToken && portalTurnstileToken.length > 0) {
+        console.log('Portal Turnstile token received, length:', portalTurnstileToken.length);
+        return resolve(portalTurnstileToken);
+      }
+      
+      if (Date.now() - start > timeoutMs) {
+        console.log('Portal Turnstile token timeout after', timeoutMs, 'ms');
+        return reject(new Error('Turnstile token timeout'));
+      }
+      
+      setTimeout(poll, 100);
+    })();
+  });
+}
+
+// 带Turnstile的API请求
+async function portalApiFetch(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  const hadTurnstileToken = !!portalTurnstileToken;
+  
+  if (portalTurnstileToken) {
+    headers['cf-turnstile-response'] = portalTurnstileToken;
+    console.log('Sending portal request with Turnstile token:', path, 'Token length:', portalTurnstileToken.length);
+  } else {
+    console.log('Sending portal request WITHOUT Turnstile token:', path);
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: { ...headers, ...(options.headers || {}) },
+    });
+    
+    // 无论请求成功还是失败，只要使用了Turnstile token就清除它
+    if (hadTurnstileToken) {
+      console.log('Portal request completed, clearing Turnstile token to prevent reuse');
+      portalTurnstileToken = null;
+      resetPortalTurnstile();
+    }
+    
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({ detail: 'Request failed' }));
+      console.error('Portal request failed:', path, res.status, j);
+      throw new Error(j.detail || 'Request failed');
+    }
+    
+    return res.json();
+  } catch (error) {
+    // 即使发生网络错误，也要清除Turnstile token
+    if (hadTurnstileToken) {
+      console.log('Portal request failed, clearing Turnstile token to prevent reuse');
+      portalTurnstileToken = null;
+      resetPortalTurnstile();
+    }
+    throw error;
+  }
+}
+
+// 导出Turnstile回调到window
+window.onPortalTurnstileSuccess = onPortalTurnstileSuccess;
+window.onPortalTurnstileExpired = onPortalTurnstileExpired;
+window.onPortalTurnstileError = onPortalTurnstileError;
+
 function resetEmailEditorUI(hideSection = true) {
   // 恢复输入为邮箱模式 + 文案
   const input = document.getElementById('newEmailInput');
@@ -1089,6 +1261,22 @@ function setupEventListeners() {
   const del = $('#btnDeleteAccount');
   if (del) del.addEventListener('click', onDeleteAccount);
 
+  // 删除账号模态框事件
+  const confirmDeleteBtn = $('#btnConfirmDelete');
+  if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', performDeleteAccount);
+  
+  const cancelDeleteBtn = $('#btnCancelDelete');
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', () => {
+      const modal = document.getElementById('deleteAccountModal');
+      if (modal) {
+        modal.style.display = 'none';
+        currentTurnstileOperation = null;
+        resetPortalTurnstile();
+      }
+    });
+  }
+
   // 兜底委托：确保删除按钮在任何情况下都可触发
   try {
     document.addEventListener('click', (e) => {
@@ -1110,7 +1298,7 @@ async function onSendPortalPhone() {
   // 使用原生DOM方法查找元素
   const input = document.getElementById('newPhoneInput');
   const err = document.getElementById('errPortalPhone');
-  const btn = document.getElementById('btnSendPortalPhone');
+  const btn = document.getElementById('btnSendPhoneCode');
   
   console.log('Phone elements found:', { input, err, btn });
   
@@ -1130,9 +1318,31 @@ async function onSendPortalPhone() {
   
   if (err) err.textContent = '';
   
+  // 设置当前操作类型
+  currentTurnstileOperation = 'phone';
+  
+  // 禁用按钮直到Turnstile验证完成
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+  }
+  
   try {
+    // 等待Turnstile验证
+    updatePortalTurnstileMessage('Verifying security...', '#3b82f6');
+    const turnstileToken = await waitForPortalTurnstileToken(10000);
+    if (!turnstileToken) {
+      throw new Error('Security verification required');
+    }
+    
+    // 恢复按钮状态
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Send Code';
+    }
+    
     // 与后端 tickets 路由对齐：直接创建变更手机号的 ticket
-    const res = await apiCall('/tickets', {
+    const res = await portalApiFetch('/tickets', {
       method: 'POST',
       body: JSON.stringify({
         channel: 'sms',
@@ -1198,13 +1408,13 @@ async function onSendPortalEmail() {
   // 使用多种方式查找元素
   const input = document.getElementById('newEmailInput') || document.querySelector('#newEmailInput');
   const err = document.getElementById('errPortalEmail') || document.querySelector('#errPortalEmail');
-  const btn = document.getElementById('btnSendPortalEmail') || document.querySelector('#btnSendPortalEmail');
+  const btn = document.getElementById('btnSendEmailCode') || document.querySelector('#btnSendEmailCode');
   
   console.log('Found elements:', { input, err, btn });
   
   // 检查整个文档中是否有这些元素
   console.log('All elements with newEmailInput:', document.querySelectorAll('[id*="newEmail"]'));
-  console.log('All elements with btnSendPortalEmail:', document.querySelectorAll('[id*="btnSendPortal"]'));
+  console.log('All elements with btnSendEmailCode:', document.querySelectorAll('[id*="btnSend"]'));
   
   if (!input) {
     console.error('Input element not found!');
@@ -1231,8 +1441,30 @@ async function onSendPortalEmail() {
   if (err) err.textContent = '';
   console.log('Sending email code to:', email);
   
+  // 设置当前操作类型
+  currentTurnstileOperation = 'email';
+  
+  // 禁用按钮直到Turnstile验证完成
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+  }
+  
   try {
-    const res = await apiCall('/tickets', {
+    // 等待Turnstile验证
+    updatePortalTurnstileMessage('Verifying security...', '#3b82f6');
+    const turnstileToken = await waitForPortalTurnstileToken(10000);
+    if (!turnstileToken) {
+      throw new Error('Security verification required');
+    }
+    
+    // 恢复按钮状态
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Send Code';
+    }
+    
+    const res = await portalApiFetch('/tickets', {
       method: 'POST',
       body: JSON.stringify({
         channel: 'email',
@@ -1427,14 +1659,46 @@ async function onVerifyPortalEmail() {
 }
 
 async function onDeleteAccount() {
+  // 显示删除确认模态框
+  const modal = document.getElementById('deleteAccountModal');
+  if (modal) {
+    modal.style.display = 'block';
+    // 设置当前操作类型
+    currentTurnstileOperation = 'delete';
+    // 禁用确认按钮直到Turnstile验证完成
+    const confirmBtn = document.getElementById('btnConfirmDelete');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+    }
+  } else {
+    // 如果模态框不存在，使用原来的确认方式
+    const ok = confirm('Delete your account? This action is permanent.');
+    if (!ok) return;
+    await performDeleteAccount();
+  }
+}
+
+async function performDeleteAccount() {
   // 按钮禁用/文案切换，避免重复点击
-  const btn = document.getElementById('btnDeleteAccount');
+  const btn = document.getElementById('btnConfirmDelete') || document.getElementById('btnDeleteAccount');
   const oldText = btn ? btn.textContent : '';
-  const ok = confirm('Delete your account? This action is permanent.');
-  if (!ok) return;
-  if (btn) { btn.disabled = true; btn.textContent = 'Deleting...'; }
+  
+  if (btn) { 
+    btn.disabled = true; 
+    btn.textContent = 'Deleting...'; 
+  }
+  
   try { 
-    await apiCall('/users/me', { method: 'DELETE' }); 
+    // 等待Turnstile验证（如果当前操作是delete）
+    if (currentTurnstileOperation === 'delete') {
+      updatePortalTurnstileMessage('Verifying security...', '#3b82f6');
+      const turnstileToken = await waitForPortalTurnstileToken(10000);
+      if (!turnstileToken) {
+        throw new Error('Security verification required');
+      }
+    }
+    
+    await portalApiFetch('/users/me', { method: 'DELETE' }); 
     // 删除成功后清理并跳转
     clearAuthToken(); 
     try { sessionStorage.removeItem('authState'); } catch {}
@@ -1444,7 +1708,10 @@ async function onDeleteAccount() {
   } catch (error) {
     console.error('Failed to delete account:', error);
     alert(error?.message || 'Failed to delete account');
-    if (btn) { btn.disabled = false; btn.textContent = oldText || 'Delete Account'; }
+    if (btn) { 
+      btn.disabled = false; 
+      btn.textContent = oldText || 'Delete Account'; 
+    }
   }
 }
 

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # MythicalHelper 一键部署脚本
-# 双击运行即可更新服务器文件
+# 双击运行即可更新所有Python文件到服务器
 
-echo "🚀 开始部署 MythicalHelper 到 AWS 服务器..."
+echo "🚀 开始更新 MythicalHelper Python文件到 AWS 服务器..."
 
 # 设置变量
 KEY_PATH="/Users/wei/GitHub/MythicalHelper/server/LightsailDefaultKey-us-east-1.pem"
@@ -27,12 +27,10 @@ ssh -6 -i "$KEY_PATH" -o ConnectTimeout=10 $USERNAME@$SERVER_IP "echo '服务器
     exit 1
 }
 
-# 上传所有后端文件
-echo "📤 上传后端文件..."
-scp -6 -i "$KEY_PATH" main.py $USERNAME@$SERVER_IP:$SERVER_PATH/
-scp -6 -i "$KEY_PATH" models.py $USERNAME@$SERVER_IP:$SERVER_PATH/
-scp -6 -i "$KEY_PATH" database.py $USERNAME@$SERVER_IP:$SERVER_PATH/
-scp -6 -i "$KEY_PATH" requirements.txt $USERNAME@$SERVER_IP:$SERVER_PATH/
+# 上传所有Python文件
+echo "📤 上传Python文件..."
+scp -6 -i "$KEY_PATH" server/*.py $USERNAME@$SERVER_IP:$SERVER_PATH/
+scp -6 -i "$KEY_PATH" server/requirements.txt $USERNAME@$SERVER_IP:$SERVER_PATH/
 
 # 在服务器上重启服务
 echo "🔄 重启服务器..."

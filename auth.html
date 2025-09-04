@@ -304,21 +304,6 @@
               <input id="loginEmailInput" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"/>
               <div class="status-bar" id="loginEmailStatus">We'll send a 6-digit code to your email.</div>
 
-              <!-- Turnstile 容器（Login Email） -->
-              <div class="turnstile-container" style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-                <div class="cf-turnstile"
-                     data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
-                     data-callback="onTurnstileSuccess"
-                     data-expired-callback="onTurnstileExpired"
-                     data-error-callback="onTurnstileError"
-                     data-action="submit">
-                </div>
-                
-                <!-- Turnstile 状态提示 -->
-                <div id="turnstileStatusLogin" class="turnstile-status default">
-                  <span id="turnstileMessageLogin">Security verification required</span>
-                </div>
-              </div>
 
               <div class="actions">
                 <button class="btn primary" id="btnSendLoginCode" type="button">Get Email Code</button>
@@ -358,21 +343,6 @@
               <input id="loginPhoneInput" type="tel" inputmode="tel" autocomplete="tel"/>
               <div class="status-bar" id="loginPhoneStatus">We'll send a 6-digit code to your phone.</div>
 
-              <!-- Turnstile 容器（Login SMS） -->
-              <div class="turnstile-container" style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-                <div class="cf-turnstile"
-                     data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
-                     data-callback="onTurnstileSuccess"
-                     data-expired-callback="onTurnstileExpired"
-                     data-error-callback="onTurnstileError"
-                     data-action="submit">
-                </div>
-                
-                <!-- Turnstile 状态提示 -->
-                <div id="turnstileStatusLoginSms" class="turnstile-status default">
-                  <span id="turnstileMessageLoginSms">Security verification required</span>
-                </div>
-              </div>
 
               <div class="actions">
                 <button class="btn primary" id="btnSendLoginSms" type="button">Get Phone Code</button>

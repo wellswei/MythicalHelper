@@ -159,14 +159,7 @@ async function onSendLoginSms() {
   if (!phone) { showError(err, 'Please enter a valid phone number'); return; }
   lockButton(btn, 'Sending...'); hideError(err);
   try {
-    // 等待Turnstile验证
-    updateTurnstileMessage('Verifying security...', '#3b82f6');
-    const turnstileToken = await waitForTurnstileToken(10000);
-    if (!turnstileToken) {
-      throw new Error('Security verification required');
-    }
-    
-    // 创建手机号登录ticket
+    // 创建手机号登录ticket（无需Turnstile，因为服务器已验证用户存在性）
     const data = await postJSON(ENDPOINTS.createTicket, {
       channel: "sms",
       destination: phone,
@@ -505,9 +498,7 @@ function onTurnstileSuccess(token) {
     $('#btnSubmitOath').disabled = false;
   }
   
-  // 启用login流程的按钮
-  $('#btnSendLoginCode').disabled = false;
-  $('#btnSendLoginSms').disabled = false;
+  // 登录流程不需要Turnstile验证
 }
 
 function onTurnstileExpired() {
@@ -526,9 +517,7 @@ function onTurnstileExpired() {
     $('#btnSubmitOath').disabled = true;
   }
   
-  // 禁用login流程的按钮
-  $('#btnSendLoginCode').disabled = true;
-  $('#btnSendLoginSms').disabled = true;
+  // 登录流程不需要Turnstile验证
 }
 
 function onTurnstileError(error) {
@@ -546,9 +535,7 @@ function onTurnstileError(error) {
     $('#btnSubmitOath').disabled = true;
   }
   
-  // 禁用login流程的按钮
-  $('#btnSendLoginCode').disabled = true;
-  $('#btnSendLoginSms').disabled = true;
+  // 登录流程不需要Turnstile验证
 }
 
 // 更新Turnstile状态消息的辅助函数
@@ -556,8 +543,6 @@ function updateTurnstileMessage(text, color) {
   const statusElements = [
     'turnstileStatus',
     'turnstileStatusPhone', 
-    'turnstileStatusLogin',
-    'turnstileStatusLoginSms',
     'turnstileStatusOath'
   ];
   
@@ -620,9 +605,7 @@ function resetTurnstile() {
     $('#btnSubmitOath').disabled = true;
   }
   
-  // 禁用login流程的按钮
-  $('#btnSendLoginCode').disabled = true;
-  $('#btnSendLoginSms').disabled = true;
+  // 登录流程不需要Turnstile验证
 }
 
 // 等待Turnstile token就绪
@@ -1422,14 +1405,7 @@ async function onSendLoginCode() {
   hideError(err);
   
   try {
-    // 等待Turnstile验证
-    updateTurnstileMessage('Verifying security...', '#3b82f6');
-    const turnstileToken = await waitForTurnstileToken(10000);
-    if (!turnstileToken) {
-      throw new Error('Security verification required');
-    }
-    
-    // 创建邮箱登录ticket
+    // 创建邮箱登录ticket（无需Turnstile，因为服务器已验证用户存在性）
     const data = await postJSON(ENDPOINTS.createTicket, {
       channel: "email",
       destination: email,

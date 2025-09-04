@@ -670,27 +670,39 @@ async function postJSON(path, body, method = 'POST') {
   } else {
     console.log('Sending request WITHOUT Turnstile token:', path);
   }
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: method,
-    headers,
-    // credentials: 'include',
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const j = await res.json().catch(() => ({ detail: 'Request failed' }));
-    console.error('Request failed:', path, res.status, j);
-    throw new Error(j.detail || 'Request failed');
-  }
   
-  // 如果请求成功且使用了Turnstile token，清除token以防止重复使用
-  if (hadTurnstileToken && res.ok) {
-    console.log('Request successful, clearing Turnstile token to prevent reuse');
-    state.turnstileToken = null;
-    // 重置Turnstile组件以获取新token
-    resetTurnstile();
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: method,
+      headers,
+      // credentials: 'include',
+      body: JSON.stringify(body),
+    });
+    
+    // 无论请求成功还是失败，只要使用了Turnstile token就清除它
+    if (hadTurnstileToken) {
+      console.log('Request completed, clearing Turnstile token to prevent reuse');
+      state.turnstileToken = null;
+      // 重置Turnstile组件以获取新token
+      resetTurnstile();
+    }
+    
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({ detail: 'Request failed' }));
+      console.error('Request failed:', path, res.status, j);
+      throw new Error(j.detail || 'Request failed');
+    }
+    
+    return res.json();
+  } catch (error) {
+    // 即使发生网络错误，也要清除Turnstile token
+    if (hadTurnstileToken) {
+      console.log('Request failed, clearing Turnstile token to prevent reuse');
+      state.turnstileToken = null;
+      resetTurnstile();
+    }
+    throw error;
   }
-  
-  return res.json();
 }
 
 // ===== 按钮锁定工具函数 =====

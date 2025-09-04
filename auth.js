@@ -1028,6 +1028,7 @@ function onBackToHome(e) {
 
 // ===== Get Badge =====
 async function onGoToMember() {
+  console.log('=== onGoToMember FUNCTION CALLED ===');
   console.log('=== onGoToMember DEBUG START ===');
   
   // 检查用户是否已经登录
@@ -1600,7 +1601,21 @@ function initializeApp() {
   $('#btnBackToHome')?.addEventListener('click', onBackToHome);
 
   // Get Badge 步骤的事件监听器
-  $('#btnGoToMember')?.addEventListener('click', onGoToMember);
+  const btnGoToMember = $('#btnGoToMember');
+  console.log('Setting up btnGoToMember event listener, button found:', !!btnGoToMember);
+  if (btnGoToMember) {
+    console.log('Button element:', btnGoToMember);
+    console.log('Button onclick:', btnGoToMember.onclick);
+    console.log('Button type:', btnGoToMember.type);
+  }
+  btnGoToMember?.addEventListener('click', (e) => {
+    console.log('btnGoToMember clicked! Event:', e);
+    console.log('Event defaultPrevented:', e.defaultPrevented);
+    console.log('Event target:', e.target);
+    e.preventDefault();
+    e.stopPropagation();
+    onGoToMember();
+  });
 
   // 模式选择事件监听器
   document.querySelectorAll('.mode-btn[data-mode="signup"]').forEach(btn => {

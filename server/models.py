@@ -124,6 +124,23 @@ class RefreshToken(Base):
         Index('idx_refresh_tokens_expires_at', 'expires_at'),
     )
 
+class SignupSessionToken(Base):
+    __tablename__ = "signup_session_tokens"
+    
+    signup_session_token = Column(String(100), primary_key=True)
+    user_id = Column(String(50), ForeignKey("users.id"), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    user = relationship("User", backref="signup_session_tokens")
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_signup_session_tokens_user_id', 'user_id'),
+        Index('idx_signup_session_tokens_expires_at', 'expires_at'),
+    )
+
 class Purchase(Base):
     __tablename__ = "purchases"
     

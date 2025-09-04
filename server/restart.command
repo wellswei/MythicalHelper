@@ -10,4 +10,4 @@ source venv/bin/activate
 
 # Start the server with SQLAlchemy
 echo "Starting Mythical Helper API with SQLAlchemy database..."
-uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload

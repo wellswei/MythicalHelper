@@ -172,7 +172,8 @@ class TicketConfirmOut(BaseModel):
     subject_id: Optional[str] = None
 
 class SessionsExchangeIn(BaseModel):
-    proof_token: str
+    proof_token: Optional[str] = None
+    signup_session_token: Optional[str] = None
 
 class SessionsExchangeOut(BaseModel):
     access_token: str
@@ -197,6 +198,7 @@ class RegistrationActivateOut(BaseModel):
     role: str
     is_active: bool
     valid_until: datetime
+    signup_session_token: str
 
 class ContactsPatchIn(BaseModel):
     proof_token: str
@@ -370,23 +372,47 @@ sessions = APIRouter(prefix="/sessions", tags=["Sessions"])
 @sessions.post("", response_model=SessionsExchangeOut)
 def exchange_session(inb: SessionsExchangeIn, _: None = Depends(verify_turnstile)):
     with get_db() as db:
-        proof = db.get_proof_by_token(inb.proof_token)
-        if not proof:
-            problem(401, "unauthorized", "Invalid proof_token")
-        if proof.expires_at < now():
-            problem(401, "unauthorized", "Proof expired")
-        if proof.purpose != "signin":
-            problem(400, "invalid_flow", "Proof purpose is not signin")
-        
-        # 找到对应用户
         user = None
-        if proof.channel == "email":
-            user = db.get_user_by_email(proof.destination)
-        else:
-            user = db.get_user_by_phone(proof.destination)
         
-        if not user or user.deleted_at:
-            problem(404, "user_not_found", "No user bound to this destination")
+        # 处理signup_session_token（注册后自动登录）
+        if inb.signup_session_token:
+            sst = db.get_signup_session_token(inb.signup_session_token)
+            if not sst:
+                problem(401, "unauthorized", "Invalid signup_session_token")
+            if sst.expires_at < now():
+                problem(401, "unauthorized", "Signup session token expired")
+            
+            user = db.get_user_by_id(sst.user_id)
+            if not user or user.deleted_at:
+                problem(404, "user_not_found", "User not found")
+            
+            # 消费signup session token
+            db.delete_signup_session_token(inb.signup_session_token)
+        
+        # 处理proof_token（正常登录）
+        elif inb.proof_token:
+            proof = db.get_proof_by_token(inb.proof_token)
+            if not proof:
+                problem(401, "unauthorized", "Invalid proof_token")
+            if proof.expires_at < now():
+                problem(401, "unauthorized", "Proof expired")
+            if proof.purpose != "signin":
+                problem(400, "invalid_flow", "Proof purpose is not signin")
+            
+            # 找到对应用户
+            if proof.channel == "email":
+                user = db.get_user_by_email(proof.destination)
+            else:
+                user = db.get_user_by_phone(proof.destination)
+            
+            if not user or user.deleted_at:
+                problem(404, "user_not_found", "No user bound to this destination")
+            
+            # 消费proof
+            db.delete_proof(inb.proof_token)
+        
+        else:
+            problem(400, "missing_token", "Either proof_token or signup_session_token is required")
         
         # 创建会话
         access_token = random_token("atk")
@@ -396,9 +422,6 @@ def exchange_session(inb: SessionsExchangeIn, _: None = Depends(verify_turnstile
         
         db.create_session(access_token, user.id, user.role, session_expires)
         db.create_refresh_token(refresh_token, user.id, user.role, refresh_expires)
-        
-        # 消费proof
-        db.delete_proof(inb.proof_token)
         
         return SessionsExchangeOut(
             access_token=access_token,
@@ -606,11 +629,18 @@ def activate_registration(registration_id: str):
         
         db.update_user(user.id, valid_until=trial_end, updated_at=now())
         
+        # 生成一次性注册会话token，用于换取access_token
+        signup_session_token = random_token("sst")
+        # 这个token有效期5分钟，用于注册后立即换取access_token
+        signup_token_expires = now() + timedelta(minutes=5)
+        db.create_signup_session_token(signup_session_token, user.id, signup_token_expires)
+        
         return RegistrationActivateOut(
             user_id=user.id,
             role=user.role,
             is_active=True,
-            valid_until=trial_end
+            valid_until=trial_end,
+            signup_session_token=signup_session_token
         )
 
 # =========================

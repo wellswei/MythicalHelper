@@ -190,19 +190,74 @@ class DatabaseService:
         self.db.commit()
         return count
     
+    # Signup session token operations
+    def create_signup_session_token(self, signup_session_token: str, user_id: str, 
+                                  expires_at: datetime) -> SignupSessionToken:
+        from models import SignupSessionToken
+        sst = SignupSessionToken(
+            signup_session_token=signup_session_token,
+            user_id=user_id,
+            expires_at=expires_at
+        )
+        self.db.add(sst)
+        self.db.commit()
+        return sst
+    
+    def get_signup_session_token(self, signup_session_token: str) -> Optional[SignupSessionToken]:
+        from models import SignupSessionToken
+        return self.db.query(SignupSessionToken).filter(
+            SignupSessionToken.signup_session_token == signup_session_token
+        ).first()
+    
+    def delete_signup_session_token(self, signup_session_token: str) -> bool:
+        from models import SignupSessionToken
+        sst = self.get_signup_session_token(signup_session_token)
+        if sst:
+            self.db.delete(sst)
+            self.db.commit()
+            return True
+        return False
+    
+    def cleanup_expired_signup_session_tokens(self) -> int:
+        from models import SignupSessionToken
+        count = self.db.query(SignupSessionToken).filter(
+            SignupSessionToken.expires_at < datetime.utcnow()
+        ).delete()
+        self.db.commit()
+        return count
+    
     # Rate limit operations
     def get_rate_limit(self, key: str) -> Optional[RateLimit]:
         return self.db.query(RateLimit).filter(RateLimit.key == key).first()
     
-    def create_or_update_rate_limit(self, key: str, window_start: datetime, 
+    def create_or_update_rate_limit(self, key: str, window_start: datetime,
                                    count: int, limit: int) -> RateLimit:
+        """Upsert a rate limit record and correctly roll the window.
+
+        If an existing record is present but the provided window_start is a
+        different minute, we reset window_start and the counter to the
+        provided values. We always refresh the limit and updated_at.
+        """
         rate_limit = self.get_rate_limit(key)
+        now_utc = datetime.utcnow()
         if rate_limit:
-            rate_limit.count = count
-            rate_limit.updated_at = datetime.utcnow()
+            # New minute window: reset window_start and counter
+            if rate_limit.window_start != window_start:
+                rate_limit.window_start = window_start
+                rate_limit.count = count
+            else:
+                # Same window; allow caller to explicitly set count
+                rate_limit.count = count
+            rate_limit.limit = limit
+            rate_limit.updated_at = now_utc
         else:
             rate_limit = RateLimit(
-                key=key, window_start=window_start, count=count, limit=limit
+                key=key,
+                window_start=window_start,
+                count=count,
+                limit=limit,
+                created_at=now_utc,
+                updated_at=now_utc,
             )
             self.db.add(rate_limit)
         self.db.commit()

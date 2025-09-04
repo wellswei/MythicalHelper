@@ -160,6 +160,12 @@ async function portalApiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json' };
   const hadTurnstileToken = !!portalTurnstileToken;
   
+  // 添加认证头
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   if (portalTurnstileToken) {
     headers['cf-turnstile-response'] = portalTurnstileToken;
     console.log('Sending portal request with Turnstile token:', path, 'Token length:', portalTurnstileToken.length);

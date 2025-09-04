@@ -58,34 +58,25 @@ function updatePortalTurnstileMessage(text, color) {
   statusElements.forEach(statusId => {
     const statusEl = document.getElementById(statusId);
     if (statusEl) {
-      const textEl = statusEl.querySelector('.turnstile-status-text');
-      const iconEl = statusEl.querySelector('.turnstile-status-icon');
+      const textEl = statusEl.querySelector('span');
       
       if (textEl) textEl.textContent = text;
       
       // 根据颜色确定状态类
       let statusClass = 'default';
-      let icon = '🔒';
       
       if (color === '#10b981') {
         statusClass = 'success';
-        icon = '✓';
       } else if (color === '#3b82f6') {
         statusClass = 'verifying';
-        icon = '⏳';
       } else if (color === '#f59e0b') {
         statusClass = 'warning';
-        icon = '⚠️';
       } else if (color === '#ef4444') {
         statusClass = 'error';
-        icon = '❌';
       }
       
       // 更新状态类
       statusEl.className = `turnstile-status ${statusClass}`;
-      
-      // 更新图标
-      if (iconEl) iconEl.textContent = icon;
     }
   });
 }
@@ -1656,7 +1647,7 @@ async function onVerifyPortalPhone() {
   try {
     console.log('Verifying phone code:', code);
     // 第一步：确认验证码
-    const confirmRes = await apiCall(`/tickets/${portalState.phoneTxId}/confirm`, {
+    const confirmRes = await portalApiFetch(`/tickets/${portalState.phoneTxId}/confirm`, {
       method: 'POST',
       body: JSON.stringify({ code })
     });
@@ -1665,7 +1656,7 @@ async function onVerifyPortalPhone() {
     
     if (confirmRes && confirmRes.proof_token) {
       // 第二步：更新手机号
-      const updateRes = await apiCall('/contacts/phone', {
+      const updateRes = await portalApiFetch('/contacts/phone', {
         method: 'PATCH',
         body: JSON.stringify({ proof_token: confirmRes.proof_token })
       });
@@ -1700,13 +1691,13 @@ async function onVerifyPortalEmail() {
   if (btn) { btn.textContent = 'Verifying...'; btn.disabled = true; }
   try {
     // 1) confirm ticket
-    const confirmRes = await apiCall(`/tickets/${portalState.emailTxId}/confirm`, {
+    const confirmRes = await portalApiFetch(`/tickets/${portalState.emailTxId}/confirm`, {
       method: 'POST',
       body: JSON.stringify({ code })
     });
     if (confirmRes && confirmRes.proof_token) {
       // 2) patch contact email
-      const updateRes = await apiCall('/contacts/email', {
+      const updateRes = await portalApiFetch('/contacts/email', {
         method: 'PATCH',
         body: JSON.stringify({ proof_token: confirmRes.proof_token })
       });

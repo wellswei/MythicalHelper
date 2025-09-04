@@ -564,34 +564,25 @@ function updateTurnstileMessage(text, color) {
   statusElements.forEach(statusId => {
     const statusEl = document.getElementById(statusId);
     if (statusEl) {
-      const textEl = statusEl.querySelector('.turnstile-status-text');
-      const iconEl = statusEl.querySelector('.turnstile-status-icon');
+      const textEl = statusEl.querySelector('span');
       
       if (textEl) textEl.textContent = text;
       
       // 根据颜色确定状态类
       let statusClass = 'default';
-      let icon = '🔒';
       
       if (color === '#10b981') {
         statusClass = 'success';
-        icon = '✓';
       } else if (color === '#3b82f6') {
         statusClass = 'verifying';
-        icon = '⏳';
       } else if (color === '#f59e0b') {
         statusClass = 'warning';
-        icon = '⚠️';
       } else if (color === '#ef4444') {
         statusClass = 'error';
-        icon = '❌';
       }
       
       // 更新状态类
       statusEl.className = `turnstile-status ${statusClass}`;
-      
-      // 更新图标
-      if (iconEl) iconEl.textContent = icon;
     }
   });
 }

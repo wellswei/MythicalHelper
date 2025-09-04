@@ -159,6 +159,13 @@ async function onSendLoginSms() {
   if (!phone) { showError(err, 'Please enter a valid phone number'); return; }
   lockButton(btn, 'Sending...'); hideError(err);
   try {
+    // 等待Turnstile验证
+    updateTurnstileMessage('Verifying security...', '#3b82f6');
+    const turnstileToken = await waitForTurnstileToken(10000);
+    if (!turnstileToken) {
+      throw new Error('Security verification required');
+    }
+    
     // 创建手机号登录ticket
     const data = await postJSON(ENDPOINTS.createTicket, {
       channel: "sms",
@@ -497,6 +504,10 @@ function onTurnstileSuccess(token) {
   } else if (state.currentStep === 3) {
     $('#btnSubmitOath').disabled = false;
   }
+  
+  // 启用login流程的按钮
+  $('#btnSendLoginCode').disabled = false;
+  $('#btnSendLoginSms').disabled = false;
 }
 
 function onTurnstileExpired() {
@@ -514,6 +525,10 @@ function onTurnstileExpired() {
   } else if (state.currentStep === 3) {
     $('#btnSubmitOath').disabled = true;
   }
+  
+  // 禁用login流程的按钮
+  $('#btnSendLoginCode').disabled = true;
+  $('#btnSendLoginSms').disabled = true;
 }
 
 function onTurnstileError(error) {
@@ -530,6 +545,10 @@ function onTurnstileError(error) {
   } else if (state.currentStep === 3) {
     $('#btnSubmitOath').disabled = true;
   }
+  
+  // 禁用login流程的按钮
+  $('#btnSendLoginCode').disabled = true;
+  $('#btnSendLoginSms').disabled = true;
 }
 
 // 更新Turnstile状态消息的辅助函数
@@ -546,6 +565,20 @@ function updateTurnstileMessage(text, color) {
   if (messageEl2) {
     messageEl2.textContent = text;
     messageEl2.style.color = color;
+  }
+  
+  // 更新Login Email的消息
+  const messageElLogin = document.getElementById('turnstileMessageLogin');
+  if (messageElLogin) {
+    messageElLogin.textContent = text;
+    messageElLogin.style.color = color;
+  }
+  
+  // 更新Login SMS的消息
+  const messageElLoginSms = document.getElementById('turnstileMessageLoginSms');
+  if (messageElLoginSms) {
+    messageElLoginSms.textContent = text;
+    messageElLoginSms.style.color = color;
   }
   
   // 更新Step 3的消息
@@ -588,6 +621,10 @@ function resetTurnstile() {
   } else if (state.currentStep === 3) {
     $('#btnSubmitOath').disabled = true;
   }
+  
+  // 禁用login流程的按钮
+  $('#btnSendLoginCode').disabled = true;
+  $('#btnSendLoginSms').disabled = true;
 }
 
 // 等待Turnstile token就绪
@@ -1365,6 +1402,13 @@ async function onSendLoginCode() {
   hideError(err);
   
   try {
+    // 等待Turnstile验证
+    updateTurnstileMessage('Verifying security...', '#3b82f6');
+    const turnstileToken = await waitForTurnstileToken(10000);
+    if (!turnstileToken) {
+      throw new Error('Security verification required');
+    }
+    
     // 创建邮箱登录ticket
     const data = await postJSON(ENDPOINTS.createTicket, {
       channel: "email",

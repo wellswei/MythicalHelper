@@ -33,6 +33,7 @@ const state = {
   iti: null, // intl-tel-input instance
   currentStep: 1, // 当前步骤
   turnstileToken: null, // Cloudflare Turnstile token
+  signupSessionToken: "", // 注册会话token，用于第四步自动登录
 };
 
 // Track current auth mode to avoid cross-flow interference
@@ -52,7 +53,8 @@ function saveState() {
     username: state.username,
     currentStep: state.currentStep,
     resendLeft: state.resendLeft,
-    emailResendLeft: state.emailResendLeft
+    emailResendLeft: state.emailResendLeft,
+    signupSessionToken: state.signupSessionToken
   };
   sessionStorage.setItem('authState', JSON.stringify(stateToSave));
 }
@@ -77,6 +79,7 @@ function loadState() {
       state.currentStep = parsed.currentStep || 1;
       state.resendLeft = parsed.resendLeft || 0;
       state.emailResendLeft = parsed.emailResendLeft || 0;
+      state.signupSessionToken = parsed.signupSessionToken || "";
       return true;
     }
   } catch (e) {
@@ -98,6 +101,7 @@ function clearState() {
   state.username = "";
   state.currentStep = 1;
   state.resendLeft = 0;
+  state.signupSessionToken = "";
   if (state.resendTimer) {
     clearInterval(state.resendTimer);
     state.resendTimer = null;
@@ -208,8 +212,18 @@ async function onVerifyLoginSms() {
     
     // 保存token到sessionStorage
     sessionStorage.setItem('authToken', sessionResponse.access_token);
+    // 验证token是否成功写入
+    const savedToken = sessionStorage.getItem('authToken');
+    if (!savedToken) {
+      console.error('Failed to save auth token to sessionStorage');
+      showError(err, 'Failed to save authentication token. Please try again.');
+      return;
+    }
     clearLoginState();
-    window.location.href = '/portal.html';
+    // 添加小延迟确保sessionStorage写入完成
+    setTimeout(() => {
+      window.location.href = '/portal.html';
+    }, 100);
   } catch (e) { showError(err, e.message || 'Invalid code'); }
   finally { unlockButton(btn, 'Verify Code'); }
 }
@@ -1006,27 +1020,29 @@ async function onTakeOath(e) {
     state.userId = activateResponse.user_id;
     saveState();
     
-    // === 新增：注册后自动换会话 ===
+    // === 注册完成，进入第四步 ===
+    console.log('=== REGISTRATION COMPLETED ===');
+    console.log('User ID:', activateResponse.user_id);
+    console.log('Role:', activateResponse.role);
+    console.log('Valid until:', activateResponse.valid_until);
+    console.log('Has signup session token:', !!activateResponse.signup_session_token);
+    console.log('Proceeding to Step 4...');
+    
+    // 进入Get Badge步骤
+    updateStep(4);
+    $('#badgeName').textContent = state.username;
+    
+    // 如果有signup_session_token，保存到state中，在第四步点击时使用
     if (activateResponse.signup_session_token) {
-      console.log('Exchanging signup session token for access token...');
-      const sessionResp = await postJSON(ENDPOINTS.exchangeSession, {
-        signup_session_token: activateResponse.signup_session_token
-      });
-      console.log('Access token received:', !!sessionResp.access_token);
-      
-      // 保存access token到sessionStorage
-      sessionStorage.setItem('authToken', sessionResp.access_token);
-      console.log('Access token saved to sessionStorage');
-      
-      // 直接跳转到portal，无需进入Step 4
-      console.log('Registration completed successfully. Redirecting to portal...');
-      window.location.href = '/portal.html';
-      return;
+      console.log('=== SAVING SIGNUP SESSION TOKEN ===');
+      console.log('Token length:', activateResponse.signup_session_token.length);
+      console.log('Token preview:', activateResponse.signup_session_token.substring(0, 20) + '...');
+      state.signupSessionToken = activateResponse.signup_session_token;
+      saveState();
+      console.log('Signup session token saved to state');
     } else {
-      console.log('No signup session token received, falling back to manual login');
-      // 进入Get Badge步骤
-      updateStep(4);
-      $('#badgeName').textContent = state.username;
+      console.log('=== NO SIGNUP SESSION TOKEN ===');
+      console.log('User will need to login manually in Step 4');
     }
   } catch (ex) {
     showErr(err, ex.message || 'Failed to take oath');
@@ -1045,70 +1061,90 @@ function onBackToHome(e) {
 // ===== Get Badge =====
 async function onGoToMember() {
   console.log('=== onGoToMember FUNCTION CALLED ===');
-  console.log('=== onGoToMember DEBUG START ===');
+  console.log('Current state:', {
+    currentStep: state.currentStep,
+    username: state.username,
+    userId: state.userId,
+    hasSignupSessionToken: !!state.signupSessionToken
+  });
   
   // 检查用户是否已经登录
   const authToken = sessionStorage.getItem('authToken');
-  console.log('onGoToMember - Auth token exists:', !!authToken);
-  console.log('onGoToMember - Token preview:', authToken ? authToken.substring(0, 20) + '...' : 'null');
-  console.log('onGoToMember - Full token length:', authToken ? authToken.length : 0);
-  console.log('onGoToMember - API_BASE:', API_BASE);
+  console.log('=== CHECKING AUTHENTICATION STATUS ===');
+  console.log('Auth token exists:', !!authToken);
+  console.log('Auth token length:', authToken ? authToken.length : 0);
+  console.log('Auth token preview:', authToken ? authToken.substring(0, 20) + '...' : 'null');
   
   if (authToken) {
-    // 验证token是否有效
-    try {
-      console.log('Validating token before redirect...');
-      console.log('Making request to:', `${API_BASE}/users/me`);
-      console.log('Request headers:', {
-        'Authorization': `Bearer ${authToken.substring(0, 20)}...`,
-        'Content-Type': 'application/json',
-      });
-      
-      const response = await fetch(`${API_BASE}/users/me`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      if (response.ok) {
-        // Token有效，直接跳转到portal
-        console.log('Token is valid, redirecting to portal');
-        const responseData = await response.json();
-        console.log('User data received:', responseData);
-        window.location.href = '/portal.html';
-      } else if (response.status === 401) {
-        // Token无效，只打印错误，不跳转
-        console.log('Token is invalid (401 Unauthorized)');
-        const errorText = await response.text();
-        console.log('Error response body:', errorText);
-        console.log('NOT redirecting to login - just printing error');
-        alert('Token validation failed (401). Check console for details.');
-      } else {
-        // 其他错误，只打印错误，不跳转
-        console.log('API error, status:', response.status);
-        const errorText = await response.text();
-        console.log('Error response body:', errorText);
-        console.log('NOT redirecting to login - just printing error');
-        alert(`API error (${response.status}). Check console for details.`);
-      }
-    } catch (error) {
-      console.error('Error validating token:', error);
-      console.log('NOT redirecting to login - just printing error');
-      alert('Network error during token validation. Check console for details.');
-    }
-  } else {
-    // 未登录，只打印错误，不跳转
-    console.log('User not authenticated - no token found');
-    console.log('NOT redirecting to login - just printing error');
-    alert('No authentication token found. Check console for details.');
+    // 用户已经登录，直接跳转到portal
+    console.log('=== USER ALREADY AUTHENTICATED ===');
+    console.log('Redirecting to portal...');
+    window.location.href = '/portal.html';
+    return;
   }
   
-  console.log('=== onGoToMember DEBUG END ===');
+  // 如果没有authToken，检查是否有signupSessionToken
+  if (state.signupSessionToken) {
+    console.log('=== EXCHANGING SIGNUP SESSION TOKEN ===');
+    console.log('Signup session token length:', state.signupSessionToken.length);
+    console.log('Signup session token preview:', state.signupSessionToken.substring(0, 20) + '...');
+    
+    try {
+      const sessionResp = await postJSON(ENDPOINTS.exchangeSession, {
+        signup_session_token: state.signupSessionToken
+      });
+      console.log('=== ACCESS TOKEN RECEIVED ===');
+      console.log('Access token received:', !!sessionResp.access_token);
+      console.log('Access token length:', sessionResp.access_token ? sessionResp.access_token.length : 0);
+      console.log('Access token preview:', sessionResp.access_token ? sessionResp.access_token.substring(0, 20) + '...' : 'null');
+      
+      // 保存access token到sessionStorage
+      sessionStorage.setItem('authToken', sessionResp.access_token);
+      console.log('Access token saved to sessionStorage');
+      
+      // 验证token是否成功写入
+      const savedToken = sessionStorage.getItem('authToken');
+      if (!savedToken) {
+        console.error('=== TOKEN SAVE FAILED ===');
+        console.error('Failed to save auth token to sessionStorage');
+        alert('Failed to save authentication token. Please try again.');
+        return;
+      }
+      
+      console.log('=== TOKEN SAVE VERIFIED ===');
+      console.log('Saved token length:', savedToken.length);
+      console.log('Saved token preview:', savedToken.substring(0, 20) + '...');
+      
+      // 清理signupSessionToken
+      state.signupSessionToken = "";
+      saveState();
+      console.log('Signup session token cleared from state');
+      
+      // 跳转到portal
+      console.log('=== AUTHENTICATION SUCCESSFUL ===');
+      console.log('Redirecting to portal in 100ms...');
+      setTimeout(() => {
+        console.log('Executing redirect to portal...');
+        window.location.href = '/portal.html';
+      }, 100);
+      return;
+    } catch (error) {
+      console.error('=== TOKEN EXCHANGE FAILED ===');
+      console.error('Failed to exchange signup session token:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+      alert('Failed to complete authentication. Please try again.');
+      return;
+    }
+  }
+  
+  // 既没有authToken也没有signupSessionToken
+  console.log('=== NO AUTHENTICATION TOKENS FOUND ===');
+  console.log('State signupSessionToken:', state.signupSessionToken);
+  console.log('SessionStorage authToken:', sessionStorage.getItem('authToken'));
+  alert('Authentication token not found. Please complete the registration process.');
 }
 
 // ===== 模式选择 =====
@@ -1403,17 +1439,25 @@ async function onVerifyLoginCode() {
     });
     
     // 保存token到sessionStorage
-    try { sessionStorage.setItem('authToken', sessionResponse.access_token); } catch {}
+    try { 
+      sessionStorage.setItem('authToken', sessionResponse.access_token);
+      // 验证token是否成功写入
+      const savedToken = sessionStorage.getItem('authToken');
+      if (!savedToken) {
+        throw new Error('Failed to save auth token');
+      }
+    } catch (error) {
+      console.error('Failed to save auth token:', error);
+      showError(err, 'Failed to save authentication token. Please try again.');
+      return;
+    }
     // 清理登录临时状态
     clearLoginState();
     
-    // 立即导航到会员门户；同时保留一个兜底的延迟导航
-    window.location.assign('/portal.html');
+    // 添加小延迟确保sessionStorage写入完成，然后跳转
     setTimeout(() => {
-      if (window.location.pathname.indexOf('portal.html') === -1) {
-        window.location.href = '/portal.html';
-      }
-    }, 300);
+      window.location.href = '/portal.html';
+    }, 100);
     
   } catch (error) {
     console.error('Verify login code error:', error);

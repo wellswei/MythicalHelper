@@ -1605,17 +1605,43 @@ async function onSaveBadges() {
 
 // ===== 初始化 =====
 async function initializePortal() {
-  // 检查认证状态
-  const token = getAuthToken();
+  console.log('=== PORTAL INITIALIZATION START ===');
+  console.log('Current URL:', window.location.href);
+  console.log('Current timestamp:', new Date().toISOString());
+  
+  // 检查认证状态，添加重试机制
+  let token = getAuthToken();
+  console.log('=== CHECKING AUTHENTICATION ===');
   console.log('Portal initialization - Token exists:', !!token);
+  console.log('Portal initialization - Token length:', token ? token.length : 0);
   console.log('Portal initialization - Token value:', token ? token.substring(0, 20) + '...' : 'null');
   
+  // 如果token不存在，等待一小段时间后重试（处理注册后的时序问题）
+  if (!token) {
+    console.log('=== NO TOKEN FOUND, RETRYING ===');
+    console.log('No token found, waiting 200ms and retrying...');
+    await new Promise(resolve => setTimeout(resolve, 200));
+    token = getAuthToken();
+    console.log('Retry - Token exists:', !!token);
+    console.log('Retry - Token length:', token ? token.length : 0);
+    console.log('Retry - Token value:', token ? token.substring(0, 20) + '...' : 'null');
+  }
+  
   if (!isAuthenticated()) {
+    console.log('=== AUTHENTICATION FAILED ===');
     console.log('Not authenticated, redirecting to login');
+    console.log('SessionStorage contents:', {
+      authToken: sessionStorage.getItem('authToken'),
+      authState: sessionStorage.getItem('authState'),
+      loginState: sessionStorage.getItem('loginState')
+    });
     // 自动跳转到登录页
     redirectToAuth();
     return;
   }
+  
+  console.log('=== AUTHENTICATION SUCCESSFUL ===');
+  console.log('User is authenticated, proceeding to load user data...');
   
   // 加载用户数据
   await loadUserData();

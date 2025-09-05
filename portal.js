@@ -262,6 +262,13 @@ function resetEmailEditorUI(hideSection = true) {
   }
   const codeSec = document.getElementById('portalEmailCodeSection');
   if (codeSec) codeSec.style.display = 'none';
+  
+  // 重新显示turnstile组件
+  const turnstileContainer = document.querySelector('#emailChangeSection .turnstile-container');
+  if (turnstileContainer) {
+    turnstileContainer.style.display = 'flex';
+  }
+  
   if (hideSection) {
     const sec = document.getElementById('emailChangeSection'); if (sec) sec.style.display = 'none';
   }
@@ -1586,6 +1593,12 @@ async function onSendPortalEmail() {
         label.textContent = 'Enter 6-digit code';
         sendBtn.textContent = 'Verify Code';
         
+        // 隐藏turnstile组件，因为验证码验证不需要turnstile
+        const turnstileContainer = document.querySelector('#emailChangeSection .turnstile-container');
+        if (turnstileContainer) {
+          turnstileContainer.style.display = 'none';
+        }
+        
         console.log('Transformation completed. New input properties:', {
           type: input.type,
           maxLength: input.maxLength,
@@ -1725,6 +1738,13 @@ async function onVerifyPortalEmail() {
         }
         if (label) label.textContent = 'New Email';
         if (btnP) btnP.textContent = 'Send Code';
+        
+        // 重新显示turnstile组件，为下次发送验证码做准备
+        const turnstileContainer = document.querySelector('#emailChangeSection .turnstile-container');
+        if (turnstileContainer) {
+          turnstileContainer.style.display = 'flex';
+        }
+        
         const sec = document.getElementById('emailChangeSection'); if (sec) sec.style.display = 'none';
         if (err) err.textContent = '';
         // Success toast removed; profile reflects change after reload above

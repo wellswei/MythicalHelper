@@ -23,6 +23,9 @@ scp -6 -i "$KEY_PATH" server/database.py "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
 echo "📤 上传 requirements.txt..."
 scp -6 -i "$KEY_PATH" server/requirements.txt "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
 
+echo "📤 上传 portal.js..."
+scp -6 -i "$KEY_PATH" portal.js "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
+
 echo "🎉 文件上传完成！"
 echo "🌐 API地址: http://[$SERVER_IP]:8000"
 echo "📋 服务器应该会自动重启服务"

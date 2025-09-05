@@ -51,8 +51,7 @@ function onPortalTurnstileError(error) {
 function updatePortalTurnstileMessage(text, color) {
   const statusElements = [
     'turnstileStatusEmail',
-    'turnstileStatusPhone', 
-    'turnstileStatusDelete'
+    'turnstileStatusPhone'
   ];
   
   statusElements.forEach(statusId => {
@@ -89,9 +88,6 @@ function enableCurrentOperationButtons() {
   } else if (currentTurnstileOperation === 'phone') {
     const btn = document.getElementById('btnSendPhoneCode');
     if (btn) btn.disabled = false;
-  } else if (currentTurnstileOperation === 'delete') {
-    const btn = document.getElementById('btnConfirmDelete');
-    if (btn) btn.disabled = false;
   }
 }
 
@@ -102,9 +98,6 @@ function disableCurrentOperationButtons() {
     if (btn) btn.disabled = true;
   } else if (currentTurnstileOperation === 'phone') {
     const btn = document.getElementById('btnSendPhoneCode');
-    if (btn) btn.disabled = true;
-  } else if (currentTurnstileOperation === 'delete') {
-    const btn = document.getElementById('btnConfirmDelete');
     if (btn) btn.disabled = true;
   }
 }
@@ -1341,21 +1334,7 @@ function setupEventListeners() {
   const del = $('#btnDeleteAccount');
   if (del) del.addEventListener('click', onDeleteAccount);
 
-  // 删除账号模态框事件
-  const confirmDeleteBtn = $('#btnConfirmDelete');
-  if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', performDeleteAccount);
-  
-  const cancelDeleteBtn = $('#btnCancelDelete');
-  if (cancelDeleteBtn) {
-    cancelDeleteBtn.addEventListener('click', () => {
-      const modal = document.getElementById('deleteAccountModal');
-      if (modal) {
-        modal.style.display = 'none';
-        currentTurnstileOperation = null;
-        resetPortalTurnstile();
-      }
-    });
-  }
+  // 删除账号事件（已简化为直接确认，无需模态框）
 
   // 兜底委托：确保删除按钮在任何情况下都可触发
   try {
@@ -1765,23 +1744,10 @@ async function onVerifyPortalEmail() {
 }
 
 async function onDeleteAccount() {
-  // 显示删除确认模态框
-  const modal = document.getElementById('deleteAccountModal');
-  if (modal) {
-    modal.style.display = 'block';
-    // 设置当前操作类型
-    currentTurnstileOperation = 'delete';
-    // 禁用确认按钮直到Turnstile验证完成
-    const confirmBtn = document.getElementById('btnConfirmDelete');
-    if (confirmBtn) {
-      confirmBtn.disabled = true;
-    }
-  } else {
-    // 如果模态框不存在，使用原来的确认方式
-    const ok = confirm('Delete your account? This action is permanent.');
-    if (!ok) return;
-    await performDeleteAccount();
-  }
+  // 直接确认删除，不需要Turnstile验证
+  const ok = confirm('Delete your account? This action is permanent.');
+  if (!ok) return;
+  await performDeleteAccount();
 }
 
 async function performDeleteAccount() {
@@ -1795,16 +1761,8 @@ async function performDeleteAccount() {
   }
   
   try { 
-    // 等待Turnstile验证（如果当前操作是delete）
-    if (currentTurnstileOperation === 'delete') {
-      updatePortalTurnstileMessage('Verifying security...', '#3b82f6');
-      const turnstileToken = await waitForPortalTurnstileToken(10000);
-      if (!turnstileToken) {
-        throw new Error('Security verification required');
-      }
-    }
-    
-    await portalApiFetch('/users/me', { method: 'DELETE' }); 
+    // 直接删除账户，不需要Turnstile验证
+    await apiCall('/users/me', { method: 'DELETE' }); 
     // 删除成功后清理并跳转
     clearAuthToken(); 
     try { sessionStorage.removeItem('authState'); } catch {}

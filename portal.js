@@ -1652,8 +1652,8 @@ async function onVerifyPortalPhone() {
   
   try {
     console.log('Verifying phone code:', code);
-    // 第一步：确认验证码
-    const confirmRes = await portalApiFetch(`/tickets/${portalState.phoneTxId}/confirm`, {
+    // 第一步：确认验证码 (无需Turnstile，验证码本身就是安全机制)
+    const confirmRes = await apiCall(`/tickets/${portalState.phoneTxId}/confirm`, {
       method: 'POST',
       body: JSON.stringify({ code })
     });
@@ -1662,7 +1662,7 @@ async function onVerifyPortalPhone() {
     
     if (confirmRes && confirmRes.proof_token) {
       // 第二步：更新手机号
-      const updateRes = await portalApiFetch('/contacts/phone', {
+      const updateRes = await apiCall('/contacts/phone', {
         method: 'PATCH',
         body: JSON.stringify({ proof_token: confirmRes.proof_token })
       });
@@ -1696,14 +1696,14 @@ async function onVerifyPortalEmail() {
   if (code.length !== 6) { if (err) err.textContent = 'Please enter the complete 6-digit code'; return; }
   if (btn) { btn.textContent = 'Verifying...'; btn.disabled = true; }
   try {
-    // 1) confirm ticket
-    const confirmRes = await portalApiFetch(`/tickets/${portalState.emailTxId}/confirm`, {
+    // 1) confirm ticket (无需Turnstile，验证码本身就是安全机制)
+    const confirmRes = await apiCall(`/tickets/${portalState.emailTxId}/confirm`, {
       method: 'POST',
       body: JSON.stringify({ code })
     });
     if (confirmRes && confirmRes.proof_token) {
       // 2) patch contact email
-      const updateRes = await portalApiFetch('/contacts/email', {
+      const updateRes = await apiCall('/contacts/email', {
         method: 'PATCH',
         body: JSON.stringify({ proof_token: confirmRes.proof_token })
       });

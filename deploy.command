@@ -23,8 +23,9 @@ scp -6 -i "$KEY_PATH" server/database.py "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
 echo "📤 上传 requirements.txt..."
 scp -6 -i "$KEY_PATH" server/requirements.txt "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
 
+echo "🔄 重启服务器上的服务..."
+ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "sudo systemctl restart mythicalhelper"
+
 echo "🎉 后端文件上传完成！"
 echo "🌐 API地址: http://[$SERVER_IP]:8000"
-echo "📋 服务器应该会自动重启服务"
-
-read -p "按任意键退出..."
+echo "📋 服务已重启"

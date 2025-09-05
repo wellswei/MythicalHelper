@@ -1460,6 +1460,12 @@ async function onSendPortalPhone() {
         // 不改变按钮ID，保持和email一致
       }
       
+      // 隐藏turnstile组件，因为验证码验证不需要turnstile
+      const turnstileContainer = document.querySelector('#phoneChangeSection .turnstile-container');
+      if (turnstileContainer) {
+        turnstileContainer.style.display = 'none';
+      }
+      
       console.log('Phone transformation completed. New input properties:', {
         type: inputEl?.type,
         maxLength: inputEl?.maxLength,
@@ -1844,6 +1850,13 @@ function resetPhoneEditorUI(hideSection = true) {
     // 不改变按钮ID，保持和email一致
     btn.disabled = false;
   }
+  
+  // 重新显示turnstile组件，为下次发送验证码做准备
+  const turnstileContainer = document.querySelector('#phoneChangeSection .turnstile-container');
+  if (turnstileContainer) {
+    turnstileContainer.style.display = 'flex';
+  }
+  
   const err = document.getElementById('errPortalPhone'); if (err) err.textContent = '';
   // 移除状态提示，保持和email一致
   if (hideSection) { const sec = document.getElementById('phoneChangeSection'); if (sec) sec.style.display = 'none'; }

@@ -189,7 +189,8 @@ async function onSendLoginSms() {
     console.error('Send login SMS error:', e);
     console.log('SMS Error message:', e.message);
     console.log('SMS Error element:', err);
-    showError(err, e.message || 'Failed to send code');
+    // 在状态栏显示错误，而不是错误元素
+    setStatus(status, e.message || 'Failed to send code', 'error');
   } finally { unlockButton(btn, 'Get Phone Code'); }
 }
 
@@ -674,7 +675,10 @@ async function postJSON(path, body, method = 'POST') {
     if (!res.ok) {
       const j = await res.json().catch(() => ({ detail: 'Request failed' }));
       console.error('Request failed:', path, res.status, j);
-      throw new Error(j.detail || 'Request failed');
+      const errorMessage = typeof j.detail === 'string' ? j.detail : 
+                          (j.detail && j.detail.detail) ? j.detail.detail : 
+                          'Request failed';
+      throw new Error(errorMessage);
     }
     
     return res.json();
@@ -1448,7 +1452,8 @@ async function onSendLoginCode() {
     console.error('Send login code error:', error);
     console.log('Error message:', error.message);
     console.log('Error element:', err);
-    showError(err, error.message || 'Failed to send code');
+    // 在状态栏显示错误，而不是错误元素
+    setStatus(status, error.message || 'Failed to send code', 'error');
   } finally {
     unlockButton(btn, 'Get Email Code');
   }

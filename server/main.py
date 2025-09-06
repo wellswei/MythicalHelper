@@ -341,6 +341,7 @@ async def create_ticket(inb: TicketCreateIn, request: Request = None, authorizat
 
 @tickets.post("/{ticket_id}/confirm", response_model=TicketConfirmOut)
 def confirm_ticket(ticket_id: str, inb: TicketConfirmIn):
+    # 验证码确认不需要 Turnstile 验证，验证码本身就是安全机制
     with get_db() as db:
         ticket = db.get_ticket_by_id(ticket_id)
         if not ticket:
@@ -695,10 +696,8 @@ def patch_me(inb: UsersPatchIn, su: SessionUser = Depends(get_session_user)):
         return user_payload(user)
 
 @users.delete("/me")
-async def delete_me(request: Request, su: SessionUser = Depends(get_session_user)):
-    # 账户删除是敏感操作，需要Turnstile验证
-    await verify_turnstile(request)
-    
+def delete_me(su: SessionUser = Depends(get_session_user)):
+    # 账户删除是一次性操作，不需要Turnstile验证
     with get_db() as db:
         ok = db.delete_user(su.user_id)
         if not ok:

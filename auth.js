@@ -186,6 +186,9 @@ async function onSendLoginSms() {
     // 启动SMS发送冷却（如果返回了cooldown）
     if (loginState.resendLeft > 0) startLoginSmsResend();
   } catch (e) {
+    console.error('Send login SMS error:', e);
+    console.log('SMS Error message:', e.message);
+    console.log('SMS Error element:', err);
     showError(err, e.message || 'Failed to send code');
   } finally { unlockButton(btn, 'Get Phone Code'); }
 }
@@ -1443,6 +1446,8 @@ async function onSendLoginCode() {
     
   } catch (error) {
     console.error('Send login code error:', error);
+    console.log('Error message:', error.message);
+    console.log('Error element:', err);
     showError(err, error.message || 'Failed to send code');
   } finally {
     unlockButton(btn, 'Get Email Code');

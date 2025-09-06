@@ -902,9 +902,13 @@ function addNewBadge() {
     return;
   }
   
+  // 找到第一个可用的realm
+  const availableRealms = allRealms.filter(realm => !existingRealms.includes(realm));
+  const firstAvailableRealm = availableRealms[0];
+  
   const badgeId = 'badge_' + Date.now();
   currentUser.badges[badgeId] = {
-    realm: '', // 初始为空，让用户从下拉框选择
+    realm: firstAvailableRealm, // 自动选择第一个可用的realm
     care_description: '',
     active: true
   };

@@ -5102,15 +5102,120 @@ body::after {
 /* 第1步：基础网格 - 自适应列数（已在上面更新） */
 /* 第2步：字体与间距用"流式 + clamp"（已在上面更新） */
 
+/* 证书横版/竖版布局切换 */
+.page-scan .mh-certificate {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* 横版布局：电脑和平板 */
+@media (min-width: 769px) {
+  .page-scan .mh-certificate {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+    aspect-ratio: 1.6 / 1; /* 横版比例 */
+    max-height: calc(100vh - 140px);
+  }
+  
+  /* 左侧：标题和内容 */
+  .page-scan .mh-cert-content {
+    flex: 1;
+    min-width: 0;
+    padding-right: 16px;
+  }
+  
+  /* 右侧：签名和seal */
+  .page-scan .mh-cert-signatures {
+    flex: 0 0 auto;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* 横版时签名网格改为单列 */
+  .page-scan .mh-cert-signatures .signature-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    width: 100%;
+  }
+  
+  /* 横版时蜡封区域居中 */
+  .page-scan .mh-cert-signatures .guild-seal-section {
+    margin-top: 24px;
+    text-align: center;
+  }
+}
+
+/* 竖版布局：手机 */
+@media (max-width: 768px) {
+  .page-scan .mh-certificate {
+    flex-direction: column;
+    aspect-ratio: 1.05 / 1; /* 竖版比例 */
+    max-height: calc(100vh - 140px);
+  }
+  
+  .page-scan .mh-cert-content {
+    flex: 1;
+    margin-bottom: 16px;
+  }
+  
+  .page-scan .mh-cert-signatures {
+    flex: 0 0 auto;
+    margin-top: 0;
+  }
+  
+  /* 竖版时签名网格保持多列 */
+  .page-scan .mh-cert-signatures .signature-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  
+  /* 竖版时蜡封区域 */
+  .page-scan .mh-cert-signatures .guild-seal-section {
+    margin-top: 16px;
+    text-align: center;
+  }
+}
+
 /* 证书标题/正文（流式字号） */
 .page-scan .mh-cert-title { 
   font-size: clamp(20px, 3.2vw, 28px);
+  margin-bottom: 16px;
 }
 .page-scan .mh-cert-lead,
 .page-scan .mh-cert-body,
 .page-scan .mh-cert-conclusion {
   font-size: clamp(14px, 1.8vw, 16px);
   line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* 横版时调整内容间距 */
+@media (min-width: 769px) {
+  .page-scan .mh-cert-title { 
+    margin-bottom: 20px;
+  }
+  .page-scan .mh-cert-lead,
+  .page-scan .mh-cert-body,
+  .page-scan .mh-cert-conclusion {
+    margin-bottom: 16px;
+  }
+}
+
+/* 竖版时紧凑间距 */
+@media (max-width: 768px) {
+  .page-scan .mh-cert-title { 
+    margin-bottom: 12px;
+  }
+  .page-scan .mh-cert-lead,
+  .page-scan .mh-cert-body,
+  .page-scan .mh-cert-conclusion {
+    margin-bottom: 8px;
+  }
 }
 
 /* 第3步：手机安全区 & 视口高度 */
@@ -5129,82 +5234,4 @@ body::after {
   height: 100dvh;              /* 比 100vh 更准确，随可用视口变动 */
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* ===== SCAN 页面证书区域防出框优化 ===== */
-
-/* 第1步：防止证书整体溢出 */
-/* 证书整体：不超过容器，圆角+隐藏溢出避免边框出框 */
-.mh-certificate { 
-  max-width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-/* 内部间距用 clamp，让手机更紧凑、桌面更松 */
-.mh-cert-inner { 
-  padding: clamp(16px, 4vw, 24px);
-}
-
-/* 证书里所有位图/SVG 都不要比容器更宽 */
-.mh-certificate img,
-.mh-certificate svg { 
-  max-width: 100%;
-  height: auto;
-}
-
-/* 第2步：签名区不再把行撑破 */
-/* 签名网格：自适应列数，手机1列/平板2列/桌面3列 */
-.signature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-}
-
-/* 单个签名卡：允许收缩，禁用最小内容宽度导致的撑破 */
-.signature-item { 
-  min-width: 0; 
-}
-
-/* 手写体/落款：用 clamp，手机不超大，桌面不太小 */
-.santa-signature,
-.fairy-signature,
-.bunny-signature {
-  font-size: clamp(16px, 5vw, 24px);
-  white-space: nowrap;      /* 防止稀奇的换行形变 */
-  overflow: hidden;         /* 超出裁掉，避免挤出容器 */
-  text-overflow: ellipsis;  /* 多余部分以省略号处理（可选） */
-}
-
-/* 签名下那条横线保持自适应宽度 */
-.sig-line { width: 100%; height: 1px; background: rgba(255,255,255,.35); }
-
-/* 兔爪/星星等 SVG 也做流式缩放 */
-.bunny-signature .bunny-paw,
-.fairy-signature .hand-drawn-star { 
-  width: clamp(20px, 8vw, 32px);
-  height: auto;
-}
-
-/* 第3步：角标/蜡封等"绝对定位"别顶出边缘 */
-/* 左下角角标 Logo：小屏缩小一点，并留出边距 */
-.cert-corner-logo { 
-  inset: auto auto 8px 8px;         /* 如果是 absolute，可用这一类 inset */
-}
-.cert-corner-logo .cert-logo { 
-  width: clamp(36px, 12vw, 56px); 
-  height: auto;
-}
-
-/* 蜡封大小自适应，避免把行撑开 */
-.guild-seal .seal-svg { 
-  width: clamp(56px, 18vw, 86px);
-  height: auto;
-}
-
-/* 手机安全区：底部操作/证书底沿不被 Home 条遮挡 */
-@media (max-width: 480px) {
-  .scan-certificate-section {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
-  }
 }

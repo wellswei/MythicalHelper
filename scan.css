@@ -1,0 +1,728 @@
+/* ===== MYTHICAL HELPER - SCAN PAGE STYLES ===== */
+
+/* 引入字体 */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;600;700;900&display=swap');
+
+/* 基础样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background: #0b1020;
+  color: #fff;
+  position: relative;
+  z-index: 0;
+}
+
+/* Keep layout width stable across pages with/without scrollbar */
+html { scrollbar-gutter: stable; }
+@supports not (scrollbar-gutter: stable) {
+  html { overflow-y: scroll; }
+}
+
+/* 容器 */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 头部导航 */
+.header {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Cinzel Decorative', cursive;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.brand .logo {
+  width: 32px;
+  height: 32px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav a:hover,
+.nav a.active {
+  color: #fff;
+}
+
+/* 语言选择器 */
+.lang-selector select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.lang-selector select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn:not(.primary) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn:not(.primary):hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 扫描区域 */
+.page-scan .section-scan {
+  padding: 40px 0 80px;
+  position: relative;
+  z-index: 2;
+}
+
+.page-scan .section-scan .scan-toolbar { 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.page-scan .section-scan .scan-badges-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+  gap: 20px; 
+  justify-items: center;
+  margin-bottom: 40px;
+}
+
+.page-scan .section-scan .scan-badge-card { 
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 25px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.page-scan .section-scan .scan-badge-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.page-scan .section-scan .scan-badge-card.north {
+  border-left: 4px solid #7bc4ff;
+}
+
+.page-scan .section-scan .scan-badge-card.north:hover {
+  box-shadow: 0 10px 30px rgba(123, 196, 255, 0.2);
+}
+
+.page-scan .section-scan .scan-badge-card.tooth {
+  border-left: 4px solid #c39bff;
+}
+
+.page-scan .section-scan .scan-badge-card.tooth:hover {
+  box-shadow: 0 10px 30px rgba(195, 155, 255, 0.2);
+}
+
+.page-scan .section-scan .scan-badge-card.bunny {
+  border-left: 4px solid #65d08a;
+}
+
+.page-scan .section-scan .scan-badge-card.bunny:hover {
+  box-shadow: 0 10px 30px rgba(101, 208, 138, 0.2);
+}
+
+.page-scan .section-scan .scan-badge-header {
+  margin-bottom: 20px;
+}
+
+.page-scan .section-scan .scan-badge-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-scan .section-scan .scan-badge-title.tooth {
+  color: #c39bff;
+}
+
+.page-scan .section-scan .scan-badge-title.bunny {
+  color: #65d08a;
+}
+
+.page-scan .section-scan .scan-status-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.page-scan .section-scan .scan-status-chip.active {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.page-scan .section-scan .scan-status-chip.inactive {
+  background: rgba(156, 163, 175, 0.2);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.page-scan .section-scan .scan-badge-content {
+  margin-bottom: 20px;
+}
+
+.page-scan .section-scan .scan-badge-field {
+  margin-bottom: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-scan .section-scan .scan-badge-field.single-line {
+  min-height: 32px;
+}
+
+.page-scan .section-scan .scan-badge-field.two-lines {
+  min-height: 44px;
+}
+
+.page-scan .section-scan .scan-badge-field .scan-badge-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.page-scan .section-scan .scan-badge-field .scan-badge-value {
+  font-size: 14px;
+  color: #fff;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.page-scan .section-scan .scan-badge-field .scan-badge-value.agent-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-scan .section-scan .scan-badge-seal {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.page-scan .section-scan .scan-badge-card:hover .scan-badge-seal { 
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.page-scan .section-scan .scan-badge-seal .stamp {
+  font-size: 24px;
+}
+
+/* 错误提示 */
+.scan-error-box {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  border-radius: 15px;
+  padding: 30px;
+  text-align: center;
+  font-size: 16px;
+  box-shadow: 0 10px 30px rgba(238, 90, 36, 0.3);
+  margin: 40px auto;
+  max-width: 600px;
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 证书区域 */
+.scan-certificate-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.mh-certificate {
+  background: linear-gradient(145deg, #f4f1e8, #e8e4d6);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 40px;
+  max-width: 100%;
+  width: min(900px, 95vw);
+  position: relative;
+  overflow: hidden;
+  color: #2c3e50;
+}
+
+.mh-certificate::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(184, 134, 11, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.mh-cert-inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  gap: 30px;
+  min-height: 400px;
+}
+
+.mh-cert-content {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  color: #2c3e50;
+}
+
+.mh-cert-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 2.5rem;
+  color: #b8860b;
+  text-align: center;
+  margin-bottom: 30px;
+  text-shadow: 0 2px 4px rgba(184, 134, 11, 0.3);
+}
+
+.mh-cert-lead {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-align: justify;
+}
+
+.mh-cert-body {
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 20px;
+  font-style: italic;
+  text-align: justify;
+}
+
+.mh-cert-conclusion {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  text-align: justify;
+}
+
+.ink {
+  color: #1e40af;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(30, 64, 175, 0.5);
+}
+
+/* 角落logo */
+.cert-corner-logo {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 3;
+}
+
+.cert-logo {
+  width: 60px;
+  height: auto;
+  opacity: 0.8;
+}
+
+/* 签名区域 */
+.mh-cert-signatures {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 200px;
+}
+
+.signature-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.signature-item {
+  text-align: center;
+  min-width: 120px;
+}
+
+.santa-signature {
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.5rem;
+  color: #dc2626;
+  margin-bottom: 8px;
+}
+
+.fairy-signature {
+  font-family: 'Sacramento', cursive;
+  font-size: 1.3rem;
+  color: #8b22d9;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.bunny-signature {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.sig-line {
+  width: 100%;
+  height: 1px;
+  background: #666;
+  margin-bottom: 8px;
+}
+
+.sig-name {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 400;
+}
+
+/* 公章区域 */
+.guild-seal-section {
+  text-align: center;
+}
+
+.guild-seal {
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.seal-svg {
+  width: 80px;
+  height: 80px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.guild-council {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.cert-date {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 600;
+}
+
+/* 分割线 */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3) 50%, 
+    transparent
+  );
+  margin: 40px auto;
+  max-width: 80%;
+}
+
+/* 页脚 */
+.site-footer {
+  background: rgba(15, 15, 35, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px 0;
+  margin-top: 80px;
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.footer-brand .logo {
+  width: 32px;
+  height: 32px;
+  opacity: 0.8;
+}
+
+.footer-copy {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* 流星动画 */
+.meteor {
+  position: fixed;
+  top: -50px;
+  width: 2px;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, #fff, transparent);
+  border-radius: 50px;
+  opacity: 0;
+  animation: meteor 8s linear infinite;
+  z-index: 1;
+}
+
+@keyframes meteor {
+  0% { transform: translateY(-100vh) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh) translateX(-200px); opacity: 0; }
+}
+
+.meteor:nth-child(1) { left: 20%; animation-delay: 0s; }
+.meteor:nth-child(2) { left: 60%; animation-delay: 3s; }
+.meteor:nth-child(3) { left: 80%; animation-delay: 6s; }
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .nav {
+    gap: 20px;
+  }
+  
+  .brand {
+    font-size: 1.25rem;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+  
+  .page-scan .section-scan .scan-badges-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .page-scan .section-scan .scan-toolbar {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .mh-cert-inner {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .mh-cert-content {
+    grid-column: 1;
+    grid-row: 2;
+    order: 2;
+  }
+  
+  .mh-cert-signatures {
+    grid-column: 1;
+    grid-row: 3;
+    order: 3;
+    min-width: auto;
+  }
+  
+  .signature-grid {
+    flex-direction: row;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .signature-item {
+    min-width: 80px;
+  }
+  
+  .cert-corner-logo {
+    position: static;
+    grid-column: 1;
+    grid-row: 1;
+    order: 1;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .guild-seal-section {
+    grid-column: 1;
+    grid-row: 4;
+    order: 4;
+  }
+  
+  .mh-certificate {
+    padding: 20px;
+  }
+  
+  .mh-cert-inner {
+    padding: 20px 22px 24px 22px;
+  }
+  
+  .signature-grid {
+    gap: 20px;
+  }
+  
+  .cert-logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .mh-certificate {
+    max-width: 95vw;
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    gap: 15px;
+  }
+  
+  .brand {
+    font-size: 1.1rem;
+  }
+  
+  .brand .logo {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .page-scan .section-scan .scan-badge-card {
+    padding: 20px;
+  }
+  
+  .mh-certificate {
+    padding: 16px;
+  }
+  
+  .mh-cert-inner {
+    padding: 16px 16px 20px 16px;
+  }
+  
+  .cert-logo {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .seal-svg {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .mh-certificate {
+    max-width: 95vw;
+    min-height: 250px;
+  }
+}

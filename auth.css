@@ -1,0 +1,872 @@
+/* ===== MYTHICAL HELPER - AUTH PAGE STYLES ===== */
+
+/* 引入字体 */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;600;700;900&display=swap');
+
+/* 基础样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background: #0b1020;
+  color: #fff;
+  position: relative;
+  z-index: 0;
+}
+
+/* Keep layout width stable across pages with/without scrollbar */
+html { scrollbar-gutter: stable; }
+@supports not (scrollbar-gutter: stable) {
+  html { overflow-y: scroll; }
+}
+
+/* 容器 */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 头部导航 */
+.header {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Cinzel Decorative', cursive;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.brand .logo {
+  width: 32px;
+  height: 32px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav a:hover,
+.nav a.active {
+  color: #fff;
+}
+
+/* 语言选择器 */
+.lang-selector select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.lang-selector select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn:not(.primary) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn:not(.primary):hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 登录模式标签页 */
+.login-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0 20px 0;
+  align-items: center;
+}
+
+.login-tab {
+  flex: 1;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.8);
+  padding: 10px 0;
+  border-radius: 999px;
+  font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.0rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-tab.active {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border-color: rgba(255,255,255,.3);
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-switch p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.auth-switch a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.auth-switch a:hover {
+  color: #8b9cff;
+  text-decoration: underline;
+}
+
+/* 英雄区域 */
+.page-home .section-hero,
+.page-auth .section-hero {
+  text-align: center;
+  padding: 80px 0 60px;
+  position: relative;
+  z-index: 2;
+}
+
+.page-home .section-hero h1,
+.page-auth .section-hero h1 {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #fff, #e0e7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.page-home .section-hero .lead,
+.page-auth .section-hero .lead {
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 15px;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.page-home .section-hero .lead:nth-of-type(2),
+.page-auth .section-hero .lead:nth-of-type(2) {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  margin-bottom: 40px;
+}
+
+.page-home .section-hero .actions,
+.page-auth .section-hero .actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.page-home .section-hero .btn,
+.page-auth .section-hero .btn {
+  min-width: 160px;
+  font-size: 16px;
+  padding: 14px 28px;
+}
+
+.page-home .section-hero .btn.primary,
+.page-auth .section-hero .btn.primary { 
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.page-home .section-hero .btn.primary:hover,
+.page-auth .section-hero .btn.primary:hover { 
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.page-home .section-hero .btn:not(.primary),
+.page-auth .section-hero .btn:not(.primary) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.page-home .section-hero .btn:not(.primary):hover,
+.page-auth .section-hero .btn:not(.primary):hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.page-home .section-hero .verse,
+.page-auth .section-hero .verse,
+.page-home .section-hero .verse p,
+.page-auth .section-hero .verse p {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  line-height: 1.8;
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* 认证区域 */
+.page-auth .section-auth,
+.auth-section {
+  padding: 40px 0 80px;
+  position: relative;
+  z-index: 2;
+}
+
+.page-auth .section-auth .auth-card,
+.auth-card {
+  max-width: 500px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 40px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-card .content {
+  position: relative;
+  z-index: 2;
+}
+
+.auth-card .steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.auth-card .step {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin: 0 5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.auth-card .step.active {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.4);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.auth-card label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #fff;
+  font-size: 14px;
+}
+
+.auth-card input[type="email"],
+.auth-card input[type="tel"] {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.auth-card input:focus {
+  outline: none;
+  border-color: rgba(102, 126, 234, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.auth-card .hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 5px;
+}
+
+.auth-card .status-bar {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  display: none;
+}
+
+.auth-card .status-bar {
+  display: none;
+}
+
+.auth-card .status-bar.success {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.auth-card .status-bar.error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.auth-card .error {
+  color: #ef4444;
+  font-size: 14px;
+  margin-top: 8px;
+  display: none;
+}
+
+.auth-card .ok {
+  color: #22c55e;
+  font-size: 14px;
+  margin-top: 8px;
+  display: none;
+}
+
+.auth-card .actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.auth-card .actions .btn {
+  flex: 1;
+  min-height: 48px;
+}
+
+.auth-card .btn {
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.auth-card .btn.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.auth-card .btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.auth-card .btn:not(.primary) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-card .btn:not(.primary):hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.auth-card .code-box {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.auth-card .code-box input {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.auth-card .divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 30px 0;
+}
+
+.auth-card .iti {
+  width: 100%;
+}
+
+.auth-card .iti input[type="tel"] {
+  width: 100%;
+}
+
+.auth-card input.tel-invalid {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Badge 相关样式 */
+.page-auth .auth-section .badge-container,
+.badge-container {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 30px;
+  margin: 30px 0;
+  text-align: center;
+}
+
+.page-auth .auth-section .badge-container h3,
+.badge-container h3 {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.page-auth .auth-section .badge-container p,
+.badge-container p {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.page-auth .auth-section .badge-info,
+.badge-info {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.page-auth .auth-section .badge-info h4,
+.badge-info h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.page-auth .auth-section .badge-info strong,
+.badge-info strong {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.page-auth .auth-section .faq-section,
+.faq-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 25px;
+  margin: 30px 0;
+}
+
+.page-auth .auth-section .faq-section h4,
+.faq-section h4 {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #fff;
+  text-align: center;
+}
+
+.page-auth .auth-section .faq-section ul,
+.faq-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.page-auth .auth-section .faq-section li,
+.faq-section li {
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+.page-auth .auth-section .faq-section li:hover,
+.faq-section li:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 15px;
+  margin: 0 -15px;
+}
+
+.page-auth .auth-section .faq-section li strong,
+.faq-section li strong {
+  color: #667eea;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.page-auth .auth-section .faq-section li:last-child,
+.faq-section li:last-child {
+  border-bottom: none;
+}
+
+.page-auth .auth-section .faq-item:last-child,
+.faq-item:last-child {
+  margin-bottom: 0;
+}
+
+.page-auth .auth-section .faq-item strong,
+.faq-item strong {
+  color: #667eea;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.page-auth .auth-section .faq-item p,
+.faq-item p {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 誓言相关样式 */
+@media (max-width: 768px) {
+  .page-auth .oath-container,
+  .oath-container {
+    padding: 20px;
+  }
+  
+  .page-auth .oath-text,
+  .oath-text {
+    font-size: 14px;
+  }
+  
+  .page-auth .oath-form,
+  .oath-form {
+    margin-top: 20px;
+  }
+}
+
+.page-auth .turnstile-container,
+.turnstile-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-auth .cf-turnstile,
+.cf-turnstile {
+  transform: scale(0.9);
+}
+
+.page-auth .cf-turnstile iframe,
+.cf-turnstile iframe {
+  border-radius: 8px;
+}
+
+/* 错误提示 */
+.page-portal .error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 10px 0;
+  font-size: 14px;
+  display: none;
+}
+
+.page-portal .error.show {
+  display: block;
+}
+
+/* 誓言卡片 */
+.page-auth .oath-card,
+.oath-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 40px;
+  margin: 30px 0;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-auth .oath-check,
+.oath-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.page-auth .oath-check:hover,
+.oath-check:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.page-auth .oath-check input[type="checkbox"],
+.oath-check input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.page-auth .oath-check input[type="checkbox"]::before,
+.oath-check input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 8px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: translate(-50%, -60%) rotate(45deg) scale(0);
+  transition: transform 0.2s ease;
+}
+
+.page-auth .oath-check input[type="checkbox"]:checked::before,
+.oath-check input[type="checkbox"]:checked::before {
+  transform: translate(-50%, -60%) rotate(45deg) scale(1);
+}
+
+.page-auth .oath-check input[type="checkbox"]:hover,
+.oath-check input[type="checkbox"]:hover {
+  border-color: rgba(102, 126, 234, 0.5);
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.page-auth .oath-check input[type="checkbox"]:checked,
+.oath-check input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.page-auth .oath-actions .btn,
+.oath-actions .btn {
+  min-width: 120px;
+  margin: 0 10px;
+}
+
+/* 页脚 */
+.site-footer {
+  background: rgba(15, 15, 35, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px 0;
+  margin-top: 80px;
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.footer-brand .logo {
+  width: 32px;
+  height: 32px;
+  opacity: 0.8;
+}
+
+.footer-copy {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* 流星动画 */
+.meteor {
+  position: fixed;
+  top: -50px;
+  width: 2px;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, #fff, transparent);
+  border-radius: 50px;
+  opacity: 0;
+  animation: meteor 8s linear infinite;
+  z-index: 1;
+}
+
+@keyframes meteor {
+  0% { transform: translateY(-100vh) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh) translateX(-200px); opacity: 0; }
+}
+
+.meteor:nth-child(1) { left: 20%; animation-delay: 0s; }
+.meteor:nth-child(2) { left: 60%; animation-delay: 3s; }
+.meteor:nth-child(3) { left: 80%; animation-delay: 6s; }
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .nav {
+    gap: 20px;
+  }
+  
+  .brand {
+    font-size: 1.25rem;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+  
+  .auth-card {
+    padding: 30px 20px;
+  }
+  
+  .login-mode-tabs {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .login-tab {
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    gap: 15px;
+  }
+  
+  .brand {
+    font-size: 1.1rem;
+  }
+  
+  .brand .logo {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .auth-card {
+    padding: 20px 15px;
+  }
+  
+  .auth-card .actions {
+    flex-direction: column;
+  }
+  
+  .auth-card .code-box {
+    flex-direction: column;
+  }
+}

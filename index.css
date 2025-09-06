@@ -1,0 +1,892 @@
+/* ===== MYTHICAL HELPER - INDEX PAGE STYLES ===== */
+
+/* 引入字体 */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;600;700;900&display=swap');
+
+/* 基础样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background: #0b1020;
+  color: #fff;
+  position: relative;
+  z-index: 0;
+}
+
+/* Keep layout width stable across pages with/without scrollbar */
+html { scrollbar-gutter: stable; }
+@supports not (scrollbar-gutter: stable) {
+  html { overflow-y: scroll; }
+}
+
+/* 容器 */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 头部导航 */
+.header {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Cinzel Decorative', cursive;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.brand .logo {
+  width: 32px;
+  height: 32px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav a:hover,
+.nav a.active {
+  color: #fff;
+}
+
+/* 语言选择器 */
+.lang-selector select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.lang-selector select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn:not(.primary) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn:not(.primary):hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 英雄区域 */
+.page-home .section-hero,
+.page-auth .section-hero {
+  text-align: center;
+  padding: 80px 0 60px;
+  position: relative;
+  z-index: 2;
+}
+
+.page-home .section-hero h1,
+.page-auth .section-hero h1 {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #fff, #e0e7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.page-home .section-hero .lead,
+.page-auth .section-hero .lead {
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 15px;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.page-home .section-hero .lead:nth-of-type(2),
+.page-auth .section-hero .lead:nth-of-type(2) {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  margin-bottom: 40px;
+}
+
+.page-home .section-hero .actions,
+.page-auth .section-hero .actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.page-home .section-hero .btn,
+.page-auth .section-hero .btn {
+  min-width: 160px;
+  font-size: 16px;
+  padding: 14px 28px;
+}
+
+.page-home .section-hero .btn.primary,
+.page-auth .section-hero .btn.primary { 
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.page-home .section-hero .btn.primary:hover,
+.page-auth .section-hero .btn.primary:hover { 
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.page-home .section-hero .btn:not(.primary),
+.page-auth .section-hero .btn:not(.primary) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.page-home .section-hero .btn:not(.primary):hover,
+.page-auth .section-hero .btn:not(.primary):hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.page-home .section-hero .verse,
+.page-auth .section-hero .verse,
+.page-home .section-hero .verse p,
+.page-auth .section-hero .verse p {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  line-height: 1.8;
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* 选择板区域 */
+.page-home .section-board {
+  padding: 60px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.page-home .section-board .board-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.page-home .section-board .board-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.page-home .section-board .board-subtitle {
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.page-home .section-board .board {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 40px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .page-home .section-board .board,
+  .page-home .section-board .board > .choices,
+  .page-home .section-board .board > .letter {
+    padding: 20px;
+  }
+}
+
+.page-home .section-board .board > .choices,
+.page-home .section-board .board > .letter {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  align-items: start;
+}
+
+.page-home .section-board .choice {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  padding: 25px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-home .section-board .choice:hover,
+.page-home .section-board .choice:focus {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.page-home .section-board .choice .choice-body {
+  position: relative;
+  z-index: 2;
+}
+
+.page-home .section-board .choice-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.page-home .section-board .choice-desc {
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.page-home .section-board .choice-desc .chip-item {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  margin: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.page-home .section-board .choice-desc .chip-item:last-child {
+  margin-right: 0;
+}
+
+.page-home .section-board .card-stamp {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.page-home .section-board .choice:hover .card-stamp {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.page-home .section-board .stamp {
+  font-size: 20px;
+}
+
+.page-home .section-board .letter {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 30px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 角色特定样式 */
+.page-home .section-board .board .choices:has(.choice:hover, .choice:focus-within)
+  .letter {
+  opacity: 0.3;
+}
+
+.page-home .section-board .board .choices:has(.choice[data-role="north"]:hover,
+  .choice[data-role="north"]:focus-within) .letter[data-active="north"] {
+  opacity: 1;
+}
+
+.page-home .section-board .board .choices:has(.choice[data-role="tooth"]:hover,
+  .choice[data-role="tooth"]:focus-within) .letter[data-active="tooth"] {
+  opacity: 1;
+}
+
+.page-home .section-board .board .choices:has(.choice[data-role="bunny"]:hover,
+  .choice[data-role="bunny"]:focus-within) .letter[data-active="bunny"] {
+  opacity: 1;
+}
+
+.page-home .section-board .letter[data-active="north"] .role-north,
+.page-home .section-board .letter[data-active="tooth"] .role-tooth,
+.page-home .section-board .letter[data-active="bunny"] .role-bunny {
+  display: block;
+}
+
+.page-home .section-board .letter-head {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.page-home .section-board .role-north .letter-head {
+  color: #7bc4ff;
+}
+
+.page-home .section-board .role-tooth .letter-head {
+  color: #c39bff;
+}
+
+.page-home .section-board .role-bunny .letter-head {
+  color: #65d08a;
+}
+
+.page-home .section-board .letter p {
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .page-home .section-board .letter p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+}
+
+.page-home .section-board .letter p.dear {
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.page-home .section-board .letter-pane > p:not(.dear):not(.sign) {
+  text-indent: 2em;
+}
+
+@media (max-width: 768px) {
+  .page-home .section-board .letter-pane > p:not(.dear):not(.sign) {
+    text-indent: 1em;
+  }
+}
+
+.page-home .section-board .letter p.sign {
+  text-align: right;
+  margin-top: 30px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+}
+
+.page-home .section-board .role-north,
+.page-home .section-board .role-tooth,
+.page-home .section-board .role-bunny {
+  display: none;
+}
+
+.page-home .section-board .seal {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  opacity: 0.8;
+}
+
+.page-home .section-board .seal img {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* 步骤区域 */
+.page-home .section-steps {
+  padding: 80px 0;
+  background: rgba(255, 255, 255, 0.02);
+  position: relative;
+  z-index: 2;
+}
+
+.page-home .section-steps .steps-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.page-home .section-steps .steps-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.page-home .section-steps .steps-subtitle {
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.page-home .section-steps .steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (max-width: 980px) { 
+  .page-home .section-steps .steps, 
+  .steps { 
+    grid-template-columns: repeat(2, 1fr); 
+  } 
+}
+
+@media (max-width: 560px) { 
+  .page-home .section-steps .steps, 
+  .steps { 
+    grid-template-columns: 1fr; 
+  } 
+}
+
+.page-home .section-steps .step-card,
+.step {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 30px 20px;
+  text-align: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.page-home .section-steps .step-badge,
+.step-badge {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.page-home .section-steps .step-icon,
+.step-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: all 0.3s ease;
+}
+
+.page-home .section-steps .steps .step:nth-child(1) .step-icon, 
+.steps .step:nth-child(1) .step-icon { 
+  background: rgba(123,196,255,.15); 
+  border-color: rgba(123,196,255,.35); 
+}
+
+.page-home .section-steps .steps .step:nth-child(2) .step-icon, 
+.steps .step:nth-child(2) .step-icon { 
+  background: rgba(155,231,176,.15); 
+  border-color: rgba(101,208,138,.35); 
+}
+
+.page-home .section-steps .steps .step:nth-child(3) .step-icon, 
+.steps .step:nth-child(3) .step-icon { 
+  background: rgba(195,155,255,.15); 
+  border-color: rgba(195,155,255,.35); 
+}
+
+.page-home .section-steps .steps .step:nth-child(4) .step-icon, 
+.steps .step:nth-child(4) .step-icon { 
+  background: rgba(248,210,106,.15); 
+  border-color: rgba(248,210,106,.35); 
+}
+
+.page-home .section-steps .step-title,
+.step-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.page-home .section-steps .step-desc,
+.step-desc {
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+/* 特性区域 */
+.page-home .section-features {
+  padding: 80px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.page-home .section-features .features-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.page-home .section-features .features-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.page-home .section-features .features-subtitle {
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.page-home .section-features .features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (max-width: 560px) { 
+  .page-home .section-features .features, 
+  .features { 
+    grid-template-columns: 1fr; 
+  } 
+}
+
+.page-home .section-features .feature-card,
+.feature {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 30px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.page-home .section-features .feature-card::before,
+.feature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.page-home .section-features .features .feature:nth-child(2) .feature-card::before,
+.features .feature:nth-child(2)::before {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.page-home .section-features .features .feature:nth-child(3) .feature-card::before,
+.features .feature:nth-child(3)::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.page-home .section-features .feature-icon,
+.feature-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.page-home .section-features .feature-title,
+.feature-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.page-home .section-features .feature-desc,
+.feature-desc {
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+/* CTA区域 */
+.page-home .section-cta {
+  padding: 80px 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.page-home .section-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.page-home .section-cta .cta-header, 
+.cta-header {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 40px;
+}
+
+.page-home .section-cta .cta-title,
+.cta-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  margin-bottom: 15px;
+  background: linear-gradient(135deg, #fff, #e0e7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-home .section-cta .cta-subtitle,
+.cta-subtitle {
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.page-home .section-cta .cta-actions,
+.cta-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .page-home .section-cta .cta-actions,
+  .page-home .section-cta .cta-actions .btn,
+  .cta-actions .btn {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.page-home .section-cta .btn,
+.cta .btn {
+  min-width: 180px;
+  font-size: 16px;
+  padding: 16px 32px;
+}
+
+/* 页脚 */
+.site-footer {
+  background: rgba(15, 15, 35, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px 0;
+  margin-top: 80px;
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.footer-brand .logo {
+  width: 32px;
+  height: 32px;
+  opacity: 0.8;
+}
+
+.footer-copy {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* 流星动画 */
+.meteor {
+  position: fixed;
+  top: -50px;
+  width: 2px;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, #fff, transparent);
+  border-radius: 50px;
+  opacity: 0;
+  animation: meteor 8s linear infinite;
+  z-index: 1;
+}
+
+@keyframes meteor {
+  0% { transform: translateY(-100vh) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh) translateX(-200px); opacity: 0; }
+}
+
+.meteor:nth-child(1) { left: 20%; animation-delay: 0s; }
+.meteor:nth-child(2) { left: 60%; animation-delay: 3s; }
+.meteor:nth-child(3) { left: 80%; animation-delay: 6s; }
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .nav {
+    gap: 20px;
+  }
+  
+  .brand {
+    font-size: 1.25rem;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    gap: 15px;
+  }
+  
+  .brand {
+    font-size: 1.1rem;
+  }
+  
+  .brand .logo {
+    width: 28px;
+    height: 28px;
+  }
+}

@@ -4970,8 +4970,8 @@ body::after {
   }
   .mh-cert-inner{ padding:16px 18px 20px 18px; }
   .signature-grid{ 
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 8px;
   }
   .signature-item {
     padding: 8px 4px;
@@ -4986,8 +4986,10 @@ body::after {
   .cert-logo{ width: 50px; height: 50px; }
   .mh-certificate{ 
     max-width: 95vw; 
-    min-height: 280px;
-    aspect-ratio: 1.2 / 1; /* 在移动端使用更紧凑的比例 */
+    min-height: 260px;
+    max-height: calc(100vh - 120px); /* 限制最大高度，为浏览器UI留出空间 */
+    aspect-ratio: 1.15 / 1; /* 进一步压缩高度以适应浏览器UI */
+    margin-bottom: 20px; /* 为底部浏览器UI留出空间 */
   }
   .mh-cert-title {
     font-size: clamp(16px, 3.5vw, 22px);
@@ -4995,14 +4997,14 @@ body::after {
   }
   .mh-cert-lead, .mh-cert-body, .mh-cert-conclusion {
     font-size: clamp(12px, 2.5vw, 14px);
-    line-height: 1.4;
-    margin: 0.3rem 0;
+    line-height: 1.3;
+    margin: 0.25rem 0;
   }
-  .mh-cert-lead { margin-top: 0.8rem; }
-  .mh-cert-conclusion { margin: 0.8rem 0 1.2rem; }
+  .mh-cert-lead { margin-top: 0.6rem; }
+  .mh-cert-conclusion { margin: 0.6rem 0 0.8rem; }
   .guild-seal-section {
-    margin-top: 1rem;
-    gap: 5px;
+    margin-top: 0.8rem;
+    gap: 4px;
   }
   .wax-seal {
     transform: rotate(-3deg) scale(0.9);
@@ -5043,8 +5045,8 @@ body::after {
   .cert-logo{ width: 40px; height: 40px; }
   .signature-grid{ 
     grid-template-columns: 1fr; 
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 6px;
   }
   .signature-item {
     padding: 6px 2px;
@@ -5060,8 +5062,10 @@ body::after {
   .mh-cert-inner{ padding:12px 14px 16px 14px; }
   .mh-certificate{ 
     max-width: 98vw; 
-    min-height: 220px;
-    aspect-ratio: 1.1 / 1; /* 在更小屏幕上使用更紧凑的比例 */
+    min-height: 200px;
+    max-height: calc(100vh - 140px); /* 限制最大高度，为浏览器UI留出更多空间 */
+    aspect-ratio: 1.05 / 1; /* 在更小屏幕上使用更紧凑的比例 */
+    margin-bottom: 30px; /* 为底部浏览器UI留出更多空间 */
   }
   .mh-cert-title {
     font-size: clamp(14px, 4vw, 18px);
@@ -5069,14 +5073,14 @@ body::after {
   }
   .mh-cert-lead, .mh-cert-body, .mh-cert-conclusion {
     font-size: clamp(11px, 3vw, 13px);
-    line-height: 1.3;
-    margin: 0.25rem 0;
+    line-height: 1.2;
+    margin: 0.2rem 0;
   }
-  .mh-cert-lead { margin-top: 0.6rem; }
-  .mh-cert-conclusion { margin: 0.6rem 0 1rem; }
+  .mh-cert-lead { margin-top: 0.5rem; }
+  .mh-cert-conclusion { margin: 0.5rem 0 0.6rem; }
   .guild-seal-section {
-    margin-top: 0.8rem;
-    gap: 4px;
+    margin-top: 0.6rem;
+    gap: 3px;
   }
   .wax-seal {
     transform: rotate(-2deg) scale(0.8);

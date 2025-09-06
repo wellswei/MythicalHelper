@@ -675,9 +675,12 @@ async function postJSON(path, body, method = 'POST') {
     if (!res.ok) {
       const j = await res.json().catch(() => ({ detail: 'Request failed' }));
       console.error('Request failed:', path, res.status, j);
+      console.log('j.detail type:', typeof j.detail);
+      console.log('j.detail value:', j.detail);
       const errorMessage = typeof j.detail === 'string' ? j.detail : 
                           (j.detail && j.detail.detail) ? j.detail.detail : 
                           'Request failed';
+      console.log('Final error message:', errorMessage);
       throw new Error(errorMessage);
     }
     

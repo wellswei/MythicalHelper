@@ -811,13 +811,13 @@ function updateBadgesEditList() {
             <label class="toggle-label" for="toggle-${id}"></label>
           </div>
         </div>
+        <div class="remove-group">
+          <button type="button" class="remove-badge" data-badge-id="${id}">Remove Badge</button>
+        </div>
       </div>
       <div class="form-row">
         <label class="form-label">Whom You Watch Over:</label>
         <input type="text" class="form-input badge-description-input" data-badge-id="${id}" value="${badge.care_description || ''}" placeholder="e.g., Caring for Emma and Lucas, Watching over little dreamers">
-      </div>
-      <div class="form-row">
-        <button type="button" class="remove-badge" data-badge-id="${id}">Remove Badge</button>
       </div>
     `;
     badgesEditList.appendChild(badgeEditElement);

@@ -2827,7 +2827,8 @@ body::after {
 }
 
 .page-portal .badge-edit-item .realm-group,
-.page-portal .badge-edit-item .active-group {
+.page-portal .badge-edit-item .active-group,
+.page-portal .badge-edit-item .remove-group {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2841,6 +2842,11 @@ body::after {
 .page-portal .badge-edit-item .active-group {
   flex: 0 0 auto;
   min-width: 140px;
+}
+
+.page-portal .badge-edit-item .remove-group {
+  flex: 0 0 auto;
+  justify-content: flex-end;
 }
 
 .page-portal .badge-edit-item .form-label {

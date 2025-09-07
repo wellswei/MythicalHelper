@@ -9,14 +9,14 @@
   <!-- intl-tel-input -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css"/>
 </head>
-<body class="page-auth">
+<body class="page-auth auth">
   <!-- 背景 -->
   <div class="meteor" aria-hidden="true"></div>
   <div class="meteor" aria-hidden="true"></div>
   <div class="meteor" aria-hidden="true"></div>
 
   <!-- Header -->
-  <header class="site-header">
+  <header class="site-header header">
     <div class="container">
       <div class="brand">
         <img src="logo.png" alt="Logo" class="logo">
@@ -43,7 +43,7 @@
     <div class="section-divider"></div>
 
     <!-- Auth（保持你现有的 padding/视觉） -->
-    <section class="auth-section">
+    <section class="process">
       <div class="auth-card">
         <div class="content">
           <!-- 模式选择界面 -->
@@ -81,7 +81,7 @@
           <section id="step1">
             <label for="emailInput">Email Address</label>
             <input id="emailInput" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"/>
-            <div class="status-bar" id="emailStatus">We'll send a 6-digit code to your email.</div>
+            <div class="hint" id="emailStatus">We'll send a 6-digit code to your email.</div>
 
             <!-- Turnstile 容器（Managed 模式） -->
             <div class="turnstile-container" style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
@@ -129,7 +129,7 @@
           <section id="step2" hidden>
             <label for="phoneInput">Phone Number</label>
             <input id="phoneInput" type="tel" inputmode="tel" autocomplete="tel"/>
-            <div class="status-bar" id="phoneStatus">We'll send a 6-digit code to your phone.</div>
+            <div class="hint" id="phoneStatus">We'll send a 6-digit code to your phone.</div>
 
             <!-- Turnstile 容器（Step 2 - 手机验证） -->
             <div class="turnstile-container" style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
@@ -149,6 +149,7 @@
 
             <div class="actions">
               <button class="btn primary" id="btnSendPhone" type="button">Send Phone Code</button>
+              <button class="btn" id="btnBackToEmail" type="button">Back to Email</button>
             </div>
 
             <div id="phoneCodeSection" style="display:none; margin-top:14px;">
@@ -300,7 +301,7 @@
             <section id="loginStep1">
               <label for="loginEmailInput">Email Address</label>
               <input id="loginEmailInput" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"/>
-              <div class="status-bar" id="loginEmailStatus">We'll send a 6-digit code to your email.</div>
+              <div class="hint" id="loginEmailStatus">We'll send a 6-digit code to your email.</div>
 
 
               <div class="actions">
@@ -339,7 +340,7 @@
             <section id="loginSmsStep1">
               <label for="loginPhoneInput">Phone Number</label>
               <input id="loginPhoneInput" type="tel" inputmode="tel" autocomplete="tel"/>
-              <div class="status-bar" id="loginPhoneStatus">We'll send a 6-digit code to your phone.</div>
+              <div class="hint" id="loginPhoneStatus">We'll send a 6-digit code to your phone.</div>
 
 
               <div class="actions">
@@ -373,7 +374,7 @@
     </section>
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer footer">
     <div class="container footer-inner">
       <div class="footer-brand"><img src="logo.png" alt="Logo" class="logo"></div>
       <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>

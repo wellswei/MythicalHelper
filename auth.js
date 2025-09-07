@@ -224,6 +224,7 @@ async function onVerifyLoginSms() {
       return;
     }
     clearLoginState();
+    clearState(); // 清理注册状态
     // 添加小延迟确保sessionStorage写入完成
     setTimeout(() => {
       window.location.href = '/portal.html';
@@ -282,7 +283,9 @@ const setStatus = (element, message, type = 'default') => {
   if (!element) return;
   
   element.textContent = message;
-  element.className = 'status-bar';
+  
+  // 保持原有的类名，只添加状态相关的类
+  element.classList.remove('success', 'error');
   element.style.display = 'block';
   
   if (type === 'success') {
@@ -304,7 +307,12 @@ function updateStep(n) {
   
   // 重置Turnstile当切换到需要验证的步骤时（1: email, 2: phone）
   if (n === 1 || n === 2) {
+    // 显示Turnstile并重置
+    showTurnstile();
     resetTurnstile();
+  } else if (n === 3) {
+    // 在验证码步骤时隐藏Turnstile
+    hideTurnstile();
   }
 }
 
@@ -491,7 +499,7 @@ function onTurnstileSuccess(token) {
   console.log('Turnstile success, token received, length:', token.length);
   
   // 更新状态提示（支持多个Turnstile组件）
-  updateTurnstileMessage('✓ Security verified', '#10b981');
+  updateTurnstileMessage('', '#10b981');
   
   // 启用当前步骤的发送按钮
   if (state.currentStep === 1) {
@@ -610,6 +618,34 @@ function resetTurnstile() {
   }
   
   // 登录流程不需要Turnstile验证
+}
+
+// 隐藏Turnstile
+function hideTurnstile() {
+  console.log('Hiding Turnstile...');
+  
+  // 隐藏所有Turnstile容器
+  const turnstileContainers = document.querySelectorAll('.turnstile-container');
+  turnstileContainers.forEach(container => {
+    container.style.display = 'none';
+  });
+  
+  // 清除token（因为不再需要）
+  state.turnstileToken = null;
+  console.log('Turnstile hidden and token cleared');
+}
+
+// 显示Turnstile
+function showTurnstile() {
+  console.log('Showing Turnstile...');
+  
+  // 显示所有Turnstile容器
+  const turnstileContainers = document.querySelectorAll('.turnstile-container');
+  turnstileContainers.forEach(container => {
+    container.style.display = 'flex';
+  });
+  
+  console.log('Turnstile shown');
 }
 
 // 等待Turnstile token就绪
@@ -753,9 +789,8 @@ async function onSendEmail(e) {
       if (firstInput) firstInput.focus();
     }, 100);
     
-    // 启动email cooldown
+    // 启动email cooldown (只用于发送按钮，不影响修改邮箱)
     state.emailResendLeft = data.cooldown_sec ?? RESEND_COOLDOWN;
-    startEmailResend();
     
     // 重置Turnstile
     resetTurnstile();
@@ -812,17 +847,23 @@ function onBackToEmail(e) {
   // 恢复显示“Already sworn the oath? Enter the Portal”
   const signupSwitch = document.querySelector('#step1 .auth-switch');
   if (signupSwitch) show(signupSwitch);
-  // stop email resend cooldown timer if running
-  if (state.emailResendTimer) {
-    clearInterval(state.emailResendTimer);
-    state.emailResendTimer = null;
-  }
+  // 清除邮箱相关状态
   state.emailResendLeft = 0;
   // reset persisted email ticket id correctly
   state.email = state.emailTicketId = "";
   saveState();
   updateStep(1);
   setTimeout(() => $('#emailInput')?.focus(), 50);
+}
+
+function onBackToEmailFromPhone(e) {
+  e?.preventDefault();
+  // 回到步骤1（Email）
+  updateStep(1);
+  // 清除手机相关状态
+  state.phone = '';
+  state.phoneTicketId = '';
+  saveState();
 }
 
 async function onSendPhone(e) {
@@ -855,8 +896,8 @@ async function onSendPhone(e) {
     state.phoneTicketId = data.ticket_id;
     saveState();
     setStatus(statusBar, 'SMS code sent.', 'success');
+    // 启动phone cooldown (只用于发送按钮，不影响修改手机号)
     state.resendLeft = data.cooldown_sec ?? RESEND_COOLDOWN;
-    startResend();
     // 显示验证码输入区域
     const sec = $('#phoneCodeSection');
     show(sec);
@@ -869,8 +910,9 @@ async function onSendPhone(e) {
       if (firstInput) firstInput.focus();
     }, 100);
     
-    // 隐藏发送按钮（与email保持一致）
+    // 隐藏发送按钮和Back to Email按钮
     hide(btn);
+    hide($('#btnBackToEmail'));
     
     // 重置Turnstile
     resetTurnstile();
@@ -919,22 +961,12 @@ async function onVerifyPhone(e) {
 function onBackToPhone(e) { 
   e?.preventDefault(); 
   
-  // 清除cooldown定时器
-  if (state.resendTimer) {
-    clearInterval(state.resendTimer);
-    state.resendTimer = null;
-  }
-  
   $('#phoneInput').disabled = false;
   $('#phoneInput').value = '';
   hide($('#phoneCodeSection'));
   show($('#btnSendPhone')); // 重新显示发送按钮
+  show($('#btnBackToEmail')); // 重新显示Back to Email按钮
   setStatus($('#phoneStatus'), 'We\'ll send a 6-digit code to your phone.', 'default');
-  
-  // 重置按钮状态
-  const btn = $('#btnBackToPhone');
-  btn.textContent = 'Change Phone';
-  btn.disabled = false;
   
   state.phone = state.phoneTicketId = "";
   saveState();
@@ -1166,6 +1198,14 @@ async function onGoToMember() {
       state.signupSessionToken = "";
       saveState();
       console.log('Signup session token cleared from state');
+      
+      // 清理登录状态
+      clearLoginState();
+      console.log('Login state cleared');
+      
+      // 清理注册状态
+      clearState();
+      console.log('Signup state cleared');
       
       // 跳转到portal
       console.log('=== AUTHENTICATION SUCCESSFUL ===');
@@ -1503,6 +1543,7 @@ async function onVerifyLoginCode() {
     }
     // 清理登录临时状态
     clearLoginState();
+    clearState(); // 清理注册状态
     
     // 添加小延迟确保sessionStorage写入完成，然后跳转
     setTimeout(() => {
@@ -1673,6 +1714,7 @@ function initializeApp() {
     if (state.phoneTicketId && state.currentStep === 2) {
       // 显示手机验证码区域
       hide($('#btnSendPhone'));
+      hide($('#btnBackToEmail')); // 隐藏Back to Email按钮
       show($('#phoneCodeSection'));
       setStatus($('#phoneStatus'), 'SMS code sent.', 'success');
       const phoneCodeBox = $('#phoneCodeBox');
@@ -1684,7 +1726,7 @@ function initializeApp() {
           if (firstInput) firstInput.focus();
         }, 100);
       }
-      if (state.resendLeft > 0) startResend();
+      // 手机验证码已发送，但不需要倒计时限制修改手机号
     }
     if (state.username) {
       $('#usernameInput').value = state.username;
@@ -1703,6 +1745,7 @@ function initializeApp() {
   $('#btnSendPhone')?.addEventListener('click', onSendPhone);
   $('#btnVerifyPhone')?.addEventListener('click', onVerifyPhone);
   $('#btnBackToPhone')?.addEventListener('click', onBackToPhone);
+  $('#btnBackToEmail')?.addEventListener('click', onBackToEmailFromPhone);
 
   // Take Oath 步骤的事件监听器
   $('#usernameInput')?.addEventListener('input', onUsernameInput);
@@ -1773,13 +1816,14 @@ function initializeApp() {
   if (navMember) {
     navMember.addEventListener('click', (e) => {
       e.preventDefault();
-      console.log('=== navMember click DEBUG START ===');
       const authToken = sessionStorage.getItem('authToken');
-      console.log('navMember - Auth token exists:', !!authToken);
-      console.log('navMember - Token preview:', authToken ? authToken.substring(0, 20) + '...' : 'null');
-      console.log('navMember - NOT redirecting automatically - just printing debug info');
-      alert('navMember clicked. Check console for token details. No automatic redirect.');
-      console.log('=== navMember click DEBUG END ===');
+      if (authToken) {
+        // 用户已登录，跳转到portal
+        window.location.href = '/portal.html';
+      } else {
+        // 用户未登录，跳转到登录页面
+        window.location.href = '/auth.html?mode=login';
+      }
     });
   }
 

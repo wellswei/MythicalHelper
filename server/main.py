@@ -16,11 +16,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import os
 import httpx
+import stripe
 
-from models import create_database
+from models import create_database, Purchase
 from database import DatabaseService, get_db
 
 UTC = timezone.utc
+
+# Stripe configuration
+stripe.api_key = "sk_test_51S4XMwArEWZmSCjIIer2BJld1LCOgBChTEArYVFRSB0ipcNMdy8t6nUdpS13usrh1nIs9XlNnhJ07xcJ2kpqMdd900GMFxfive"  # 替换为你的实际Secret Key
+STRIPE_PUBLISHABLE_KEY = "pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu"
+STRIPE_WEBHOOK_SECRET = "whsec_Jjnz17IhJYwbOSMqeat8USOG02I2mLJz"  # 替换为你的实际Webhook Secret
+FRONTEND_URL = "https://your-actual-frontend-domain.com"  # 替换为你的实际前端域名
 
 # Create database and tables
 create_database()
@@ -28,7 +35,7 @@ create_database()
 app = FastAPI(title="Mythical Helper API (SQLAlchemy)")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*", "http://127.0.0.1:5500", "http://localhost:5500"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -217,11 +224,18 @@ class ContactsPatchIn(BaseModel):
 class UsersPatchIn(BaseModel):
     badges: Optional[Dict[str, Any]] = None
 
-class BillingPurchaseIn(BaseModel):
-    plan_id: str
+class RenewalRequest(BaseModel):
+    """续费请求"""
+    pass
 
-class BillingPurchaseOut(BaseModel):
+class DonationRequest(BaseModel):
+    """捐赠请求"""
+    amount: int = Field(..., description="捐赠金额（美分）", ge=100)  # 最少1美元
+
+class PaymentResponse(BaseModel):
+    """支付响应"""
     checkout_url: str
+    session_id: str
 
 # =========================
 # 认证依赖
@@ -274,7 +288,7 @@ async def create_ticket(inb: TicketCreateIn, request: Request = None, authorizat
 
         # 业务前置校验：根据用途拒绝已删除账户或重复注册
         # 注：你提到愿意在此阶段直接告知被阻止/已存在，所以这里直接返回明确错误
-        if inb.purpose in ("signin", "signup"):
+        if inb.purpose in ("signin", "signup", "change_email", "change_phone"):
             user = db.get_user_by_email(dest) if inb.channel == "email" else db.get_user_by_phone(dest)
             if inb.purpose == "signin":
                 if not user:
@@ -290,6 +304,39 @@ async def create_ticket(inb: TicketCreateIn, request: Request = None, authorizat
                         problem(409, "conflict", "Email already registered")
                     else:
                         problem(409, "conflict", "Phone already registered")
+            elif inb.purpose in ("change_email", "change_phone"):
+                # 对于contact change，检查新邮箱/电话是否已被其他用户使用
+                print(f"[DUPLICATE_CHECK] Checking {inb.purpose} for destination: {dest}")
+                print(f"[DUPLICATE_CHECK] Subject ID: {inb.subject_id}")
+                
+                # 邮箱blacklist检查
+                if inb.channel == "email":
+                    email_blacklist = {"official", "admin", "support", "help", "system", "root", "guild", "mythical", "helper"}
+                    email_local_part = dest.split('@')[0].lower()
+                    if email_local_part in email_blacklist:
+                        print(f"[DUPLICATE_CHECK] BLACKLIST: {dest} is in email blacklist")
+                        problem(409, "conflict", "Email address not allowed")
+                
+                if user and not user.deleted_at:
+                    print(f"[DUPLICATE_CHECK] Found existing user: {user.id}, deleted: {user.deleted_at}")
+                    # 需要获取当前用户ID来排除自己
+                    current_user_id = inb.subject_id
+                    if not current_user_id:
+                        print(f"[DUPLICATE_CHECK] ERROR: Missing subject_id")
+                        problem(400, "missing_subject", "Subject ID required for contact change")
+                    
+                    print(f"[DUPLICATE_CHECK] Comparing user.id={user.id} with current_user_id={current_user_id}")
+                    if user.id != current_user_id:
+                        # 新邮箱/电话已被其他用户使用
+                        print(f"[DUPLICATE_CHECK] CONFLICT: {dest} already used by user {user.id}")
+                        if inb.channel == "email":
+                            problem(409, "conflict", "Email already in use")
+                        else:
+                            problem(409, "conflict", "Phone already in use")
+                    else:
+                        print(f"[DUPLICATE_CHECK] OK: {dest} belongs to current user")
+                else:
+                    print(f"[DUPLICATE_CHECK] OK: {dest} is available")
         
         # 速率限制检查
         rate_key = f"ticket:{inb.channel}:{dest}"
@@ -521,6 +568,12 @@ def attach_contact(registration_id: str, inb: RegistrationAttachIn):
             problem(400, "invalid_flow", "Proof purpose/subject mismatch")
         
         if proof.channel == "email":
+            # 邮箱blacklist检查
+            email_blacklist = {"official", "admin", "support", "help", "system", "root", "guild", "mythical", "helper"}
+            email_local_part = proof.destination.split('@')[0].lower()
+            if email_local_part in email_blacklist:
+                problem(409, "conflict", "Email address not allowed")
+            
             # 唯一性检查
             existing_user = db.get_user_by_email(proof.destination)
             if existing_user and existing_user.id != user.id and existing_user.email_verified_at:
@@ -893,3 +946,155 @@ def root():
 @app.get("/health")
 def health():
     return {"ok": True, "database": "SQLAlchemy"}
+
+# =========================
+# 支付相关API
+# =========================
+
+@app.post("/api/payment/renewal", response_model=PaymentResponse)
+def create_renewal_session(
+    request: RenewalRequest,
+    user: SessionUser = Depends(get_session_user)
+):
+    """创建续费支付会话"""
+    try:
+        # 获取用户信息
+        with get_db() as db:
+            user_data = db.get_user_by_id(user.user_id)
+            if not user_data:
+                problem(404, "not_found", "User not found")
+            
+            # 计算新的有效期
+            now = datetime.now(UTC)
+            if user_data.valid_until and user_data.valid_until > now:
+                # 用户还在有效期内，从当前有效期结束日期延长一年
+                new_valid_until = user_data.valid_until + timedelta(days=365)
+            else:
+                # 用户已过期，从今天开始一年有效期
+                new_valid_until = now + timedelta(days=365)
+            
+            # 创建Stripe Checkout会话
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': 'MythicalHelper Guild Membership Renewal',
+                            'description': 'Extend your membership for one year',
+                        },
+                        'unit_amount': 999,  # $9.99 in cents
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=f"{FRONTEND_URL}/portal?renewal=success",
+                cancel_url=f"{FRONTEND_URL}/portal?renewal=cancelled",
+                metadata={
+                    'user_id': user.user_id,
+                    'type': 'renewal',
+                    'new_valid_until': new_valid_until.isoformat(),
+                    'amount': '999'
+                }
+            )
+            
+            return PaymentResponse(
+                checkout_url=checkout_session.url,
+                session_id=checkout_session.id
+            )
+            
+    except stripe.error.StripeError as e:
+        problem(400, "payment_error", f"Stripe error: {str(e)}")
+    except Exception as e:
+        problem(500, "internal_error", f"Internal error: {str(e)}")
+
+@app.post("/api/payment/donation", response_model=PaymentResponse)
+def create_donation_session(
+    request: DonationRequest,
+    user: SessionUser = Depends(get_session_user)
+):
+    """创建捐赠支付会话"""
+    try:
+        # 创建Stripe Checkout会话
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'MythicalHelper Guild Donation',
+                        'description': 'Support the Guild with your generous gift',
+                    },
+                    'unit_amount': request.amount,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f"{FRONTEND_URL}/portal?donation=success",
+            cancel_url=f"{FRONTEND_URL}/portal?donation=cancelled",
+            metadata={
+                'user_id': user.user_id,
+                'type': 'donation',
+                'amount': str(request.amount)
+            }
+        )
+        
+        return PaymentResponse(
+            checkout_url=checkout_session.url,
+            session_id=checkout_session.id
+        )
+        
+    except stripe.error.StripeError as e:
+        problem(400, "payment_error", f"Stripe error: {str(e)}")
+    except Exception as e:
+        problem(500, "internal_error", f"Internal error: {str(e)}")
+
+@app.post("/api/payment/webhook")
+async def stripe_webhook(request: Request):
+    """处理Stripe Webhook"""
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        problem(400, "invalid_payload", "Invalid payload")
+    except stripe.error.SignatureVerificationError:
+        problem(400, "invalid_signature", "Invalid signature")
+    
+    # 处理支付成功事件
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        metadata = session.get('metadata', {})
+        user_id = metadata.get('user_id')
+        payment_type = metadata.get('type')
+        amount = int(metadata.get('amount', 0))
+        
+        if not user_id:
+            problem(400, "invalid_metadata", "Missing user_id in metadata")
+        
+        with get_db() as db:
+            # 记录支付记录
+            purchase_id = str(uuid4())
+            db.session.add(Purchase(
+                id=purchase_id,
+                user_id=user_id,
+                amount=amount,
+                currency='USD',
+                provider_payment_id=session['id'],
+                purchased_at=datetime.now(UTC),
+                valid_until_after_purchase=datetime.fromisoformat(metadata['new_valid_until']) if payment_type == 'renewal' else None
+            ))
+            
+            # 如果是续费，更新用户有效期
+            if payment_type == 'renewal':
+                new_valid_until = datetime.fromisoformat(metadata['new_valid_until'])
+                user = db.get_user_by_id(user_id)
+                if user:
+                    user.valid_until = new_valid_until
+            
+            db.session.commit()
+    
+    return {"status": "success"}

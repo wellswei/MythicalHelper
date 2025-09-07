@@ -1,10 +1,7 @@
 // ===== PORTAL JAVASCRIPT =====
 
 // 配置
-const API_BASE = 'https://api.mythicalhelper.org';  // 使用你的实际API地址
-
-// ===== Stripe 配置 =====
-const stripe = Stripe('pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu');
+const API_BASE = 'https://api.mythicalhelper.org';
 
 // 全局状态
 let currentUser = null;
@@ -1342,6 +1339,9 @@ function setupEventListeners() {
   
   const makeDonationBtn = $('#btnMakeDonation');
   if (makeDonationBtn) makeDonationBtn.addEventListener('click', showDonationModal);
+  
+  // 支付框体相关按钮
+  setupPaymentEventListeners();
 
   // 全局兜底：若局部监听未绑定成功，使用事件委托捕获按钮点击
   try {
@@ -2397,7 +2397,97 @@ function displayPurchaseHistory(history) {
   });
 }
 
-async function showRenewalModal() {
+function showRenewalModal() {
+  // 显示续费支付框体
+  const paymentContainer = document.getElementById('paymentContainer');
+  const renewalCard = document.getElementById('renewalPaymentCard');
+  const donationCard = document.getElementById('donationPaymentCard');
+  
+  if (paymentContainer && renewalCard) {
+    // 隐藏捐赠框体，显示续费框体
+    if (donationCard) donationCard.style.display = 'none';
+    renewalCard.style.display = 'block';
+    paymentContainer.style.display = 'block';
+    
+    // 滚动到支付框体
+    paymentContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function showDonationModal() {
+  // 显示捐赠支付框体
+  const paymentContainer = document.getElementById('paymentContainer');
+  const renewalCard = document.getElementById('renewalPaymentCard');
+  const donationCard = document.getElementById('donationPaymentCard');
+  
+  if (paymentContainer && donationCard) {
+    // 隐藏续费框体，显示捐赠框体
+    if (renewalCard) renewalCard.style.display = 'none';
+    donationCard.style.display = 'block';
+    paymentContainer.style.display = 'block';
+    
+    // 滚动到支付框体
+    paymentContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+  // 默认选中$10
+  const presetBtn = donationCard.querySelector('[data-amount="10"]');
+  if (presetBtn) presetBtn.click();
+}
+
+// 设置支付框体事件监听器
+function setupPaymentEventListeners() {
+  // 续费支付框体事件
+  const closeRenewalBtn = $('#closeRenewalPayment');
+  const cancelRenewalBtn = $('#cancelRenewalPayment');
+  const confirmRenewalBtn = $('#confirmRenewalPayment');
+  
+  if (closeRenewalBtn) {
+    closeRenewalBtn.addEventListener('click', hidePaymentContainer);
+  }
+  if (cancelRenewalBtn) {
+    cancelRenewalBtn.addEventListener('click', hidePaymentContainer);
+  }
+  if (confirmRenewalBtn) {
+    confirmRenewalBtn.addEventListener('click', processRenewalPayment);
+  }
+  
+  // 捐赠支付框体事件
+  const closeDonationBtn = $('#closeDonationPayment');
+  const cancelDonationBtn = $('#cancelDonationPayment');
+  const confirmDonationBtn = $('#confirmDonationPayment');
+  
+  if (closeDonationBtn) {
+    closeDonationBtn.addEventListener('click', hidePaymentContainer);
+  }
+  if (cancelDonationBtn) {
+    cancelDonationBtn.addEventListener('click', hidePaymentContainer);
+  }
+  if (confirmDonationBtn) {
+    confirmDonationBtn.addEventListener('click', processDonationPayment);
+  }
+  
+  // 捐赠预设金额按钮
+  const presetBtns = document.querySelectorAll('.preset-btn');
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const amountInput = document.getElementById('donationAmount');
+      if (amountInput) amountInput.value = btn.dataset.amount;
+    });
+  });
+}
+
+// 隐藏支付容器
+function hidePaymentContainer() {
+  const paymentContainer = document.getElementById('paymentContainer');
+  if (paymentContainer) {
+    paymentContainer.style.display = 'none';
+  }
+}
+
+// 处理续费支付
+async function processRenewalPayment() {
   try {
     showLoading('Creating renewal session...');
     
@@ -2423,104 +2513,45 @@ async function showRenewalModal() {
   }
 }
 
-function showDonationModal() {
-  // 显示捐赠金额输入模态框
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay';
-  modal.innerHTML = `
-    <div class="modal-content donation-modal">
-      <div class="modal-header">
-        <h3>Share a Gift of Kindness</h3>
-        <button class="modal-close" type="button">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p>Any amount you give will help our guild shine brighter.</p>
-        <div class="donation-amount-section">
-          <label for="donationAmount">Donation Amount (USD)</label>
-          <div class="donation-input-group">
-            <span class="currency-symbol">$</span>
-            <input type="number" id="donationAmount" min="1" step="0.01" placeholder="10.00" value="10.00">
-          </div>
-          <div class="donation-presets">
-            <button class="preset-btn" data-amount="5">$5</button>
-            <button class="preset-btn" data-amount="10">$10</button>
-            <button class="preset-btn" data-amount="25">$25</button>
-            <button class="preset-btn" data-amount="50">$50</button>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn secondary" id="cancelDonation" type="button">Cancel</button>
-        <button class="btn primary" id="confirmDonation" type="button">Continue to Payment</button>
-      </div>
-    </div>
-  `;
+// 处理捐赠支付
+async function processDonationPayment() {
+  const amountInput = document.getElementById('donationAmount');
+  if (!amountInput) {
+    showError('Donation amount input not found');
+    return;
+  }
   
-  document.body.appendChild(modal);
+  const amount = parseFloat(amountInput.value);
+  if (!amount || amount < 1) {
+    showError('Please enter a valid amount (minimum $1)');
+    return;
+  }
   
-  // 绑定事件
-  const amountInput = modal.querySelector('#donationAmount');
-  const presetBtns = modal.querySelectorAll('.preset-btn');
-  const cancelBtn = modal.querySelector('#cancelDonation');
-  const confirmBtn = modal.querySelector('#confirmDonation');
-  const closeBtn = modal.querySelector('.modal-close');
-  
-  // 预设金额按钮
-  presetBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      presetBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      amountInput.value = btn.dataset.amount;
-    });
-  });
-  
-  // 取消按钮
-  cancelBtn.addEventListener('click', () => {
-    document.body.removeChild(modal);
-  });
-  
-  closeBtn.addEventListener('click', () => {
-    document.body.removeChild(modal);
-  });
-  
-  // 确认按钮
-  confirmBtn.addEventListener('click', async () => {
-    const amount = parseFloat(amountInput.value);
-    if (!amount || amount < 1) {
-      showError('Please enter a valid amount (minimum $1)');
-      return;
-    }
+  try {
+    showLoading('Creating donation session...');
     
-    try {
-      showLoading('Creating donation session...');
-      document.body.removeChild(modal);
-      
-      const response = await portalApiFetch('/api/payment/donation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Math.round(amount * 100) // 转换为美分
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.checkout_url) {
-        // 重定向到Stripe Checkout
-        window.location.href = data.checkout_url;
-      } else {
-        showError('Failed to create donation session');
-      }
-    } catch (error) {
-      console.error('Donation error:', error);
-      showError('Failed to start donation process');
+    const response = await portalApiFetch('/api/payment/donation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: Math.round(amount * 100) // 转换为美分
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.checkout_url) {
+      // 重定向到Stripe Checkout
+      window.location.href = data.checkout_url;
+    } else {
+      showError('Failed to create donation session');
     }
-  });
-  
-  // 默认选中$10
-  modal.querySelector('[data-amount="10"]').click();
+  } catch (error) {
+    console.error('Donation error:', error);
+    showError('Failed to start donation process');
+  }
 }
 
 // 处理支付结果

@@ -8,14 +8,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css"/>
   <link rel="stylesheet" href="portal.css"/>
 </head>
-<body class="page-portal">
+<body class="page-portal portal">
   <!-- 全站星空背景元素 -->
   <div class="meteor" aria-hidden="true"></div>
   <div class="meteor" aria-hidden="true"></div>
   <div class="meteor" aria-hidden="true"></div>
 
   <!-- Header -->
-  <header class="site-header">
+  <header class="header">
     <div class="container">
       <div class="brand">
         <img src="logo.png" alt="Logo" class="logo">
@@ -35,11 +35,11 @@
 
   <!-- Main Content -->
   <main class="container">
-    <!-- Section 1: Profile -->
-    <section class="portal-section" id="profileSection">
-      <div class="portal-card profile-grid">
-        <!-- 资料卡（左） -->
-        <section class="profile-card">
+    <!-- Section 1: Info -->
+    <section class="info-section" id="infoSection">
+      <div class="info-grid">
+        <!-- Profile Card -->
+        <div class="profile-card" id="profileCard">
           <div class="profile-header">
             <h2>Profile</h2>
             <button class="btn logout-btn" id="btnLogout" type="button">Logout</button>
@@ -54,63 +54,9 @@
               <span class="label">Email</span>
               <span class="value" id="userEmail">Loading…</span>
             </div>
-            <!-- Inline Email Change Flow -->
-            <div id="emailChangeSection" class="email-change-section" style="display:none;">
-              <div class="form-row">
-                <label for="newEmailInput" class="form-label" id="emailLabel">New Email</label>
-                <input type="email" id="newEmailInput" class="form-input" placeholder="you@example.com" />
-              </div>
-              
-              <!-- Turnstile验证 -->
-              <div class="turnstile-container" style="display: flex; flex-direction: column; align-items: center; margin: 15px 0;">
-                <div class="cf-turnstile"
-                     data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
-                     data-callback="onPortalTurnstileSuccess"
-                     data-expired-callback="onPortalTurnstileExpired"
-                     data-error-callback="onPortalTurnstileError"
-                     data-action="submit">
-                </div>
-                <div id="turnstileStatusEmail" class="turnstile-status default">
-                  <span id="turnstileMessageEmail">Security verification required</span>
-                </div>
-              </div>
-              
-              <div class="actions">
-                <button class="btn primary" id="btnSendEmailCode" type="button">Send Code</button>
-                <button class="btn" id="btnCancelEmailChange" type="button">Cancel</button>
-              </div>
-              <div class="error" id="errPortalEmail"></div>
-            </div>
             <div class="field">
               <span class="label">Phone</span>
               <span class="value" id="userPhone">Loading…</span>
-            </div>
-            <!-- Inline Phone Change Flow (moved under Phone) -->
-            <div id="phoneChangeSection" class="phone-change-section" style="display:none;">
-              <div class="form-row">
-                <label for="newPhoneInput" class="form-label" id="phoneLabel">New Phone</label>
-                <input type="tel" id="newPhoneInput" class="form-input" placeholder="Enter your new phone" />
-              </div>
-              
-              <!-- Turnstile验证 -->
-              <div class="turnstile-container" style="display: flex; flex-direction: column; align-items: center; margin: 15px 0;">
-                <div class="cf-turnstile"
-                     data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
-                     data-callback="onPortalTurnstileSuccess"
-                     data-expired-callback="onPortalTurnstileExpired"
-                     data-error-callback="onPortalTurnstileError"
-                     data-action="submit">
-                </div>
-                <div id="turnstileStatusPhone" class="turnstile-status default">
-                  <span id="turnstileMessagePhone">Security verification required</span>
-                </div>
-              </div>
-              
-              <div class="actions">
-                <button class="btn primary" id="btnSendPhoneCode" type="button">Send Code</button>
-                <button class="btn" id="btnCancelPhoneChange" type="button">Cancel</button>
-              </div>
-              <div class="error" id="errPortalPhone"></div>
             </div>
             <div class="field">
               <span class="label">Member Since</span>
@@ -126,23 +72,95 @@
               <button class="btn link" id="btnDeleteAccount" type="button">Delete Account</button>
             </div>
           </div>
-        </section>
+        </div>
 
-        <!-- 动作卡（右） -->
-        <aside class="action-card">
+        <!-- Email Change Card -->
+        <div class="change-card" id="emailChangeCard" style="display:none;">
+          <div class="change-header">
+            <h2>Change Email</h2>
+            <button class="btn" id="btnCancelEmailChange" type="button">Cancel</button>
+          </div>
+
+          <div class="change-content">
+            <!-- 显示当前Email信息 -->
+            <div class="field">
+              <span class="label">Current Email</span>
+              <span class="value" id="currentEmailDisplay">Loading…</span>
+            </div>
+            
+            <!-- Change Action部分 -->
+            <div class="field">
+              <span class="label" id="emailLabel">New Email</span>
+              <input type="email" id="newEmailInput" class="form-input" placeholder="you@example.com" />
+            </div>
+            
+            <!-- Turnstile验证 -->
+            <div class="turnstile-container">
+              <div class="cf-turnstile"
+                   data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
+                   data-callback="onPortalTurnstileSuccess"
+                   data-expired-callback="onPortalTurnstileExpired"
+                   data-error-callback="onPortalTurnstileError"
+                   data-action="submit">
+              </div>
+            </div>
+            
+            <div class="error" id="errPortalEmail"></div>
+            <div class="actions">
+              <button class="btn primary" id="btnSendEmailCode" type="button">Send Code</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone Change Card -->
+        <div class="change-card" id="phoneChangeCard" style="display:none;">
+          <div class="change-header">
+            <h2>Change Phone</h2>
+            <button class="btn" id="btnCancelPhoneChange" type="button">Cancel</button>
+          </div>
+
+          <div class="change-content">
+            <!-- 显示当前Phone信息 -->
+            <div class="field">
+              <span class="label">Current Phone</span>
+              <span class="value" id="currentPhoneDisplay">Loading…</span>
+            </div>
+            
+            <!-- Change Action部分 -->
+            <div class="field">
+              <span class="label" id="phoneLabel">New Phone</span>
+              <input type="tel" id="newPhoneInput" class="form-input" placeholder="Enter your new phone" />
+            </div>
+            
+            <!-- Turnstile验证 -->
+            <div class="turnstile-container">
+              <div class="cf-turnstile"
+                   data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
+                   data-callback="onPortalTurnstileSuccess"
+                   data-expired-callback="onPortalTurnstileExpired"
+                   data-error-callback="onPortalTurnstileError"
+                   data-action="submit">
+              </div>
+            </div>
+            
+            <div class="error" id="errPortalPhone"></div>
+            <div class="actions">
+              <button class="btn primary" id="btnSendPhoneCode" type="button">Send Code</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR卡（右） -->
+        <div class="qr-card">
           <div class="action-header">
             <h4 class="card-title">QRcode</h4>
           </div>
           <div class="qr-container">
             <div class="qr-box" id="qrCode">
-              <div class="qr-placeholder">
-                <div class="qr-icon">📱</div>
-                <p>QR Code</p>
-              </div>
             </div>
             <p class="muted">Scan to preview your badges</p>
           </div>
-        </aside>
+        </div>
       </div>
       
       <!-- 分割线 -->
@@ -201,18 +219,18 @@
         
         <!-- 按钮和介绍部分 -->
         <div class="renewal-actions-section">
-          <div class="action-item">
+          <div class="renewal-action-item">
             <button class="btn primary fancy-btn" id="btnRenewMembership" type="button">
               RENEW YOUR ENCHANTMENT
             </button>
-            <p class="action-desc">Keep the wonder alive with a full year of magic for $9.99.</p>
+            <p class="renewal-action-desc">Keep the wonder alive with a full year of magic for $9.99.</p>
           </div>
           
-          <div class="action-item">
+          <div class="renewal-action-item">
             <button class="btn secondary fancy-btn" id="btnMakeDonation" type="button">
               SHARE A GIFT OF KINDNESS
             </button>
-            <p class="action-desc">Any amount you give will help our guild shine brighter.</p>
+            <p class="renewal-action-desc">Any amount you give will help our guild shine brighter.</p>
           </div>
         </div>
         
@@ -271,6 +289,8 @@
 
   <!-- QR Code Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Stripe.js -->
+  <script src="https://js.stripe.com/v3/"></script>
   <!-- intl-tel-input JS + utils (before portal.js) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/intlTelInput.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js" defer></script>

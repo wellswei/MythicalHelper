@@ -681,6 +681,9 @@ async function loadUserData() {
     }, 100);
     
     // 根据用户角色显示不同的内容
+    if (currentUser.role === 'admin') {
+      showAdminInterface();
+    }
     
   } catch (error) {
     console.error('Failed to load user data:', error);
@@ -2713,6 +2716,261 @@ async function handlePaymentResult() {
     showError('Donation was cancelled.');
     window.history.replaceState({}, document.title, window.location.pathname);
   }
+}
+
+// ===== 管理员界面 =====
+function showAdminInterface() {
+  console.log('=== SHOWING ADMIN INTERFACE ===');
+  
+  // 隐藏普通用户界面
+  const profileCard = document.getElementById('profileCard');
+  const renewalSection = document.getElementById('renewalSection');
+  const historySection = document.getElementById('historySection');
+  
+  if (profileCard) profileCard.style.display = 'none';
+  if (renewalSection) renewalSection.style.display = 'none';
+  if (historySection) historySection.style.display = 'none';
+  
+  // 创建管理员界面
+  createAdminInterface();
+}
+
+function createAdminInterface() {
+  const mainContent = document.querySelector('.portal-main');
+  if (!mainContent) return;
+  
+  // 清空现有内容
+  mainContent.innerHTML = '';
+  
+  // 创建管理员界面HTML
+  mainContent.innerHTML = `
+    <div class="admin-interface">
+      <div class="admin-header">
+        <h1>Admin Dashboard</h1>
+        <p>Manage users and transactions</p>
+      </div>
+      
+      <div class="admin-stats">
+        <div class="stat-card">
+          <h3>Total Users</h3>
+          <div class="stat-value" id="totalUsers">-</div>
+        </div>
+        <div class="stat-card">
+          <h3>Active Users</h3>
+          <div class="stat-value" id="activeUsers">-</div>
+        </div>
+        <div class="stat-card">
+          <h3>Total Revenue</h3>
+          <div class="stat-value" id="totalRevenue">-</div>
+        </div>
+        <div class="stat-card">
+          <h3>Monthly Revenue</h3>
+          <div class="stat-value" id="monthlyRevenue">-</div>
+        </div>
+      </div>
+      
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="users">Users</button>
+        <button class="tab-btn" data-tab="purchases">Transactions</button>
+      </div>
+      
+      <div class="admin-content">
+        <div class="tab-content active" id="users-tab">
+          <div class="admin-search">
+            <input type="text" id="userSearch" placeholder="Search users...">
+            <button id="searchUsers">Search</button>
+          </div>
+          <div class="admin-table" id="usersTable">
+            <div class="table-loading">Loading users...</div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="purchases-tab">
+          <div class="admin-search">
+            <input type="text" id="purchaseSearch" placeholder="Search transactions...">
+            <button id="searchPurchases">Search</button>
+          </div>
+          <div class="admin-table" id="purchasesTable">
+            <div class="table-loading">Loading transactions...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // 绑定事件
+  setupAdminEventListeners();
+  
+  // 加载数据
+  loadAdminStats();
+  loadAdminUsers();
+}
+
+function setupAdminEventListeners() {
+  // 标签切换
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      switchTab(tab);
+    });
+  });
+  
+  // 搜索功能
+  const userSearchBtn = document.getElementById('searchUsers');
+  const purchaseSearchBtn = document.getElementById('searchPurchases');
+  
+  if (userSearchBtn) {
+    userSearchBtn.addEventListener('click', () => {
+      const query = document.getElementById('userSearch').value;
+      loadAdminUsers(1, 20, query);
+    });
+  }
+  
+  if (purchaseSearchBtn) {
+    purchaseSearchBtn.addEventListener('click', () => {
+      const query = document.getElementById('purchaseSearch').value;
+      loadAdminPurchases(1, 20, query);
+    });
+  }
+}
+
+function switchTab(tab) {
+  // 更新标签按钮状态
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  
+  // 更新内容显示
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+  document.getElementById(`${tab}-tab`).classList.add('active');
+  
+  // 加载对应数据
+  if (tab === 'users') {
+    loadAdminUsers();
+  } else if (tab === 'purchases') {
+    loadAdminPurchases();
+  }
+}
+
+async function loadAdminStats() {
+  try {
+    const stats = await portalApiFetch('/admin/stats');
+    
+    document.getElementById('totalUsers').textContent = stats.users.total;
+    document.getElementById('activeUsers').textContent = stats.users.active;
+    document.getElementById('totalRevenue').textContent = stats.revenue.total;
+    document.getElementById('monthlyRevenue').textContent = stats.revenue.monthly;
+  } catch (error) {
+    console.error('Failed to load admin stats:', error);
+  }
+}
+
+async function loadAdminUsers(page = 1, limit = 20, search = '') {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    });
+    if (search) params.append('search', search);
+    
+    const data = await portalApiFetch(`/admin/users?${params}`);
+    displayAdminUsers(data.users);
+  } catch (error) {
+    console.error('Failed to load admin users:', error);
+    document.getElementById('usersTable').innerHTML = '<div class="table-error">Failed to load users</div>';
+  }
+}
+
+async function loadAdminPurchases(page = 1, limit = 20, search = '') {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    });
+    if (search) params.append('search', search);
+    
+    const data = await portalApiFetch(`/admin/purchases?${params}`);
+    displayAdminPurchases(data.purchases);
+  } catch (error) {
+    console.error('Failed to load admin purchases:', error);
+    document.getElementById('purchasesTable').innerHTML = '<div class="table-error">Failed to load transactions</div>';
+  }
+}
+
+function displayAdminUsers(users) {
+  const table = document.getElementById('usersTable');
+  if (!table) return;
+  
+  if (users.length === 0) {
+    table.innerHTML = '<div class="table-empty">No users found</div>';
+    return;
+  }
+  
+  const tableHTML = `
+    <div class="table-header">
+      <div class="table-cell">Username</div>
+      <div class="table-cell">Email</div>
+      <div class="table-cell">Role</div>
+      <div class="table-cell">Status</div>
+      <div class="table-cell">Valid Until</div>
+      <div class="table-cell">Created</div>
+    </div>
+    ${users.map(user => `
+      <div class="table-row">
+        <div class="table-cell">${user.username || 'N/A'}</div>
+        <div class="table-cell">${user.email || 'N/A'}</div>
+        <div class="table-cell">${user.role}</div>
+        <div class="table-cell">
+          <span class="status-badge ${user.is_active ? 'active' : 'inactive'}">
+            ${user.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+        <div class="table-cell">${user.valid_until || 'N/A'}</div>
+        <div class="table-cell">${user.created_at}</div>
+      </div>
+    `).join('')}
+  `;
+  
+  table.innerHTML = tableHTML;
+}
+
+function displayAdminPurchases(purchases) {
+  const table = document.getElementById('purchasesTable');
+  if (!table) return;
+  
+  if (purchases.length === 0) {
+    table.innerHTML = '<div class="table-empty">No transactions found</div>';
+    return;
+  }
+  
+  const tableHTML = `
+    <div class="table-header">
+      <div class="table-cell">User</div>
+      <div class="table-cell">Type</div>
+      <div class="table-cell">Amount</div>
+      <div class="table-cell">Status</div>
+      <div class="table-cell">Date</div>
+    </div>
+    ${purchases.map(purchase => `
+      <div class="table-row">
+        <div class="table-cell">${purchase.username}</div>
+        <div class="table-cell">${purchase.type}</div>
+        <div class="table-cell">${purchase.amount}</div>
+        <div class="table-cell">
+          <span class="status-badge ${purchase.status.toLowerCase()}">
+            ${purchase.status}
+          </span>
+        </div>
+        <div class="table-cell">${purchase.purchased_at}</div>
+      </div>
+    `).join('')}
+  `;
+  
+  table.innerHTML = tableHTML;
 }
 
 // ===== Cloudflare Stripe Proxy 说明 =====

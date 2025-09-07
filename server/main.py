@@ -18,7 +18,7 @@ import os
 import httpx
 import stripe
 
-from models import create_database, Purchase
+from models import create_database, Purchase, User
 from database import DatabaseService, get_db
 
 UTC = timezone.utc
@@ -1279,11 +1279,15 @@ def get_payment_history(user: SessionUser = Depends(get_session_user)):
                 amount_dollars = purchase.amount / 100 if purchase.amount else 0
                 amount_str = f"${amount_dollars:.2f}"
                 
+                # 确定支付状态（有provider_payment_id表示支付成功）
+                status = "Completed" if purchase.provider_payment_id else "Pending"
+                
                 history.append({
                     "id": purchase.id,
                     "date": purchase.purchased_at.strftime("%Y-%m-%d"),
                     "amount": amount_str,
                     "type": payment_type,
+                    "status": status,
                     "currency": purchase.currency,
                     "provider_payment_id": purchase.provider_payment_id
                 })
@@ -1293,3 +1297,198 @@ def get_payment_history(user: SessionUser = Depends(get_session_user)):
     except Exception as e:
         print(f"[PAYMENT] Error getting payment history: {str(e)}")
         problem(500, "history_failed", "Failed to get payment history")
+
+# =========================
+# 管理员API
+# =========================
+admin = APIRouter(prefix="/admin", tags=["Admin"])
+
+@admin.get("/users")
+def admin_get_users(
+    page: int = 1,
+    limit: int = 20,
+    search: str = None,
+    su: SessionUser = Depends(require_admin)
+):
+    """获取所有用户列表（管理员）"""
+    try:
+        with get_db() as db:
+            # 构建查询
+            query = db.db.query(User).filter(User.deleted_at.is_(None))
+            
+            # 搜索功能
+            if search:
+                search_term = f"%{search}%"
+                query = query.filter(
+                    (User.username.ilike(search_term)) |
+                    (User.email.ilike(search_term)) |
+                    (User.phone.ilike(search_term))
+                )
+            
+            # 分页
+            offset = (page - 1) * limit
+            users = query.order_by(User.created_at.desc()).offset(offset).limit(limit).all()
+            total = query.count()
+            
+            # 转换为前端格式
+            user_list = []
+            for user in users:
+                user_list.append({
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "phone": user.phone,
+                    "role": user.role,
+                    "status": user.status,
+                    "created_at": user.created_at.strftime("%Y-%m-%d %H:%M"),
+                    "valid_until": user.valid_until.strftime("%Y-%m-%d") if user.valid_until else None,
+                    "is_active": user.valid_until and user.valid_until > datetime.now(UTC) if user.valid_until else False
+                })
+            
+            return {
+                "users": user_list,
+                "pagination": {
+                    "page": page,
+                    "limit": limit,
+                    "total": total,
+                    "pages": (total + limit - 1) // limit
+                }
+            }
+    except Exception as e:
+        print(f"[ADMIN] Error getting users: {str(e)}")
+        problem(500, "users_failed", "Failed to get users")
+
+@admin.get("/purchases")
+def admin_get_purchases(
+    page: int = 1,
+    limit: int = 20,
+    user_id: str = None,
+    su: SessionUser = Depends(require_admin)
+):
+    """获取所有交易记录（管理员）"""
+    try:
+        with get_db() as db:
+            # 构建查询
+            query = db.db.query(Purchase)
+            
+            # 按用户筛选
+            if user_id:
+                query = query.filter(Purchase.user_id == user_id)
+            
+            # 分页
+            offset = (page - 1) * limit
+            purchases = query.order_by(Purchase.purchased_at.desc()).offset(offset).limit(limit).all()
+            total = query.count()
+            
+            # 转换为前端格式
+            purchase_list = []
+            for purchase in purchases:
+                # 获取用户信息
+                user = db.get_user_by_id(purchase.user_id)
+                username = user.username if user else "Unknown"
+                
+                # 确定支付类型
+                if purchase.valid_until_after_purchase:
+                    payment_type = "Membership Renewal"
+                else:
+                    payment_type = "Donation"
+                
+                # 格式化金额
+                amount_dollars = purchase.amount / 100 if purchase.amount else 0
+                amount_str = f"${amount_dollars:.2f}"
+                
+                # 确定支付状态
+                status = "Completed" if purchase.provider_payment_id else "Pending"
+                
+                purchase_list.append({
+                    "id": purchase.id,
+                    "user_id": purchase.user_id,
+                    "username": username,
+                    "amount": amount_str,
+                    "currency": purchase.currency,
+                    "type": payment_type,
+                    "status": status,
+                    "purchased_at": purchase.purchased_at.strftime("%Y-%m-%d %H:%M"),
+                    "provider_payment_id": purchase.provider_payment_id
+                })
+            
+            return {
+                "purchases": purchase_list,
+                "pagination": {
+                    "page": page,
+                    "limit": limit,
+                    "total": total,
+                    "pages": (total + limit - 1) // limit
+                }
+            }
+    except Exception as e:
+        print(f"[ADMIN] Error getting purchases: {str(e)}")
+        problem(500, "purchases_failed", "Failed to get purchases")
+
+@admin.get("/stats")
+def admin_get_stats(su: SessionUser = Depends(require_admin)):
+    """获取统计信息（管理员）"""
+    try:
+        with get_db() as db:
+            # 总用户数
+            total_users = db.db.query(User).filter(User.deleted_at.is_(None)).count()
+            
+            # 活跃用户数（有效期内）
+            current_time = datetime.now(UTC)
+            active_users = db.db.query(User).filter(
+                User.deleted_at.is_(None),
+                User.valid_until > current_time
+            ).count()
+            
+            # 本月新增用户
+            month_start = current_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            monthly_users = db.db.query(User).filter(
+                User.deleted_at.is_(None),
+                User.created_at >= month_start
+            ).count()
+            
+            # 总收入（美分转美元）
+            total_revenue = db.db.query(Purchase).filter(
+                Purchase.provider_payment_id.isnot(None)
+            ).with_entities(db.db.func.sum(Purchase.amount)).scalar() or 0
+            total_revenue_dollars = total_revenue / 100
+            
+            # 本月收入
+            monthly_revenue = db.db.query(Purchase).filter(
+                Purchase.provider_payment_id.isnot(None),
+                Purchase.purchased_at >= month_start
+            ).with_entities(db.db.func.sum(Purchase.amount)).scalar() or 0
+            monthly_revenue_dollars = monthly_revenue / 100
+            
+            # 续费数量
+            renewal_count = db.db.query(Purchase).filter(
+                Purchase.valid_until_after_purchase.isnot(None),
+                Purchase.provider_payment_id.isnot(None)
+            ).count()
+            
+            # 捐赠数量
+            donation_count = db.db.query(Purchase).filter(
+                Purchase.valid_until_after_purchase.is_(None),
+                Purchase.provider_payment_id.isnot(None)
+            ).count()
+            
+            return {
+                "users": {
+                    "total": total_users,
+                    "active": active_users,
+                    "monthly_new": monthly_users
+                },
+                "revenue": {
+                    "total": f"${total_revenue_dollars:.2f}",
+                    "monthly": f"${monthly_revenue_dollars:.2f}"
+                },
+                "purchases": {
+                    "renewals": renewal_count,
+                    "donations": donation_count
+                }
+            }
+    except Exception as e:
+        print(f"[ADMIN] Error getting stats: {str(e)}")
+        problem(500, "stats_failed", "Failed to get stats")
+
+app.include_router(admin)

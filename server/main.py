@@ -1064,7 +1064,7 @@ def create_renewal_session(
                     "metadata[amount]": "999"
                 }
                 
-                response = requests.post(stripe_url, headers=headers, data=payload, timeout=30)
+                response = requests.post(stripe_url, headers=headers, data=payload, timeout=10)
                 response.raise_for_status()
                 
                 result = response.json()
@@ -1178,7 +1178,7 @@ async def stripe_webhook(request: Request):
         with get_db() as db:
             # 记录支付记录
             purchase_id = str(uuid4())
-            db.session.add(Purchase(
+            db.db.add(Purchase(
                 id=purchase_id,
                 user_id=user_id,
                 amount=amount,
@@ -1195,7 +1195,7 @@ async def stripe_webhook(request: Request):
                 if user:
                     user.valid_until = new_valid_until
             
-            db.session.commit()
+            db.db.commit()
     
     return {"status": "success"}
 
@@ -1251,3 +1251,45 @@ def verify_payment_session(session_id: str, user: SessionUser = Depends(get_sess
     except Exception as e:
         print(f"[PAYMENT] Internal error verifying session: {str(e)}")
         problem(500, "internal_error", f"Internal error: {str(e)}")
+
+@app.get("/api/payment/history")
+def get_payment_history(user: SessionUser = Depends(get_session_user)):
+    """获取用户支付历史"""
+    try:
+        print(f"[PAYMENT] Getting payment history for user: {user.user_id}")
+        
+        with get_db() as db:
+            # 获取用户的所有购买记录
+            purchases = db.db.query(Purchase).filter(
+                Purchase.user_id == user.user_id
+            ).order_by(Purchase.purchased_at.desc()).all()
+            
+            print(f"[PAYMENT] Found {len(purchases)} purchase records")
+            
+            # 转换为前端需要的格式
+            history = []
+            for purchase in purchases:
+                # 确定支付类型
+                if purchase.valid_until_after_purchase:
+                    payment_type = "Membership Renewal"
+                else:
+                    payment_type = "Donation"
+                
+                # 格式化金额
+                amount_dollars = purchase.amount / 100 if purchase.amount else 0
+                amount_str = f"${amount_dollars:.2f}"
+                
+                history.append({
+                    "id": purchase.id,
+                    "date": purchase.purchased_at.strftime("%Y-%m-%d"),
+                    "amount": amount_str,
+                    "type": payment_type,
+                    "currency": purchase.currency,
+                    "provider_payment_id": purchase.provider_payment_id
+                })
+            
+            return {"history": history}
+            
+    except Exception as e:
+        print(f"[PAYMENT] Error getting payment history: {str(e)}")
+        problem(500, "history_failed", "Failed to get payment history")

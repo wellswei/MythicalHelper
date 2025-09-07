@@ -2695,7 +2695,10 @@ async function handlePaymentResult() {
       
       if (result.status === 'complete') {
         showSuccess('Payment successful! Your membership has been extended.');
-        loadUserData(); // 刷新用户数据
+        // 延迟刷新用户数据，避免在支付验证过程中出现问题
+        setTimeout(() => {
+          loadUserData();
+        }, 1000);
       } else if (result.status === 'cancelled') {
         showError('Payment was cancelled.');
       } else {
@@ -2704,6 +2707,7 @@ async function handlePaymentResult() {
     } catch (error) {
       console.error('Payment verification error:', error);
       showError('Payment verification failed: ' + error.message);
+      // 支付验证失败时不要刷新用户数据，避免触发重定向
     }
     // 清除URL参数
     window.history.replaceState({}, document.title, window.location.pathname);

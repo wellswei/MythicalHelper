@@ -1040,18 +1040,15 @@ def create_renewal_session(
                 # 通过 Cloudflare Worker 代理调用 Stripe API
                 import requests
                 
-                proxy_url = "https://stripe-proxy.mythicalhelper.org"  # Stripe 代理端点
-                
-                # 直接调用 Stripe API 端点
-                stripe_url = f"{proxy_url}/v1/checkout/sessions"
+                # 使用实际的 Cloudflare Worker 端点
+                stripe_url = "https://pay.mythicalhelper.org/v1/checkout/sessions"
                 
                 headers = {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "X-Worker-Auth": "your-auth-token"  # 可选：添加认证
+                    "X-Worker-Auth": "X7f8uV2YwQ9JsL4epM3RaNDkZ0B1tFgH"
                 }
                 
                 # 构建 Stripe API 请求数据
-                data = {
+                payload = {
                     "payment_method_types[]": "card",
                     "line_items[0][price_data][currency]": "usd",
                     "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Membership Renewal",
@@ -1067,7 +1064,7 @@ def create_renewal_session(
                     "metadata[amount]": "999"
                 }
                 
-                response = requests.post(stripe_url, data=data, headers=headers, timeout=30)
+                response = requests.post(stripe_url, headers=headers, data=payload, timeout=30)
                 response.raise_for_status()
                 
                 result = response.json()
@@ -1111,33 +1108,40 @@ def create_donation_session(
 ):
     """创建捐赠支付会话"""
     try:
-        # 创建Stripe Checkout会话
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': 'MythicalHelper Guild Donation',
-                        'description': 'Support the Guild with your generous gift',
-                    },
-                    'unit_amount': request.amount,
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=f"{FRONTEND_URL}/portal?donation=success",
-            cancel_url=f"{FRONTEND_URL}/portal?donation=cancelled",
-            metadata={
-                'user_id': user.user_id,
-                'type': 'donation',
-                'amount': str(request.amount)
-            }
-        )
+        # 通过 Cloudflare Worker 代理调用 Stripe API
+        import requests
+        
+        # 使用实际的 Cloudflare Worker 端点
+        stripe_url = "https://pay.mythicalhelper.org/v1/checkout/sessions"
+        
+        headers = {
+            "X-Worker-Auth": "X7f8uV2YwQ9JsL4epM3RaNDkZ0B1tFgH"
+        }
+        
+        # 构建 Stripe API 请求数据
+        payload = {
+            "payment_method_types[]": "card",
+            "line_items[0][price_data][currency]": "usd",
+            "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Donation",
+            "line_items[0][price_data][product_data][description]": "Support the Guild with your generous gift",
+            "line_items[0][price_data][unit_amount]": str(request.amount),
+            "line_items[0][quantity]": "1",
+            "mode": "payment",
+            "success_url": f"{FRONTEND_URL}/portal?donation=success",
+            "cancel_url": f"{FRONTEND_URL}/portal?donation=cancelled",
+            "metadata[user_id]": user.user_id,
+            "metadata[type]": "donation",
+            "metadata[amount]": str(request.amount)
+        }
+        
+        response = requests.post(stripe_url, headers=headers, data=payload, timeout=30)
+        response.raise_for_status()
+        
+        result = response.json()
         
         return PaymentResponse(
-            checkout_url=checkout_session.url,
-            session_id=checkout_session.id
+            checkout_url=result['url'],
+            session_id=result['id']
         )
         
     except stripe.error.StripeError as e:
@@ -1199,8 +1203,20 @@ async def stripe_webhook(request: Request):
 def verify_payment_session(session_id: str, user: SessionUser = Depends(get_session_user)):
     """验证支付会话状态"""
     try:
-        # 从Stripe获取会话信息
-        session = stripe.checkout.Session.retrieve(session_id)
+        # 通过 Cloudflare Worker 代理调用 Stripe API
+        import requests
+        
+        # 使用实际的 Cloudflare Worker 端点
+        stripe_url = f"https://pay.mythicalhelper.org/v1/checkout/sessions/{session_id}"
+        
+        headers = {
+            "X-Worker-Auth": "X7f8uV2YwQ9JsL4epM3RaNDkZ0B1tFgH"
+        }
+        
+        response = requests.get(stripe_url, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        session = response.json()
         
         # 检查会话是否属于当前用户
         metadata = session.get('metadata', {})

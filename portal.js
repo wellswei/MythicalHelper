@@ -1285,6 +1285,10 @@ function setupEventListeners() {
   // 内联修改手机号
   const startPhoneBtn = $('#btnStartPhoneChange');
   if (startPhoneBtn) startPhoneBtn.addEventListener('click', () => {
+    // 清除之前的手机号修改状态
+    clearPhoneChangeState();
+    resetPhoneEditorUI(false);
+    
     // 隐藏profile card，显示phone change card
     const profileCard = document.getElementById('profileCard');
     const phoneChangeCard = document.getElementById('phoneChangeCard');
@@ -1387,6 +1391,10 @@ function setupEventListeners() {
       const phoneBtn = e.target && (e.target.closest ? e.target.closest('#btnStartPhoneChange') : null);
       if (phoneBtn) {
         e.preventDefault();
+        // 清除之前的手机号修改状态
+        clearPhoneChangeState();
+        resetPhoneEditorUI(false);
+        
         // 隐藏profile card，显示phone change card
         const profileCard = document.getElementById('profileCard');
         const phoneChangeCard = document.getElementById('phoneChangeCard');

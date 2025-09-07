@@ -1835,6 +1835,13 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* 分割线 */
+.portal .renewal-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  margin: 24px 0;
+}
+
 .portal .renewal-action-item {
   display: flex;
   align-items: center;
@@ -1880,6 +1887,49 @@ body {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
   margin-top: 8px;
+}
+
+/* 历史记录项样式 */
+.portal .history-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.portal .history-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.portal .history-item-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.portal .history-item-date {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.portal .history-item-type {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 500;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  flex: 1;
+  text-align: center;
+}
+
+.portal .history-item-amount {
+  font-size: 14px;
+  color: #10b981;
+  font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Membership Section Buttons */
@@ -2403,6 +2453,17 @@ body {
   
   .portal .renewal-action-desc {
     font-size: clamp(10px, 1.1vw, 12px);
+  }
+  
+  /* 历史记录响应式 */
+  .portal .history-item-simple {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .portal .history-item-type {
+    text-align: center;
   }
   
   /* Footer responsive adjustments */

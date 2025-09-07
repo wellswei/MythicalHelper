@@ -2376,11 +2376,23 @@ function updateRenewalInfo() {
 }
 
 async function loadPurchaseHistory() {
-  if (!currentUser) return;
+  console.log('=== LOADING PURCHASE HISTORY ===');
+  console.log('Current user:', currentUser);
+  
+  if (!currentUser) {
+    console.log('No current user, skipping purchase history load');
+    return;
+  }
 
   const historyLoading = $('#historyLoading');
   const noHistory = $('#noHistory');
   const historyList = $('#historyList');
+
+  console.log('History elements found:', {
+    historyLoading: !!historyLoading,
+    noHistory: !!noHistory,
+    historyList: !!historyList
+  });
 
   if (historyLoading) historyLoading.style.display = 'block';
   if (noHistory) noHistory.style.display = 'none';
@@ -2398,8 +2410,10 @@ async function loadPurchaseHistory() {
     if (historyLoading) historyLoading.style.display = 'none';
     
     if (response.history && response.history.length > 0) {
+      console.log('Displaying purchase history with', response.history.length, 'items');
       displayPurchaseHistory(response.history);
     } else {
+      console.log('No purchase history found, showing no history message');
       if (noHistory) noHistory.style.display = 'block';
     }
   } catch (error) {
@@ -2410,13 +2424,22 @@ async function loadPurchaseHistory() {
 }
 
 function displayPurchaseHistory(history) {
+  console.log('=== DISPLAYING PURCHASE HISTORY ===');
+  console.log('History data:', history);
+  
   const historyList = $('#historyList');
-  if (!historyList) return;
+  if (!historyList) {
+    console.error('History list element not found!');
+    return;
+  }
 
+  console.log('History list element found, clearing content');
   // 清空现有内容
   historyList.innerHTML = '';
 
-  history.forEach(transaction => {
+  console.log('Creating history items for', history.length, 'transactions');
+  history.forEach((transaction, index) => {
+    console.log(`Creating item ${index + 1}:`, transaction);
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
     historyItem.innerHTML = `
@@ -2428,6 +2451,8 @@ function displayPurchaseHistory(history) {
     `;
     historyList.appendChild(historyItem);
   });
+  
+  console.log('History items created and appended to DOM');
 }
 
 async function showRenewalModal() {

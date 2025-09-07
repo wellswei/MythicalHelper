@@ -597,7 +597,7 @@ async function apiCall(endpoint, options = {}) {
     if (!isInEmailChangeFlow) {
       redirectToAuth();
     }
-    return null;
+    throw new Error('401 Unauthorized - Session expired or invalid');
   }
 
   if (!response.ok) {

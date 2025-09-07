@@ -2979,7 +2979,7 @@ function displayAdminUsers(users) {
         <div class="table-cell">${user.valid_until || 'N/A'}</div>
         <div class="table-cell">
           <div class="admin-actions">
-            <button class="btn-edit" onclick="editUser('${user.id}', false)" title="Edit User">
+            <button class="btn-edit" onclick="openEditUserModal('${user.id}')" title="Edit User">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -3203,8 +3203,8 @@ async function restoreUser(userId) {
     
     if (response.ok) {
       alert('User restored successfully!');
-      // 刷新用户列表
-      loadAdminUsers();
+      // 刷新整个页面以显示最新状态
+      window.location.reload();
     } else {
       const error = await response.json();
       alert(`Failed to restore user: ${error.detail || 'Unknown error'}`);
@@ -3232,8 +3232,8 @@ async function deleteUser(userId, username) {
     
     if (response.ok) {
       alert('User deleted successfully!');
-      // 刷新用户列表
-      loadAdminUsers();
+      // 刷新整个页面以显示最新状态
+      window.location.reload();
     } else {
       const error = await response.json();
       alert(`Failed to delete user: ${error.detail || 'Unknown error'}`);
@@ -3261,8 +3261,8 @@ async function permanentlyDeleteUser(userId, username) {
     
     if (response.ok) {
       alert('User permanently deleted!');
-      // 刷新blocklist
-      loadBlocklistUsers();
+      // 刷新整个页面以显示最新状态
+      window.location.reload();
     } else {
       const error = await response.json();
       alert(`Failed to permanently delete user: ${error.detail || 'Unknown error'}`);
@@ -3289,6 +3289,7 @@ function displayAdminPurchases(purchases) {
       <div class="table-cell">Amount</div>
       <div class="table-cell">Status</div>
       <div class="table-cell">Date</div>
+      <div class="table-cell">Actions</div>
     </div>
     ${purchases.map(purchase => `
       <div class="table-row">
@@ -3301,12 +3302,193 @@ function displayAdminPurchases(purchases) {
           </span>
         </div>
         <div class="table-cell">${purchase.purchased_at}</div>
+        <div class="table-cell">
+          <div class="admin-actions">
+            ${purchase.status === 'Completed' ? `
+              <button class="btn-refund" onclick="refundPurchase('${purchase.id}')" title="Refund Purchase">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                  <path d="M21 3v5h-5"></path>
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                  <path d="M3 21v-5h5"></path>
+                </svg>
+              </button>
+            ` : ''}
+          </div>
+        </div>
       </div>
     `).join('')}
   `;
   
   table.innerHTML = tableHTML;
 }
+
+// ===== USER EDIT FUNCTIONALITY =====
+let currentEditUserId = null;
+
+function openEditUserModal(userId) {
+  currentEditUserId = userId;
+  
+  // 获取用户信息并填充表单
+  loadUserForEdit(userId);
+  
+  // 显示模态框
+  document.getElementById('editUserModal').style.display = 'flex';
+}
+
+function closeEditUserModal() {
+  currentEditUserId = null;
+  document.getElementById('editUserModal').style.display = 'none';
+  
+  // 清除表单和错误信息
+  clearEditForm();
+}
+
+function clearEditForm() {
+  document.getElementById('editUserForm').reset();
+  document.querySelectorAll('.error-message').forEach(el => {
+    el.classList.remove('show');
+    el.textContent = '';
+  });
+}
+
+async function loadUserForEdit(userId) {
+  try {
+    const data = await portalApiFetch(`/admin/users/${userId}`);
+    
+    // 填充表单
+    document.getElementById('editUsername').value = data.username || '';
+    document.getElementById('editEmail').value = data.email || '';
+    document.getElementById('editPhone').value = data.phone || '';
+    
+    // 处理valid_until日期
+    if (data.valid_until) {
+      const date = new Date(data.valid_until);
+      const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      document.getElementById('editValidUntil').value = localDateTime.toISOString().slice(0, 16);
+    } else {
+      document.getElementById('editValidUntil').value = '';
+    }
+    
+  } catch (error) {
+    console.error('Failed to load user for edit:', error);
+    alert('Failed to load user information');
+  }
+}
+
+async function saveUserChanges() {
+  if (!currentEditUserId) return;
+  
+  // 清除之前的错误信息
+  clearEditForm();
+  
+  // 获取表单数据
+  const formData = {
+    username: document.getElementById('editUsername').value.trim(),
+    email: document.getElementById('editEmail').value.trim(),
+    phone: document.getElementById('editPhone').value.trim(),
+    valid_until: document.getElementById('editValidUntil').value
+  };
+  
+  // 验证必填字段
+  if (!formData.username) {
+    showEditError('editUsernameError', 'Username is required');
+    return;
+  }
+  
+  if (!formData.email) {
+    showEditError('editEmailError', 'Email is required');
+    return;
+  }
+  
+  if (!formData.phone) {
+    showEditError('editPhoneError', 'Phone is required');
+    return;
+  }
+  
+  // 验证email格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(formData.email)) {
+    showEditError('editEmailError', 'Please enter a valid email address');
+    return;
+  }
+  
+  // 验证phone格式（E164）
+  const phoneRegex = /^\+[1-9]\d{1,14}$/;
+  if (!phoneRegex.test(formData.phone)) {
+    showEditError('editPhoneError', 'Please enter a valid phone number in E164 format (+1234567890)');
+    return;
+  }
+  
+  try {
+    // 发送更新请求
+    await portalApiFetch(`/admin/users/${currentEditUserId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData)
+    });
+    
+    // 成功，关闭模态框并刷新页面
+    closeEditUserModal();
+    window.location.reload();
+    
+  } catch (error) {
+    console.error('Failed to update user:', error);
+    
+    // 处理特定错误
+    if (error.message.includes('email already exists')) {
+      showEditError('editEmailError', 'Email already exists');
+    } else if (error.message.includes('phone already exists')) {
+      showEditError('editPhoneError', 'Phone number already exists');
+    } else if (error.message.includes('username already exists')) {
+      showEditError('editUsernameError', 'Username already exists');
+    } else {
+      alert('Failed to update user: ' + error.message);
+    }
+  }
+}
+
+function showEditError(elementId, message) {
+  const errorElement = document.getElementById(elementId);
+  errorElement.textContent = message;
+  errorElement.classList.add('show');
+}
+
+// ===== REFUND FUNCTIONALITY =====
+async function refundPurchase(purchaseId) {
+  if (!confirm('Are you sure you want to refund this purchase? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    await portalApiFetch(`/admin/purchases/${purchaseId}/refund`, {
+      method: 'POST'
+    });
+    
+    alert('Refund processed successfully');
+    window.location.reload();
+    
+  } catch (error) {
+    console.error('Failed to refund purchase:', error);
+    alert('Failed to process refund: ' + error.message);
+  }
+}
+
+// ===== EVENT LISTENERS =====
+document.addEventListener('DOMContentLoaded', function() {
+  // 用户编辑模态框事件监听器
+  document.getElementById('btnSaveUser')?.addEventListener('click', saveUserChanges);
+  document.getElementById('btnCancelEdit')?.addEventListener('click', closeEditUserModal);
+  
+  // 点击模态框外部关闭
+  document.getElementById('editUserModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeEditUserModal();
+    }
+  });
+});
 
 // ===== Cloudflare Stripe Proxy 说明 =====
 // 由于 AWS Lightsail IPv6-only 实例无法直接访问 Stripe API，

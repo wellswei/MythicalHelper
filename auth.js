@@ -175,8 +175,8 @@ async function onSendLoginSms() {
     ensureLoginModeInUrl();
     
     // 切到验证码
-    $('#loginSmsStep1').hidden = true; 
-    $('#loginSmsStep2').hidden = false;
+    hide($('#loginSmsStep1')); 
+    show($('#loginSmsStep2'));
     
     // 显示手机号
     const phoneDisplay = $('#loginPhoneDisplay');
@@ -1666,8 +1666,8 @@ function initializeApp() {
       if ($('#loginPhoneInput') && loginState.phone && $('#loginPhoneInput')._iti) {
         try { $('#loginPhoneInput')._iti.setNumber(loginState.phone); } catch {}
       }
-      $('#loginSmsStep1').hidden = true;
-      $('#loginSmsStep2').hidden = false;
+      hide($('#loginSmsStep1'));
+      show($('#loginSmsStep2'));
       
       // 显示手机号
       const phoneDisplay = $('#loginPhoneDisplay');
@@ -1823,8 +1823,8 @@ function initializeApp() {
     showSignupFlow();
   });
   $('#btnBackToLoginPhone')?.addEventListener('click', () => {
-    $('#loginSmsStep1').hidden = false; 
-    $('#loginSmsStep2').hidden = true;
+    show($('#loginSmsStep1')); 
+    hide($('#loginSmsStep2'));
     clearLoginState();
     setStatus($('#loginPhoneStatus'), "We'll send a 6-digit code to your phone.", 'default');
   });

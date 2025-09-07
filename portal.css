@@ -2247,6 +2247,124 @@ body {
   box-shadow: 0 4px 12px rgba(248, 210, 106, 0.3);
 }
 
+/* ===== USER EDIT MODAL STYLES ===== */
+.portal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.portal .modal-actions .btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.portal .modal-actions .btn:not(.danger) {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.portal .modal-actions .btn:not(.danger):hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.portal .modal-actions .btn.primary {
+  background: #f8d26a;
+  color: #0b1020;
+  border: 1px solid #f8d26a;
+}
+
+.portal .modal-actions .btn.primary:hover {
+  background: #f4c430;
+  border-color: #f4c430;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(248, 210, 106, 0.3);
+}
+
+/* Form styles for edit user modal */
+.portal #editUserForm {
+  padding: 20px 24px;
+}
+
+.portal #editUserForm .form-group {
+  margin-bottom: 20px;
+}
+
+.portal #editUserForm label {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.portal #editUserForm input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.portal #editUserForm input:focus {
+  outline: none;
+  border-color: #f8d26a;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(248, 210, 106, 0.1);
+}
+
+.portal #editUserForm input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.portal .error-message {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  display: none;
+}
+
+.portal .error-message.show {
+  display: block;
+}
+
+/* Refund button styles */
+.portal .btn-refund {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+}
+
+.portal .btn-refund:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
 /* ===== FOOTER SECTION ===== */
 .portal .site-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.12);

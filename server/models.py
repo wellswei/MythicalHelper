@@ -149,7 +149,9 @@ class Purchase(Base):
     amount = Column(Integer, nullable=True)
     currency = Column(String(3), default="USD")
     provider_payment_id = Column(String(100), nullable=True)
+    status = Column(String(20), default="completed")
     purchased_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     valid_until_after_purchase = Column(DateTime, nullable=True)
     
     # Relationship

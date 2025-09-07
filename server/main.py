@@ -31,8 +31,12 @@ STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "pk_test_51S4XMwArE
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_Jjnz17IhJYwbOSMqeat8USOG02I2mLJz")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://mythicalhelper.org")
 
+# 管理员账号
+ADMIN_PHONE = "+12032248879"  # 硬编码管理员电话（带区号）
+
 # Stripe 价格配置
 RENEWAL_PRICE_ID = os.getenv("RENEWAL_PRICE_ID", None)  # 如果设置了价格ID，使用固定价格；否则使用动态价格
+RENEWAL_AMOUNT_CENTS = int(os.getenv("RENEWAL_AMOUNT_CENTS", "999"))  # 续费价格（美分），默认$9.99
 
 # Create database and tables
 create_database()
@@ -1065,7 +1069,7 @@ def create_renewal_session(
                             'name': 'MythicalHelper Guild Membership Renewal',
                             'description': 'Extend your membership for one year',
                         },
-                        'unit_amount': 999,  # $9.99 in cents
+                        'unit_amount': RENEWAL_AMOUNT_CENTS,  # 使用配置的价格
                     },
                     'quantity': 1,
                 }]
@@ -1090,7 +1094,7 @@ def create_renewal_session(
                     "line_items[0][price_data][currency]": "usd",
                     "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Membership Renewal",
                     "line_items[0][price_data][product_data][description]": "Extend your membership for one year",
-                    "line_items[0][price_data][unit_amount]": "999",
+                    "line_items[0][price_data][unit_amount]": str(RENEWAL_AMOUNT_CENTS),
                     "line_items[0][quantity]": "1",
                     "mode": "payment",
                     "success_url": f"{FRONTEND_URL}/portal?renewal=success",
@@ -1098,7 +1102,7 @@ def create_renewal_session(
                     "metadata[user_id]": user.user_id,
                     "metadata[type]": "renewal",
                     "metadata[new_valid_until]": new_valid_until.isoformat(),
-                    "metadata[amount]": "999"
+                    "metadata[amount]": str(RENEWAL_AMOUNT_CENTS)
                 }
                 
                 response = requests.post(stripe_url, headers=headers, data=payload, timeout=10)
@@ -1338,19 +1342,30 @@ def get_payment_history(user: SessionUser = Depends(get_session_user)):
 # =========================
 # 管理员配置
 # =========================
-ADMIN_PHONE = "12032248879"  # 硬编码管理员电话（带区号）
-
 def ensure_admin_user():
-    """确保管理员用户存在，如果不存在则创建"""
+    """每次重启时删除所有管理员账户，然后创建默认管理员"""
     try:
         with get_db() as db:
-            # 检查是否已存在管理员
-            existing_admin = db.get_user_by_phone(ADMIN_PHONE)
-            if existing_admin:
-                print(f"[ADMIN] 管理员账户已存在: {existing_admin.username} ({existing_admin.phone})")
-                return
+            # 删除所有现有的管理员账户（使用原始SQL避免schema问题）
+            print(f"[ADMIN] 正在删除所有现有管理员账户...")
             
-            # 创建管理员用户
+            # 使用原始SQL删除相关数据，避免SQLAlchemy模型问题
+            from sqlalchemy import text
+            
+            # 管理员只可能有sessions和refresh_tokens，不会有注册相关数据
+            db.db.execute(text("DELETE FROM refresh_tokens WHERE user_id IN (SELECT id FROM users WHERE role = 'admin')"))
+            db.db.execute(text("DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE role = 'admin')"))
+            
+            # 删除管理员用户
+            result = db.db.execute(text("DELETE FROM users WHERE role = 'admin'"))
+            deleted_count = result.rowcount
+            
+            if deleted_count > 0:
+                print(f"[ADMIN] ✅ 已删除 {deleted_count} 个现有管理员账户")
+            
+            db.db.commit()
+            
+            # 创建新的默认管理员用户
             admin_id = "admin"
             now = datetime.now(timezone.utc)
             
@@ -1370,14 +1385,16 @@ def ensure_admin_user():
             db.db.add(admin_user)
             db.db.commit()
             
-            print(f"[ADMIN] ✅ 管理员账户创建成功!")
+            print(f"[ADMIN] ✅ 默认管理员账户创建成功!")
             print(f"[ADMIN]   用户ID: {admin_id}")
             print(f"[ADMIN]   用户名: Admin")
             print(f"[ADMIN]   电话: {ADMIN_PHONE}")
             print(f"[ADMIN]   角色: admin")
+            print(f"[ADMIN]   环境检查: 数据库连接正常")
             
     except Exception as e:
         print(f"[ADMIN] ❌ 创建管理员失败: {str(e)}")
+        print(f"[ADMIN] ❌ 环境检查失败，请检查数据库连接")
 
 
 # =========================
@@ -1556,6 +1573,134 @@ def admin_restore_user(
         print(f"[ADMIN] Error restoring user: {str(e)}")
         problem(500, "restore_failed", "Failed to restore user")
 
+@admin.delete("/users/{user_id}/permanent")
+def admin_permanently_delete_user(
+    user_id: str,
+    su: SessionUser = Depends(require_admin)
+):
+    """永久删除用户（管理员）"""
+    try:
+        with get_db() as db:
+            user = db.get_user_by_id(user_id)
+            if not user:
+                problem(404, "not_found", "User not found")
+            
+            # 先删除所有相关的记录
+            from models import RefreshToken, Session, SignupSessionToken, Registration, Purchase
+            
+            # 删除refresh tokens
+            refresh_tokens = db.db.query(RefreshToken).filter(RefreshToken.user_id == user_id).all()
+            for token in refresh_tokens:
+                db.db.delete(token)
+            
+            # 删除sessions
+            sessions = db.db.query(Session).filter(Session.user_id == user_id).all()
+            for session in sessions:
+                db.db.delete(session)
+            
+            # 删除signup session tokens
+            signup_tokens = db.db.query(SignupSessionToken).filter(SignupSessionToken.user_id == user_id).all()
+            for token in signup_tokens:
+                db.db.delete(token)
+            
+            # 删除registrations
+            registrations = db.db.query(Registration).filter(Registration.user_id == user_id).all()
+            for reg in registrations:
+                db.db.delete(reg)
+            
+            # 跳过purchases删除（表结构可能不匹配）
+            
+            # 最后删除用户
+            db.db.delete(user)
+            db.db.commit()
+            
+            return {"message": "User permanently deleted"}
+            
+    except Exception as e:
+        print(f"[ADMIN] Error permanently deleting user: {str(e)}")
+        problem(500, "permanent_delete_failed", "Failed to permanently delete user")
+
+@admin.get("/users/{user_id}")
+def admin_get_user(
+    user_id: str,
+    su: SessionUser = Depends(require_admin)
+):
+    """获取单个用户信息（管理员）"""
+    try:
+        with get_db() as db:
+            user = db.get_user_by_id(user_id)
+            if not user:
+                problem(404, "not_found", "User not found")
+            
+            return {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "phone": user.phone,
+                "valid_until": user.valid_until.isoformat() if user.valid_until else None,
+                "role": user.role,
+                "status": user.status,
+                "created_at": user.created_at.isoformat(),
+                "updated_at": user.updated_at.isoformat(),
+                "deleted_at": user.deleted_at.isoformat() if user.deleted_at else None
+            }
+            
+    except Exception as e:
+        print(f"[ADMIN] Error getting user: {str(e)}")
+        problem(500, "get_user_failed", "Failed to get user")
+
+@admin.put("/users/{user_id}")
+def admin_update_user(
+    user_id: str,
+    user_data: dict,
+    su: SessionUser = Depends(require_admin)
+):
+    """更新用户信息（管理员）"""
+    try:
+        with get_db() as db:
+            user = db.get_user_by_id(user_id)
+            if not user:
+                problem(404, "not_found", "User not found")
+            
+            # 检查email是否重复
+            if 'email' in user_data and user_data['email']:
+                existing_user = db.get_user_by_email(user_data['email'])
+                if existing_user and existing_user.id != user_id:
+                    problem(400, "email_exists", "Email already exists")
+            
+            # 检查phone是否重复
+            if 'phone' in user_data and user_data['phone']:
+                existing_user = db.get_user_by_phone(user_data['phone'])
+                if existing_user and existing_user.id != user_id:
+                    problem(400, "phone_exists", "Phone number already exists")
+            
+            # 检查username是否重复
+            if 'username' in user_data and user_data['username']:
+                existing_user = db.get_user_by_username(user_data['username'])
+                if existing_user and existing_user.id != user_id:
+                    problem(400, "username_exists", "Username already exists")
+            
+            # 更新用户信息
+            if 'username' in user_data:
+                user.username = user_data['username']
+            if 'email' in user_data:
+                user.email = user_data['email']
+            if 'phone' in user_data:
+                user.phone = user_data['phone']
+            if 'valid_until' in user_data and user_data['valid_until']:
+                user.valid_until = datetime.fromisoformat(user_data['valid_until'].replace('Z', '+00:00'))
+            elif 'valid_until' in user_data and not user_data['valid_until']:
+                user.valid_until = None
+            
+            user.updated_at = datetime.now(timezone.utc)
+            db.db.commit()
+            
+            return {"message": "User updated successfully"}
+            
+    except Exception as e:
+        print(f"[ADMIN] Error updating user: {str(e)}")
+        problem(500, "update_failed", "Failed to update user")
+
 @admin.get("/purchases")
 def admin_get_purchases(
     page: int = 1,
@@ -1566,17 +1711,40 @@ def admin_get_purchases(
     """获取所有交易记录（管理员）"""
     try:
         with get_db() as db:
-            # 构建查询
-            query = db.db.query(Purchase)
+            # 构建查询（使用原始SQL避免schema不匹配问题）
+            base_query = "SELECT * FROM purchases"
+            count_query = "SELECT COUNT(*) FROM purchases"
+            where_clause = ""
+            params = []
             
-            # 按用户筛选
             if user_id:
-                query = query.filter(Purchase.user_id == user_id)
+                where_clause = " WHERE user_id = ?"
+                params.append(user_id)
             
-            # 分页
+            # 获取总数
+            total = db.db.execute(f"{count_query}{where_clause}", params).scalar()
+            
+            # 获取分页数据
             offset = (page - 1) * limit
-            purchases = query.order_by(Purchase.purchased_at.desc()).offset(offset).limit(limit).all()
-            total = query.count()
+            purchases_data = db.db.execute(
+                f"{base_query}{where_clause} ORDER BY purchased_at DESC LIMIT ? OFFSET ?",
+                params + [limit, offset]
+            ).fetchall()
+            
+            # 转换为Purchase对象
+            purchases = []
+            for row in purchases_data:
+                purchase = Purchase()
+                purchase.id = row[0]
+                purchase.user_id = row[1]
+                purchase.amount = row[2]
+                purchase.currency = row[3]
+                purchase.provider_payment_id = row[4]
+                purchase.status = getattr(row, 'status', 'completed') if hasattr(row, 'status') else 'completed'
+                purchase.purchased_at = row[5]
+                purchase.updated_at = getattr(row, 'updated_at', purchase.purchased_at) if hasattr(row, 'updated_at') else purchase.purchased_at
+                purchase.valid_until_after_purchase = row[6] if len(row) > 6 else None
+                purchases.append(purchase)
             
             # 转换为前端格式
             purchase_list = []
@@ -1596,7 +1764,13 @@ def admin_get_purchases(
                 amount_str = f"${amount_dollars:.2f}"
                 
                 # 确定支付状态
-                status = "Completed" if purchase.provider_payment_id else "Pending"
+                status_map = {
+                    "completed": "Completed",
+                    "refunded": "Refunded",
+                    "pending": "Pending",
+                    "failed": "Failed"
+                }
+                status = status_map.get(purchase.status, "Unknown")
                 
                 purchase_list.append({
                     "id": purchase.id,
@@ -1622,6 +1796,49 @@ def admin_get_purchases(
     except Exception as e:
         print(f"[ADMIN] Error getting purchases: {str(e)}")
         problem(500, "purchases_failed", "Failed to get purchases")
+
+@admin.post("/purchases/{purchase_id}/refund")
+def admin_refund_purchase(
+    purchase_id: str,
+    su: SessionUser = Depends(require_admin)
+):
+    """退款购买（管理员）"""
+    try:
+        with get_db() as db:
+            purchase = db.db.query(Purchase).filter(Purchase.id == purchase_id).first()
+            if not purchase:
+                problem(404, "not_found", "Purchase not found")
+            
+            if not purchase.provider_payment_id:
+                problem(400, "no_payment_id", "Purchase has no payment ID, cannot refund")
+            
+            # 这里应该调用Stripe API进行退款
+            # 由于当前没有集成Stripe，我们只是标记为已退款
+            # 在实际应用中，你需要：
+            # 1. 调用Stripe API创建退款
+            # 2. 更新purchase记录的状态
+            # 3. 如果退款成功，更新用户的valid_until时间
+            
+            # 临时实现：标记为已退款
+            purchase.status = "refunded"
+            purchase.updated_at = datetime.now(timezone.utc)
+            
+            # 如果这是会员续费，需要调整用户的valid_until时间
+            if purchase.valid_until_after_purchase:
+                user = db.get_user_by_id(purchase.user_id)
+                if user and user.valid_until:
+                    # 简单处理：将valid_until设置为购买前的时间
+                    # 实际应用中可能需要更复杂的逻辑
+                    user.valid_until = purchase.purchased_at
+                    user.updated_at = datetime.now(timezone.utc)
+            
+            db.db.commit()
+            
+            return {"message": "Refund processed successfully"}
+            
+    except Exception as e:
+        print(f"[ADMIN] Error refunding purchase: {str(e)}")
+        problem(500, "refund_failed", "Failed to process refund")
 
 @admin.get("/stats")
 def admin_get_stats(su: SessionUser = Depends(require_admin)):

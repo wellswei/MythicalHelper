@@ -2849,13 +2849,14 @@ async function loadAdminStats() {
   }
 }
 
-async function loadAdminUsers(page = 1, limit = 20, search = '') {
+async function loadAdminUsers(page = 1, limit = 20, search = '', includeDeleted = false) {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString()
     });
     if (search) params.append('search', search);
+    if (includeDeleted) params.append('include_deleted', 'true');
     
     const data = await portalApiFetch(`/admin/users?${params}`);
     displayAdminUsers(data.users);
@@ -2892,18 +2893,35 @@ function displayAdminUsers(users) {
   
   const tableHTML = `
     <div class="table-header">
-      <div class="table-cell">Username</div>
-      <div class="table-cell">Email</div>
-      <div class="table-cell">Role</div>
-      <div class="table-cell">Status</div>
-      <div class="table-cell">Valid Until</div>
-      <div class="table-cell">Created</div>
+      <div class="table-cell sortable" data-sort="username">
+        Username
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="email">
+        Email
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="status">
+        Status
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="valid_until">
+        Valid Until
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="created_at">
+        Created
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell">Operations</div>
     </div>
     ${users.map(user => `
-      <div class="table-row">
-        <div class="table-cell">${user.username || 'N/A'}</div>
+      <div class="table-row ${user.is_deleted ? 'deleted-row' : ''}">
+        <div class="table-cell">
+          ${user.username || 'N/A'}
+          ${user.is_deleted ? '<span class="deleted-badge">DELETED</span>' : ''}
+        </div>
         <div class="table-cell">${user.email || 'N/A'}</div>
-        <div class="table-cell">${user.role}</div>
         <div class="table-cell">
           <span class="status-badge ${user.is_active ? 'active' : 'inactive'}">
             ${user.is_active ? 'Active' : 'Inactive'}
@@ -2911,11 +2929,192 @@ function displayAdminUsers(users) {
         </div>
         <div class="table-cell">${user.valid_until || 'N/A'}</div>
         <div class="table-cell">${user.created_at}</div>
+        <div class="table-cell">
+          <div class="admin-actions">
+            <button class="btn-edit" onclick="editUser('${user.id}', ${user.is_deleted})" title="Edit User">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            ${!user.is_deleted ? `
+              <button class="btn-delete" onclick="deleteUser('${user.id}', '${user.username || 'User'}')" title="Delete User">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"></polyline>
+                  <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            ` : ''}
+          </div>
+        </div>
       </div>
     `).join('')}
   `;
   
   table.innerHTML = tableHTML;
+  
+  // 添加排序功能
+  addSortingToTable();
+}
+
+// 添加排序功能到表格
+function addSortingToTable() {
+  const sortableHeaders = document.querySelectorAll('.table-header .sortable');
+  let currentSort = { field: null, direction: 'asc' };
+  
+  sortableHeaders.forEach(header => {
+    header.addEventListener('click', () => {
+      const field = header.dataset.sort;
+      const icon = header.querySelector('.sort-icon');
+      
+      // 确定排序方向
+      if (currentSort.field === field) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSort.direction = 'asc';
+      }
+      currentSort.field = field;
+      
+      // 更新所有排序图标
+      sortableHeaders.forEach(h => {
+        const i = h.querySelector('.sort-icon');
+        i.textContent = '↕';
+        i.className = 'sort-icon';
+      });
+      
+      // 更新当前排序图标
+      icon.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+      icon.className = `sort-icon ${currentSort.direction}`;
+      
+      // 执行排序
+      sortUsersTable(field, currentSort.direction);
+    });
+  });
+}
+
+// 排序用户表格
+function sortUsersTable(field, direction) {
+  const table = document.getElementById('usersTable');
+  const rows = Array.from(table.querySelectorAll('.table-row'));
+  
+  rows.sort((a, b) => {
+    let aValue, bValue;
+    
+    switch(field) {
+      case 'username':
+        aValue = a.querySelector('.table-cell').textContent.trim();
+        bValue = b.querySelector('.table-cell').textContent.trim();
+        break;
+      case 'email':
+        aValue = a.querySelectorAll('.table-cell')[1].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[1].textContent.trim();
+        break;
+      case 'status':
+        aValue = a.querySelectorAll('.table-cell')[2].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[2].textContent.trim();
+        break;
+      case 'valid_until':
+        aValue = a.querySelectorAll('.table-cell')[3].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[3].textContent.trim();
+        break;
+      case 'created_at':
+        aValue = a.querySelectorAll('.table-cell')[4].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[4].textContent.trim();
+        break;
+      default:
+        return 0;
+    }
+    
+    // 处理N/A值
+    if (aValue === 'N/A') aValue = '';
+    if (bValue === 'N/A') bValue = '';
+    
+    // 字符串比较
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  // 重新排列行
+  const tbody = table.querySelector('.table-header').nextElementSibling;
+  if (tbody) {
+    rows.forEach(row => tbody.appendChild(row));
+  } else {
+    // 如果没有tbody，直接重新排列
+    const header = table.querySelector('.table-header');
+    rows.forEach(row => table.appendChild(row));
+  }
+}
+
+// 编辑用户
+function editUser(userId, isDeleted = false) {
+  if (isDeleted) {
+    // 如果是已删除用户，询问是否恢复
+    if (confirm('This user has been deleted. Do you want to restore them?')) {
+      restoreUser(userId);
+    }
+  } else {
+    // 正常编辑用户
+    console.log('Edit user:', userId);
+    // TODO: 实现编辑用户功能
+    alert('Edit user functionality coming soon!');
+  }
+}
+
+// 恢复用户
+async function restoreUser(userId) {
+  try {
+    const response = await fetch(`${API_BASE}/admin/users/${userId}/restore`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      alert('User restored successfully!');
+      // 刷新用户列表
+      loadAdminUsers();
+    } else {
+      const error = await response.json();
+      alert(`Failed to restore user: ${error.detail || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Restore user error:', error);
+    alert('Failed to restore user. Please try again.');
+  }
+}
+
+// 删除用户
+async function deleteUser(userId, username) {
+  if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      alert('User deleted successfully!');
+      // 刷新用户列表
+      loadAdminUsers();
+    } else {
+      const error = await response.json();
+      alert(`Failed to delete user: ${error.detail || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Delete user error:', error);
+    alert('Failed to delete user. Please try again.');
+  }
 }
 
 function displayAdminPurchases(purchases) {

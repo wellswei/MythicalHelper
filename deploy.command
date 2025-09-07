@@ -29,8 +29,16 @@ scp -6 -i "$KEY_PATH" server/database.py "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
 echo "📤 上传 requirements.txt..."
 scp -6 -i "$KEY_PATH" server/requirements.txt "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
 
-echo "📦 安装Python依赖..."
-ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "cd $SERVER_PATH && source venv/bin/activate && pip install -r requirements.txt"
+# 检查是否需要安装依赖
+echo "🔍 检查Python依赖是否需要更新..."
+REQUIREMENTS_CHANGED=$(ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "cd $SERVER_PATH && if [ ! -f .requirements_hash ] || [ \$(md5sum requirements.txt | cut -d' ' -f1) != \$(cat .requirements_hash) ]; then echo 'yes'; else echo 'no'; fi")
+
+if [ "$REQUIREMENTS_CHANGED" = "yes" ]; then
+    echo "📦 检测到requirements.txt有变化，安装Python依赖..."
+    ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "cd $SERVER_PATH && source venv/bin/activate && pip install -r requirements.txt && md5sum requirements.txt | cut -d' ' -f1 > .requirements_hash"
+else
+    echo "✅ requirements.txt无变化，跳过依赖安装"
+fi
 
 echo "🔄 启动新版本服务..."
 ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "sudo systemctl start mythicalhelper"

@@ -1338,7 +1338,7 @@ def ensure_admin_user():
                 return
             
             # 创建管理员用户
-            admin_id = "admin_001"
+            admin_id = "admin"
             now = datetime.now(timezone.utc)
             
             admin_user = User(
@@ -1377,13 +1377,18 @@ def admin_get_users(
     page: int = 1,
     limit: int = 20,
     search: str = None,
+    include_deleted: bool = False,
     su: SessionUser = Depends(require_admin)
 ):
     """获取所有用户列表（管理员）"""
     try:
         with get_db() as db:
-            # 构建查询
-            query = db.db.query(User).filter(User.deleted_at.is_(None))
+            # 构建查询，排除管理员账户
+            query = db.db.query(User).filter(User.role != "admin")
+            
+            # 根据参数决定是否包含已删除用户
+            if not include_deleted:
+                query = query.filter(User.deleted_at.is_(None))
             
             # 搜索功能
             if search:
@@ -1411,7 +1416,9 @@ def admin_get_users(
                     "status": user.status,
                     "created_at": user.created_at.strftime("%Y-%m-%d %H:%M"),
                     "valid_until": user.valid_until.strftime("%Y-%m-%d") if user.valid_until else None,
-                    "is_active": user.valid_until and user.valid_until > datetime.now(UTC) if user.valid_until else False
+                    "is_active": user.valid_until and user.valid_until.replace(tzinfo=UTC) > datetime.now(UTC) if user.valid_until else False,
+                    "is_deleted": user.deleted_at is not None,
+                    "deleted_at": user.deleted_at.strftime("%Y-%m-%d %H:%M") if user.deleted_at else None
                 })
             
             return {
@@ -1426,6 +1433,115 @@ def admin_get_users(
     except Exception as e:
         print(f"[ADMIN] Error getting users: {str(e)}")
         problem(500, "users_failed", "Failed to get users")
+
+@admin.put("/users/{user_id}")
+def admin_update_user(
+    user_id: str,
+    username: str = None,
+    email: str = None,
+    phone: str = None,
+    status: str = None,
+    valid_until: str = None,
+    su: SessionUser = Depends(require_admin)
+):
+    """更新用户信息（管理员）"""
+    try:
+        with get_db() as db:
+            user = db.get_user_by_id(user_id)
+            if not user:
+                problem(404, "not_found", "User not found")
+            
+            # 更新字段
+            if username is not None:
+                # 检查用户名是否已存在
+                existing_user = db.get_user_by_username(username)
+                if existing_user and existing_user.id != user_id:
+                    problem(409, "conflict", "Username already exists")
+                user.username = username
+            
+            if email is not None:
+                # 检查邮箱是否已存在
+                existing_user = db.get_user_by_email(email)
+                if existing_user and existing_user.id != user_id:
+                    problem(409, "conflict", "Email already exists")
+                user.email = email
+            
+            if phone is not None:
+                # 检查手机号是否已存在
+                existing_user = db.get_user_by_phone(phone)
+                if existing_user and existing_user.id != user_id:
+                    problem(409, "conflict", "Phone already exists")
+                user.phone = phone
+            
+            if status is not None:
+                user.status = status
+            
+            if valid_until is not None:
+                if valid_until == "":
+                    user.valid_until = None
+                else:
+                    try:
+                        user.valid_until = datetime.fromisoformat(valid_until.replace('Z', '+00:00'))
+                    except ValueError:
+                        problem(400, "invalid_date", "Invalid date format")
+            
+            user.updated_at = datetime.now(timezone.utc)
+            db.db.commit()
+            
+            return {"message": "User updated successfully"}
+            
+    except Exception as e:
+        print(f"[ADMIN] Error updating user: {str(e)}")
+        problem(500, "update_failed", "Failed to update user")
+
+@admin.delete("/users/{user_id}")
+def admin_delete_user(
+    user_id: str,
+    su: SessionUser = Depends(require_admin)
+):
+    """删除用户（管理员）"""
+    try:
+        with get_db() as db:
+            user = db.get_user_by_id(user_id)
+            if not user:
+                problem(404, "not_found", "User not found")
+            
+            # 软删除用户
+            user.deleted_at = datetime.now(timezone.utc)
+            user.updated_at = datetime.now(timezone.utc)
+            db.db.commit()
+            
+            return {"message": "User deleted successfully"}
+            
+    except Exception as e:
+        print(f"[ADMIN] Error deleting user: {str(e)}")
+        problem(500, "delete_failed", "Failed to delete user")
+
+@admin.post("/users/{user_id}/restore")
+def admin_restore_user(
+    user_id: str,
+    su: SessionUser = Depends(require_admin)
+):
+    """恢复已删除的用户（管理员）"""
+    try:
+        with get_db() as db:
+            user = db.get_user_by_id(user_id)
+            if not user:
+                problem(404, "not_found", "User not found")
+            
+            if not user.deleted_at:
+                problem(400, "not_deleted", "User is not deleted")
+            
+            # 恢复用户
+            user.deleted_at = None
+            user.updated_at = datetime.now(timezone.utc)
+            db.db.commit()
+            
+            return {"message": "User restored successfully"}
+            
+    except Exception as e:
+        print(f"[ADMIN] Error restoring user: {str(e)}")
+        problem(500, "restore_failed", "Failed to restore user")
 
 @admin.get("/purchases")
 def admin_get_purchases(
@@ -1499,34 +1615,41 @@ def admin_get_stats(su: SessionUser = Depends(require_admin)):
     """获取统计信息（管理员）"""
     try:
         with get_db() as db:
-            # 总用户数
-            total_users = db.db.query(User).filter(User.deleted_at.is_(None)).count()
+            # 总用户数（排除管理员）
+            total_users = db.db.query(User).filter(
+                User.deleted_at.is_(None),
+                User.role != "admin"
+            ).count()
             
-            # 活跃用户数（有效期内）
+            # 活跃用户数（有效期内，排除管理员）
             current_time = datetime.now(UTC)
             active_users = db.db.query(User).filter(
                 User.deleted_at.is_(None),
+                User.role != "admin",
+                User.valid_until.isnot(None),
                 User.valid_until > current_time
             ).count()
             
-            # 本月新增用户
+            # 本月新增用户（排除管理员）
             month_start = current_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             monthly_users = db.db.query(User).filter(
                 User.deleted_at.is_(None),
-                User.created_at >= month_start
+                User.role != "admin",
+                User.created_at >= month_start.replace(tzinfo=None)
             ).count()
             
             # 总收入（美分转美元）
+            from sqlalchemy import func
             total_revenue = db.db.query(Purchase).filter(
                 Purchase.provider_payment_id.isnot(None)
-            ).with_entities(db.db.func.sum(Purchase.amount)).scalar() or 0
+            ).with_entities(func.sum(Purchase.amount)).scalar() or 0
             total_revenue_dollars = total_revenue / 100
             
             # 本月收入
             monthly_revenue = db.db.query(Purchase).filter(
                 Purchase.provider_payment_id.isnot(None),
-                Purchase.purchased_at >= month_start
-            ).with_entities(db.db.func.sum(Purchase.amount)).scalar() or 0
+                Purchase.purchased_at >= month_start.replace(tzinfo=None)
+            ).with_entities(func.sum(Purchase.amount)).scalar() or 0
             monthly_revenue_dollars = monthly_revenue / 100
             
             # 续费数量

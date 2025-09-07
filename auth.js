@@ -499,7 +499,7 @@ function onTurnstileSuccess(token) {
   console.log('Turnstile success, token received, length:', token.length);
   
   // 更新状态提示（支持多个Turnstile组件）
-  updateTurnstileMessage('', '#10b981');
+  updateTurnstileMessage('✓ Security verified', '#10b981');
   
   // 启用当前步骤的发送按钮
   if (state.currentStep === 1) {

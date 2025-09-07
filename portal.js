@@ -2760,11 +2760,6 @@ function createAdminInterface() {
           <div class="admin-search">
             <input type="text" id="userSearch" placeholder="Search users...">
             <button id="searchUsers">Search</button>
-            <label class="toggle-switch">
-              <input type="checkbox" id="showDeletedUsers">
-              <span class="toggle-slider"></span>
-              <span class="toggle-label">Show Deleted</span>
-            </label>
           </div>
           <div class="admin-table" id="usersTable">
             <div class="table-loading">Loading users...</div>
@@ -2820,8 +2815,7 @@ function setupAdminEventListeners() {
   if (userSearchBtn) {
     userSearchBtn.addEventListener('click', () => {
       const query = document.getElementById('userSearch').value;
-      const showDeleted = document.getElementById('showDeletedUsers').checked;
-      loadAdminUsers(1, 20, query, showDeleted);
+      loadAdminUsers(1, 20, query, false);
     });
   }
   
@@ -2839,15 +2833,6 @@ function setupAdminEventListeners() {
     });
   }
   
-  // 显示已删除用户切换
-  const showDeletedToggle = document.getElementById('showDeletedUsers');
-  if (showDeletedToggle) {
-    showDeletedToggle.addEventListener('change', () => {
-      const query = document.getElementById('userSearch').value;
-      const showDeleted = showDeletedToggle.checked;
-      loadAdminUsers(1, 20, query, showDeleted);
-    });
-  }
 }
 
 function switchTab(tab) {
@@ -2865,8 +2850,7 @@ function switchTab(tab) {
   
   // 加载对应数据
   if (tab === 'users') {
-    const showDeleted = document.getElementById('showDeletedUsers').checked;
-    loadAdminUsers(1, 20, '', showDeleted);
+    loadAdminUsers(1, 20, '', false);
   } else if (tab === 'blocklist') {
     loadBlocklistUsers();
   } else if (tab === 'purchases') {
@@ -2958,52 +2942,47 @@ function displayAdminUsers(users) {
         Email
         <span class="sort-icon">↕</span>
       </div>
-      <div class="table-cell sortable" data-sort="status">
-        Status
-        <span class="sort-icon">↕</span>
-      </div>
-      <div class="table-cell sortable" data-sort="valid_until">
-        Valid Until
+      <div class="table-cell sortable" data-sort="phone">
+        Phone
         <span class="sort-icon">↕</span>
       </div>
       <div class="table-cell sortable" data-sort="created_at">
         Created
         <span class="sort-icon">↕</span>
       </div>
+      <div class="table-cell sortable" data-sort="valid_until">
+        Valid Until
+        <span class="sort-icon">↕</span>
+      </div>
       <div class="table-cell">Operations</div>
     </div>
     ${users.map(user => `
-      <div class="table-row ${user.is_deleted ? 'deleted-row' : ''}">
+      <div class="table-row">
         <div class="table-cell">
           ${user.username || 'N/A'}
-          ${user.is_deleted ? '<span class="deleted-badge">DELETED</span>' : ''}
         </div>
         <div class="table-cell">${user.email || 'N/A'}</div>
-        <div class="table-cell">
-          <span class="status-badge ${user.is_active ? 'active' : 'inactive'}">
-            ${user.is_active ? 'Active' : 'Inactive'}
-          </span>
-        </div>
-        <div class="table-cell">${user.valid_until || 'N/A'}</div>
+        <div class="table-cell">${user.phone || 'N/A'}</div>
         <div class="table-cell">${user.created_at}</div>
+        <div class="table-cell">${user.valid_until || 'N/A'}</div>
         <div class="table-cell">
           <div class="admin-actions">
-            <button class="btn-edit" onclick="editUser('${user.id}', ${user.is_deleted})" title="Edit User">
+            <button class="btn-edit" onclick="editUser('${user.id}', false)" title="Edit User">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
               </svg>
+              Edit
             </button>
-            ${!user.is_deleted ? `
-              <button class="btn-delete" onclick="deleteUser('${user.id}', '${user.username || 'User'}')" title="Delete User">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3,6 5,6 21,6"></polyline>
-                  <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-              </button>
-            ` : ''}
+            <button class="btn-delete" onclick="deleteUser('${user.id}', '${user.username || 'User'}')" title="Delete User">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              Delete
+            </button>
           </div>
         </div>
       </div>
@@ -3035,12 +3014,16 @@ function displayBlocklistUsers(users) {
         Email
         <span class="sort-icon">↕</span>
       </div>
-      <div class="table-cell sortable" data-sort="deleted_at">
-        Deleted At
+      <div class="table-cell sortable" data-sort="phone">
+        Phone
         <span class="sort-icon">↕</span>
       </div>
       <div class="table-cell sortable" data-sort="created_at">
         Created
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="deleted_at">
+        Deleted At
         <span class="sort-icon">↕</span>
       </div>
       <div class="table-cell">Operations</div>
@@ -3052,8 +3035,9 @@ function displayBlocklistUsers(users) {
           <span class="deleted-badge">DELETED</span>
         </div>
         <div class="table-cell">${user.email || 'N/A'}</div>
-        <div class="table-cell">${user.deleted_at || 'N/A'}</div>
+        <div class="table-cell">${user.phone || 'N/A'}</div>
         <div class="table-cell">${user.created_at}</div>
+        <div class="table-cell">${user.deleted_at || 'N/A'}</div>
         <div class="table-cell">
           <div class="admin-actions">
             <button class="btn-edit" onclick="restoreUser('${user.id}', '${user.username || 'Unknown'}')" title="Restore User">
@@ -3064,6 +3048,15 @@ function displayBlocklistUsers(users) {
                 <path d="M3 21v-5h5"></path>
               </svg>
               Restore
+            </button>
+            <button class="btn-delete" onclick="permanentlyDeleteUser('${user.id}', '${user.username || 'Unknown'}')" title="Permanently Delete User">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              Delete
             </button>
           </div>
         </div>
@@ -3131,15 +3124,19 @@ function sortUsersTable(field, direction) {
         aValue = a.querySelectorAll('.table-cell')[1].textContent.trim();
         bValue = b.querySelectorAll('.table-cell')[1].textContent.trim();
         break;
-      case 'status':
+      case 'phone':
         aValue = a.querySelectorAll('.table-cell')[2].textContent.trim();
         bValue = b.querySelectorAll('.table-cell')[2].textContent.trim();
         break;
-      case 'valid_until':
+      case 'created_at':
         aValue = a.querySelectorAll('.table-cell')[3].textContent.trim();
         bValue = b.querySelectorAll('.table-cell')[3].textContent.trim();
         break;
-      case 'created_at':
+      case 'valid_until':
+        aValue = a.querySelectorAll('.table-cell')[4].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[4].textContent.trim();
+        break;
+      case 'deleted_at':
         aValue = a.querySelectorAll('.table-cell')[4].textContent.trim();
         bValue = b.querySelectorAll('.table-cell')[4].textContent.trim();
         break;
@@ -3211,9 +3208,9 @@ async function restoreUser(userId) {
   }
 }
 
-// 删除用户
+// 删除用户（软删除）
 async function deleteUser(userId, username) {
-  if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+  if (!confirm(`Are you sure you want to delete user "${username}"? This will move the user to blocklist.`)) {
     return;
   }
   
@@ -3237,6 +3234,35 @@ async function deleteUser(userId, username) {
   } catch (error) {
     console.error('Delete user error:', error);
     alert('Failed to delete user. Please try again.');
+  }
+}
+
+// 永久删除用户
+async function permanentlyDeleteUser(userId, username) {
+  if (!confirm(`Are you sure you want to PERMANENTLY delete user "${username}"? This action cannot be undone and will remove all user data.`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE}/admin/users/${userId}/permanent`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      alert('User permanently deleted!');
+      // 刷新blocklist
+      loadBlocklistUsers();
+    } else {
+      const error = await response.json();
+      alert(`Failed to permanently delete user: ${error.detail || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Permanent delete user error:', error);
+    alert('Failed to permanently delete user. Please try again.');
   }
 }
 

@@ -35,9 +35,16 @@ create_database()
 app = FastAPI(title="Mythical Helper API (SQLAlchemy)")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*", "http://127.0.0.1:5500", "http://localhost:5500"],
+    allow_origins=[
+        "https://mythicalhelper.org",
+        "https://mythicalhelper.pages.dev", 
+        "http://127.0.0.1:5500", 
+        "http://localhost:5500",
+        "http://127.0.0.1:3000",
+        "http://localhost:3000"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -966,13 +973,13 @@ def create_renewal_session(
                 problem(404, "not_found", "User not found")
             
             # 计算新的有效期
-            now = datetime.now(UTC)
-            if user_data.valid_until and user_data.valid_until > now:
+            current_time = datetime.now(UTC)
+            if user_data.valid_until and user_data.valid_until > current_time:
                 # 用户还在有效期内，从当前有效期结束日期延长一年
                 new_valid_until = user_data.valid_until + timedelta(days=365)
             else:
                 # 用户已过期，从今天开始一年有效期
-                new_valid_until = now + timedelta(days=365)
+                new_valid_until = current_time + timedelta(days=365)
             
             # 创建Stripe Checkout会话
             checkout_session = stripe.checkout.Session.create(

@@ -637,6 +637,8 @@ async function apiCall(endpoint, options = {}) {
 
 // ===== 用户数据加载 =====
 async function loadUserData() {
+  console.log('=== LOAD USER DATA CALLED ===');
+  console.log('Current time:', new Date().toISOString());
   try {
     const token = getAuthToken();
     

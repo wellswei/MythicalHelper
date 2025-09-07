@@ -1349,7 +1349,12 @@ function setupEventListeners() {
 
   // 续费相关按钮
   const renewMembershipBtn = $('#btnRenewMembership');
-  if (renewMembershipBtn) renewMembershipBtn.addEventListener('click', showRenewalModal);
+  if (renewMembershipBtn) {
+    console.log('Renewal button found, adding event listener');
+    renewMembershipBtn.addEventListener('click', showRenewalModal);
+  } else {
+    console.error('Renewal button not found!');
+  }
   
   const makeDonationBtn = $('#btnMakeDonation');
   if (makeDonationBtn) makeDonationBtn.addEventListener('click', showDonationModal);
@@ -1470,6 +1475,16 @@ function setupEventListeners() {
         if (profileCard) profileCard.style.display = 'block';
         if (emailChangeCard) emailChangeCard.style.display = 'none';
         if (phoneChangeCard) phoneChangeCard.style.display = 'none';
+        return false;
+      }
+
+      // Renewal 按钮事件委托
+      const renewalBtn = e.target && (e.target.closest ? e.target.closest('#btnRenewMembership') : null);
+      if (renewalBtn) {
+        console.log('Renewal button clicked via delegation');
+        e.preventDefault();
+        e.stopPropagation();
+        showRenewalModal();
         return false;
       }
     }, { capture: true });
@@ -2409,15 +2424,24 @@ function displayPurchaseHistory(history) {
 }
 
 async function showRenewalModal() {
+  console.log('=== RENEWAL MODAL CLICKED ===');
+  console.log('Current user:', currentUser);
+  console.log('Auth token exists:', !!getAuthToken());
+  
   try {
+    console.log('Calling /api/payment/renewal...');
     const data = await portalApiFetch('/api/payment/renewal', {
       method: 'POST',
       body: JSON.stringify({})
     });
     
+    console.log('Renewal API response:', data);
+    
     if (data.checkout_url) {
+      console.log('Redirecting to Stripe:', data.checkout_url);
       window.location.href = data.checkout_url;
     } else {
+      console.error('No checkout_url in response');
       showError('Failed to create renewal session');
     }
   } catch (error) {

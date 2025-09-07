@@ -516,6 +516,12 @@ function showSuccess(message) {
   alert('Success: ' + message);
 }
 
+function showLoading(message) {
+  // 简单的加载提示，可以后续改进
+  console.log('Loading: ' + message);
+  // 可以在这里添加更美观的加载提示UI
+}
+
 function setupCodeInputs(container) {
   if (!container) return;
   const inputs = container.querySelectorAll('input[maxlength="1"][inputmode="numeric"]');

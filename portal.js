@@ -2145,7 +2145,9 @@ async function initializePortal() {
   console.log('User is authenticated, proceeding to load user data...');
   
   // 加载用户数据
+  console.log('About to call loadUserData()...');
   await loadUserData();
+  console.log('loadUserData() completed');
   
   // 设置事件监听器（在用户数据加载完成后）
   // 添加一个小延迟确保DOM完全加载

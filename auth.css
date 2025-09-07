@@ -514,6 +514,21 @@ body {
   align-items: center;
 }
 
+/* 邮箱显示框样式 */
+.auth .process .auth-card .email-display {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px;
+  background: rgba(255,255,255,.05);
+  color: #fff;
+  font-size: 16px;
+  margin-bottom: 16px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
 .auth .process .auth-card input[type="email"]:focus,
 .auth .process .auth-card input[type="tel"]:focus {
   outline: none;

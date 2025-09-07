@@ -185,9 +185,11 @@ async function onSendLoginSms() {
     }
     
     setStatus(status, 'Code sent! Check your phone.', 'success');
+    show($('#loginSmsStep2'));
+    setupCodeInputs($('#loginSmsStep2'));
     // 自动聚焦到第一个验证码输入框
     setTimeout(() => {
-      const firstInput = document.querySelector('.login-sms-code-input');
+      const firstInput = $('#loginSmsStep2').querySelector('.login-sms-code-input');
       if (firstInput) firstInput.focus();
     }, 100);
     // 启动SMS发送冷却（如果返回了cooldown）
@@ -1477,6 +1479,13 @@ async function onSendLoginCode() {
     // 显示验证码输入框
     setStatus(status, 'Code sent! Check your inbox.', 'success');
     show($('#loginEmailCodeSection'));
+    
+    // 显示邮箱地址
+    const emailDisplay = $('#loginEmailDisplay');
+    if (emailDisplay) {
+      emailDisplay.textContent = email;
+    }
+    
     setupCodeInputs($('#loginEmailCodeSection'));
     // 自动聚焦到第一个验证码输入框
     setTimeout(() => {
@@ -1674,9 +1683,11 @@ function initializeApp() {
       }
       
       setStatus($('#loginPhoneStatus'), 'Code sent! Check your phone.', 'success');
+      show($('#loginSmsStep2'));
+      setupCodeInputs($('#loginSmsStep2'));
       // 自动聚焦到第一个验证码输入框
       setTimeout(() => {
-        const firstInput = document.querySelector('.login-sms-code-input');
+        const firstInput = $('#loginSmsStep2').querySelector('.login-sms-code-input');
         if (firstInput) firstInput.focus();
       }, 100);
       if (loginState.resendLeft > 0) startLoginSmsResend();
@@ -1687,6 +1698,13 @@ function initializeApp() {
       }
       setStatus($('#loginEmailStatus'), 'Code sent! Check your inbox.', 'success');
       show($('#loginEmailCodeSection'));
+      
+      // 显示邮箱地址
+      const emailDisplay = $('#loginEmailDisplay');
+      if (emailDisplay && loginState.email) {
+        emailDisplay.textContent = loginState.email;
+      }
+      
       setupCodeInputs($('#loginEmailCodeSection'));
       // 自动聚焦到第一个验证码输入框
       setTimeout(() => {

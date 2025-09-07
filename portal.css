@@ -1889,30 +1889,51 @@ body {
   margin-top: 8px;
 }
 
-/* 历史记录项样式 */
-.portal .history-item {
-  background: rgba(255, 255, 255, 0.05);
+/* 历史记录表格样式 */
+.portal .history-table {
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.portal .history-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.portal .history-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.2s ease;
+  align-items: center;
+}
+
+.portal .history-item:last-child {
+  border-bottom: none;
 }
 
 .portal .history-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.portal .history-item-simple {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .portal .history-item-date {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -1921,8 +1942,6 @@ body {
   color: #ffffff;
   font-weight: 500;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  flex: 1;
-  text-align: center;
 }
 
 .portal .history-item-amount {
@@ -1930,6 +1949,29 @@ body {
   color: #10b981;
   font-weight: 600;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.portal .history-item-status {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-align: center;
+  display: inline-block;
+  width: fit-content;
+}
+
+.portal .history-item-status.status-completed {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.portal .history-item-status.status-pending {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
 /* Membership Section Buttons */
@@ -2456,14 +2498,40 @@ body {
   }
   
   /* 历史记录响应式 */
-  .portal .history-item-simple {
+  .portal .history-header {
+    display: none; /* 在手机上隐藏表头 */
+  }
+  
+  .portal .history-item {
+    display: flex;
     flex-direction: column;
     gap: 8px;
     text-align: center;
+    padding: 12px;
   }
   
-  .portal .history-item-type {
-    text-align: center;
+  .portal .history-item-date::before {
+    content: "Date: ";
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .portal .history-item-type::before {
+    content: "Type: ";
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .portal .history-item-amount::before {
+    content: "Amount: ";
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .portal .history-item-status::before {
+    content: "Status: ";
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
   }
   
   /* Footer responsive adjustments */

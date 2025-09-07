@@ -2451,22 +2451,42 @@ function displayPurchaseHistory(history) {
   // 清空现有内容
   historyList.innerHTML = '';
 
+  // 创建表格结构
+  const table = document.createElement('div');
+  table.className = 'history-table';
+  
+  // 表头
+  const header = document.createElement('div');
+  header.className = 'history-header';
+  header.innerHTML = `
+    <div class="history-header-date">Date</div>
+    <div class="history-header-type">Type</div>
+    <div class="history-header-amount">Amount</div>
+    <div class="history-header-status">Status</div>
+  `;
+  table.appendChild(header);
+
   console.log('Creating history items for', history.length, 'transactions');
   history.forEach((transaction, index) => {
     console.log(`Creating item ${index + 1}:`, transaction);
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
+    
+    // 状态样式
+    const statusClass = transaction.status === 'Completed' ? 'status-completed' : 'status-pending';
+    const statusText = transaction.status === 'Completed' ? '✓ Completed' : '⏳ Pending';
+    
     historyItem.innerHTML = `
-      <div class="history-item-simple">
-        <div class="history-item-date">${formatDate(transaction.date)}</div>
-        <div class="history-item-type">${transaction.type}</div>
-        <div class="history-item-amount">${transaction.amount}</div>
-      </div>
+      <div class="history-item-date">${formatDate(transaction.date)}</div>
+      <div class="history-item-type">${transaction.type}</div>
+      <div class="history-item-amount">${transaction.amount}</div>
+      <div class="history-item-status ${statusClass}">${statusText}</div>
     `;
-    historyList.appendChild(historyItem);
+    table.appendChild(historyItem);
   });
   
-  console.log('History items created and appended to DOM');
+  historyList.appendChild(table);
+  console.log('History table created and appended to DOM');
 }
 
 async function showRenewalModal() {

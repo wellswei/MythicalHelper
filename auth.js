@@ -507,8 +507,8 @@ function onTurnstileSuccess(token) {
   state.turnstileToken = token;
   console.log('Turnstile success, token received, length:', token.length);
   
-  // 更新状态提示（支持多个Turnstile组件）
-  updateTurnstileMessage('✓ Security verified', '#10b981');
+  // 隐藏Turnstile状态提示（不再显示"Security verified"文本）
+  hideTurnstileStatus();
   
   // 启用当前步骤的发送按钮
   if (state.currentStep === 1) {
@@ -589,6 +589,22 @@ function updateTurnstileMessage(text, color) {
       
       // 更新状态类
       statusEl.className = `turnstile-status ${statusClass}`;
+    }
+  });
+}
+
+// 隐藏Turnstile状态提示的辅助函数
+function hideTurnstileStatus() {
+  const statusElements = [
+    'turnstileStatus',
+    'turnstileStatusPhone', 
+    'turnstileStatusOath'
+  ];
+  
+  statusElements.forEach(statusId => {
+    const statusEl = document.getElementById(statusId);
+    if (statusEl) {
+      statusEl.style.display = 'none';
     }
   });
 }

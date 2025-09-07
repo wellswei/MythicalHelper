@@ -1037,18 +1037,9 @@ def create_renewal_session(
                 print(f"[PAYMENT] Calling Stripe API...")
                 print(f"[PAYMENT] Line items: {line_items}")
                 
-                # 测试网络连接
-                import requests
-                try:
-                    test_response = requests.get("https://api.stripe.com/v1/charges", 
-                                               headers={"Authorization": f"Bearer {stripe.api_key}"}, 
-                                               timeout=5)
-                    print(f"[PAYMENT] Stripe API connectivity test: {test_response.status_code}")
-                except Exception as conn_error:
-                    print(f"[PAYMENT] Stripe API connectivity test failed: {str(conn_error)}")
-                
-                # 设置 Stripe API 版本
+                # 设置 Stripe API 版本和超时
                 stripe.api_version = "2023-10-16"  # 使用稳定版本
+                stripe.api_timeout = 30  # 设置30秒超时
                 
                 checkout_session = stripe.checkout.Session.create(
                     payment_method_types=['card'],

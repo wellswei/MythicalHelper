@@ -2248,6 +2248,22 @@ async function initializePortal() {
 // ===== 页面加载完成后初始化 =====
 document.addEventListener('DOMContentLoaded', initializePortal);
 
+// 额外的兜底事件绑定 - 确保续费按钮能工作
+window.addEventListener('load', function() {
+  console.log('=== WINDOW LOAD EVENT ===');
+  const renewalBtn = document.getElementById('btnRenewMembership');
+  if (renewalBtn) {
+    console.log('Renewal button found on window load, adding event listener');
+    renewalBtn.addEventListener('click', function(e) {
+      console.log('Renewal button clicked via window load event');
+      e.preventDefault();
+      showRenewalModal();
+    });
+  } else {
+    console.error('Renewal button not found on window load!');
+  }
+});
+
 // ===== Badge 工具函数 =====
 function getEnchantedUntil(validUntil) {
   if (!validUntil) return 'Not specified';

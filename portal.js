@@ -2,6 +2,8 @@
 
 // 配置
 const API_BASE = 'https://api.mythicalhelper.org';  // 使用你的实际API地址
+// 临时本地测试配置 - 如果有CORS问题，可以尝试使用代理
+// const API_BASE = 'https://cors-anywhere.herokuapp.com/https://api.mythicalhelper.org';
 
 // ===== Stripe 配置 =====
 const stripe = Stripe('pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu');

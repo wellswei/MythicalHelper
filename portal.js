@@ -522,6 +522,135 @@ function showLoading(message) {
   // 可以在这里添加更美观的加载提示UI
 }
 
+// 支付相关函数
+async function showRenewalModal() {
+  try {
+    showLoading('Creating renewal session...');
+    
+    const data = await portalApiFetch('/api/payment/renewal', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({})
+    });
+    
+    console.log('Renewal API response:', data);
+    console.log('checkout_url:', data.checkout_url);
+    console.log('session_id:', data.session_id);
+    
+    if (data.checkout_url) {
+      console.log('Redirecting to Stripe Checkout:', data.checkout_url);
+      // 重定向到Stripe Checkout
+      window.location.href = data.checkout_url;
+    } else {
+      console.error('No checkout_url in response:', data);
+      showError('Failed to create renewal session');
+    }
+  } catch (error) {
+    console.error('Renewal error:', error);
+    showError('Failed to start renewal process');
+  }
+}
+
+function showDonationModal() {
+  // 显示捐赠金额输入模态框
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content donation-modal">
+      <div class="modal-header">
+        <h3>Share a Gift of Kindness</h3>
+        <button class="modal-close" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Any amount you give will help our guild shine brighter.</p>
+        <div class="donation-amount-section">
+          <label for="donationAmount">Donation Amount (USD)</label>
+          <div class="donation-input-group">
+            <span class="currency-symbol">$</span>
+            <input type="number" id="donationAmount" min="1" step="0.01" placeholder="10.00" value="10.00">
+          </div>
+          <div class="donation-presets">
+            <button class="preset-btn" data-amount="5">$5</button>
+            <button class="preset-btn" data-amount="10">$10</button>
+            <button class="preset-btn" data-amount="25">$25</button>
+            <button class="preset-btn" data-amount="50">$50</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" id="cancelDonation" type="button">Cancel</button>
+        <button class="btn primary" id="confirmDonation" type="button">Continue to Payment</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // 绑定事件
+  const amountInput = modal.querySelector('#donationAmount');
+  const presetBtns = modal.querySelectorAll('.preset-btn');
+  const cancelBtn = modal.querySelector('#cancelDonation');
+  const confirmBtn = modal.querySelector('#confirmDonation');
+  const closeBtn = modal.querySelector('.modal-close');
+  
+  // 预设金额按钮
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      amountInput.value = btn.dataset.amount;
+    });
+  });
+  
+  // 取消按钮
+  cancelBtn.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  closeBtn.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  // 确认按钮
+  confirmBtn.addEventListener('click', async () => {
+    const amount = parseFloat(amountInput.value);
+    if (!amount || amount < 1) {
+      showError('Please enter a valid amount (minimum $1)');
+      return;
+    }
+    
+    try {
+      showLoading('Creating donation session...');
+      document.body.removeChild(modal);
+      
+      const data = await portalApiFetch('/api/payment/donation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: Math.round(amount * 100) // 转换为美分
+        })
+      });
+      
+      if (data.checkout_url) {
+        // 重定向到Stripe Checkout
+        window.location.href = data.checkout_url;
+      } else {
+        showError('Failed to create donation session');
+      }
+    } catch (error) {
+      console.error('Donation error:', error);
+      showError('Failed to start donation process');
+    }
+  });
+  
+  // 默认选中$10
+  modal.querySelector('[data-amount="10"]').click();
+}
+
 function setupCodeInputs(container) {
   if (!container) return;
   const inputs = container.querySelectorAll('input[maxlength="1"][inputmode="numeric"]');
@@ -2408,133 +2537,6 @@ function displayPurchaseHistory(history) {
   });
 }
 
-async function showRenewalModal() {
-  try {
-    showLoading('Creating renewal session...');
-    
-    const data = await portalApiFetch('/api/payment/renewal', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({})
-    });
-    
-    console.log('Renewal API response:', data);
-    console.log('checkout_url:', data.checkout_url);
-    console.log('session_id:', data.session_id);
-    
-    if (data.checkout_url) {
-      console.log('Redirecting to Stripe Checkout:', data.checkout_url);
-      // 重定向到Stripe Checkout
-      window.location.href = data.checkout_url;
-    } else {
-      console.error('No checkout_url in response:', data);
-      showError('Failed to create renewal session');
-    }
-  } catch (error) {
-    console.error('Renewal error:', error);
-    showError('Failed to start renewal process');
-  }
-}
-
-function showDonationModal() {
-  // 显示捐赠金额输入模态框
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay';
-  modal.innerHTML = `
-    <div class="modal-content donation-modal">
-      <div class="modal-header">
-        <h3>Share a Gift of Kindness</h3>
-        <button class="modal-close" type="button">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p>Any amount you give will help our guild shine brighter.</p>
-        <div class="donation-amount-section">
-          <label for="donationAmount">Donation Amount (USD)</label>
-          <div class="donation-input-group">
-            <span class="currency-symbol">$</span>
-            <input type="number" id="donationAmount" min="1" step="0.01" placeholder="10.00" value="10.00">
-          </div>
-          <div class="donation-presets">
-            <button class="preset-btn" data-amount="5">$5</button>
-            <button class="preset-btn" data-amount="10">$10</button>
-            <button class="preset-btn" data-amount="25">$25</button>
-            <button class="preset-btn" data-amount="50">$50</button>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn secondary" id="cancelDonation" type="button">Cancel</button>
-        <button class="btn primary" id="confirmDonation" type="button">Continue to Payment</button>
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  
-  // 绑定事件
-  const amountInput = modal.querySelector('#donationAmount');
-  const presetBtns = modal.querySelectorAll('.preset-btn');
-  const cancelBtn = modal.querySelector('#cancelDonation');
-  const confirmBtn = modal.querySelector('#confirmDonation');
-  const closeBtn = modal.querySelector('.modal-close');
-  
-  // 预设金额按钮
-  presetBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      presetBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      amountInput.value = btn.dataset.amount;
-    });
-  });
-  
-  // 取消按钮
-  cancelBtn.addEventListener('click', () => {
-    document.body.removeChild(modal);
-  });
-  
-  closeBtn.addEventListener('click', () => {
-    document.body.removeChild(modal);
-  });
-  
-  // 确认按钮
-  confirmBtn.addEventListener('click', async () => {
-    const amount = parseFloat(amountInput.value);
-    if (!amount || amount < 1) {
-      showError('Please enter a valid amount (minimum $1)');
-      return;
-    }
-    
-    try {
-      showLoading('Creating donation session...');
-      document.body.removeChild(modal);
-      
-      const data = await portalApiFetch('/api/payment/donation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Math.round(amount * 100) // 转换为美分
-        })
-      });
-      
-      if (data.checkout_url) {
-        // 重定向到Stripe Checkout
-        window.location.href = data.checkout_url;
-      } else {
-        showError('Failed to create donation session');
-      }
-    } catch (error) {
-      console.error('Donation error:', error);
-      showError('Failed to start donation process');
-    }
-  });
-  
-  // 默认选中$10
-  modal.querySelector('[data-amount="10"]').click();
-}
 
 // 处理支付结果
 function handlePaymentResult() {

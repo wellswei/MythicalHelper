@@ -2984,7 +2984,6 @@ function displayAdminUsers(users) {
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
               </svg>
-              Edit
             </button>
             <button class="btn-delete" onclick="deleteUser('${user.id}', '${user.username || 'User'}')" title="Delete User">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2993,7 +2992,6 @@ function displayAdminUsers(users) {
                 <line x1="10" y1="11" x2="10" y2="17"></line>
                 <line x1="14" y1="11" x2="14" y2="17"></line>
               </svg>
-              Delete
             </button>
           </div>
         </div>
@@ -3044,7 +3042,6 @@ function displayBlocklistUsers(users) {
       <div class="table-row deleted-row">
         <div class="table-cell">
           ${user.username || 'N/A'}
-          <span class="deleted-badge">DELETED</span>
         </div>
         <div class="table-cell">${user.email || 'N/A'}</div>
         <div class="table-cell">${user.phone || 'N/A'}</div>
@@ -3059,7 +3056,6 @@ function displayBlocklistUsers(users) {
                 <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
                 <path d="M3 21v-5h5"></path>
               </svg>
-              Restore
             </button>
             <button class="btn-delete" onclick="permanentlyDeleteUser('${user.id}', '${user.username || 'Unknown'}')" title="Permanently Delete User">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3068,7 +3064,6 @@ function displayBlocklistUsers(users) {
                 <line x1="10" y1="11" x2="10" y2="17"></line>
                 <line x1="14" y1="11" x2="14" y2="17"></line>
               </svg>
-              Delete
             </button>
           </div>
         </div>

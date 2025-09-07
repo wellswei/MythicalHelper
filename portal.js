@@ -523,36 +523,6 @@ function showLoading(message) {
 }
 
 // 支付相关函数
-async function showRenewalModal() {
-  try {
-    showLoading('Creating renewal session...');
-    
-    const data = await portalApiFetch('/api/payment/renewal', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({})
-    });
-    
-    console.log('Renewal API response:', data);
-    console.log('checkout_url:', data.checkout_url);
-    console.log('session_id:', data.session_id);
-    
-    if (data.checkout_url) {
-      console.log('Redirecting to Stripe Checkout:', data.checkout_url);
-      // 重定向到Stripe Checkout
-      window.location.href = data.checkout_url;
-    } else {
-      console.error('No checkout_url in response:', data);
-      showError('Failed to create renewal session');
-    }
-  } catch (error) {
-    console.error('Renewal error:', error);
-    showError('Failed to start renewal process');
-  }
-}
-
 function showDonationModal() {
   // 显示捐赠金额输入模态框
   const modal = document.createElement('div');
@@ -1476,9 +1446,7 @@ function setupEventListeners() {
   const cancelEditBtn = $('#btnCancelEdit');
   if (cancelEditBtn) cancelEditBtn.addEventListener('click', cancelEdit);
 
-  // 续费相关按钮
-  const renewMembershipBtn = $('#btnRenewMembership');
-  if (renewMembershipBtn) renewMembershipBtn.addEventListener('click', showRenewalModal);
+  // 续费相关按钮 - 现在是直接跳转链接，不需要事件监听
   
   const makeDonationBtn = $('#btnMakeDonation');
   if (makeDonationBtn) makeDonationBtn.addEventListener('click', showDonationModal);

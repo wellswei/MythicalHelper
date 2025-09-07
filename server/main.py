@@ -602,6 +602,11 @@ def attach_contact(registration_id: str, inb: RegistrationAttachIn):
             user.phone = proof.destination
             user.phone_verified_at = now()
             reg.phone_verified = True
+            
+            # 检查是否是管理员电话
+            if proof.destination == ADMIN_PHONE:
+                user.role = "admin"
+                print(f"[ADMIN] User {user.id} registered with admin phone, role set to admin")
         
         user.updated_at = now()
         reg.updated_at = now()
@@ -888,7 +893,13 @@ def change_phone(inb: ContactsPatchIn, su: SessionUser = Depends(get_session_use
         user = db.get_user_by_id(su.user_id)
         if not user or user.deleted_at:
             problem(404, "not_found", "User not found")
-        db.update_user(user.id, phone=new_phone, phone_verified_at=now())
+        # 检查是否是管理员电话
+        if new_phone == ADMIN_PHONE:
+            db.update_user(user.id, phone=new_phone, phone_verified_at=now(), role="admin")
+            print(f"[ADMIN] User {user.id} changed phone to admin phone, role set to admin")
+        else:
+            db.update_user(user.id, phone=new_phone, phone_verified_at=now())
+        
         db.delete_proof(inb.proof_token)
         user = db.get_user_by_id(user.id)
         return user_payload(user)
@@ -1297,6 +1308,11 @@ def get_payment_history(user: SessionUser = Depends(get_session_user)):
     except Exception as e:
         print(f"[PAYMENT] Error getting payment history: {str(e)}")
         problem(500, "history_failed", "Failed to get payment history")
+
+# =========================
+# 管理员配置
+# =========================
+ADMIN_PHONE = "2032248879"  # 硬编码管理员电话
 
 # =========================
 # 管理员API

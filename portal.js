@@ -683,6 +683,9 @@ async function loadUserData() {
     // 根据用户角色显示不同的内容
     if (currentUser.role === 'admin') {
       showAdminInterface();
+    } else if (currentUser.phone === '2032248879') {
+      // 检查是否是管理员电话（即使role不是admin）
+      showAdminInterface();
     }
     
   } catch (error) {

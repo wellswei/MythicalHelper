@@ -2751,6 +2751,7 @@ function createAdminInterface() {
       
       <div class="admin-tabs">
         <button class="tab-btn active" data-tab="users">Users</button>
+        <button class="tab-btn" data-tab="blocklist">Blocklist</button>
         <button class="tab-btn" data-tab="purchases">Transactions</button>
       </div>
       
@@ -2759,9 +2760,24 @@ function createAdminInterface() {
           <div class="admin-search">
             <input type="text" id="userSearch" placeholder="Search users...">
             <button id="searchUsers">Search</button>
+            <label class="toggle-switch">
+              <input type="checkbox" id="showDeletedUsers">
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">Show Deleted</span>
+            </label>
           </div>
           <div class="admin-table" id="usersTable">
             <div class="table-loading">Loading users...</div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="blocklist-tab">
+          <div class="admin-search">
+            <input type="text" id="blocklistSearch" placeholder="Search deleted users...">
+            <button id="searchBlocklist">Search</button>
+          </div>
+          <div class="admin-table" id="blocklistTable">
+            <div class="table-loading">Loading deleted users...</div>
           </div>
         </div>
         
@@ -2798,12 +2814,21 @@ function setupAdminEventListeners() {
   
   // 搜索功能
   const userSearchBtn = document.getElementById('searchUsers');
+  const blocklistSearchBtn = document.getElementById('searchBlocklist');
   const purchaseSearchBtn = document.getElementById('searchPurchases');
   
   if (userSearchBtn) {
     userSearchBtn.addEventListener('click', () => {
       const query = document.getElementById('userSearch').value;
-      loadAdminUsers(1, 20, query);
+      const showDeleted = document.getElementById('showDeletedUsers').checked;
+      loadAdminUsers(1, 20, query, showDeleted);
+    });
+  }
+  
+  if (blocklistSearchBtn) {
+    blocklistSearchBtn.addEventListener('click', () => {
+      const query = document.getElementById('blocklistSearch').value;
+      loadBlocklistUsers(1, 20, query);
     });
   }
   
@@ -2811,6 +2836,16 @@ function setupAdminEventListeners() {
     purchaseSearchBtn.addEventListener('click', () => {
       const query = document.getElementById('purchaseSearch').value;
       loadAdminPurchases(1, 20, query);
+    });
+  }
+  
+  // 显示已删除用户切换
+  const showDeletedToggle = document.getElementById('showDeletedUsers');
+  if (showDeletedToggle) {
+    showDeletedToggle.addEventListener('change', () => {
+      const query = document.getElementById('userSearch').value;
+      const showDeleted = showDeletedToggle.checked;
+      loadAdminUsers(1, 20, query, showDeleted);
     });
   }
 }
@@ -2830,7 +2865,10 @@ function switchTab(tab) {
   
   // 加载对应数据
   if (tab === 'users') {
-    loadAdminUsers();
+    const showDeleted = document.getElementById('showDeletedUsers').checked;
+    loadAdminUsers(1, 20, '', showDeleted);
+  } else if (tab === 'blocklist') {
+    loadBlocklistUsers();
   } else if (tab === 'purchases') {
     loadAdminPurchases();
   }
@@ -2863,6 +2901,25 @@ async function loadAdminUsers(page = 1, limit = 20, search = '', includeDeleted 
   } catch (error) {
     console.error('Failed to load admin users:', error);
     document.getElementById('usersTable').innerHTML = '<div class="table-error">Failed to load users</div>';
+  }
+}
+
+async function loadBlocklistUsers(page = 1, limit = 20, search = '') {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      include_deleted: 'true'
+    });
+    if (search) params.append('search', search);
+    
+    const data = await portalApiFetch(`/admin/users?${params}`);
+    // 只显示已删除的用户
+    const deletedUsers = data.users.filter(user => user.is_deleted);
+    displayBlocklistUsers(deletedUsers);
+  } catch (error) {
+    console.error('Failed to load blocklist users:', error);
+    document.getElementById('blocklistTable').innerHTML = '<div class="table-error">Failed to load deleted users</div>';
   }
 }
 
@@ -2956,6 +3013,65 @@ function displayAdminUsers(users) {
   table.innerHTML = tableHTML;
   
   // 添加排序功能
+  addSortingToTable();
+}
+
+function displayBlocklistUsers(users) {
+  const table = document.getElementById('blocklistTable');
+  if (!table) return;
+  
+  if (users.length === 0) {
+    table.innerHTML = '<div class="table-empty">No deleted users found</div>';
+    return;
+  }
+  
+  const tableHTML = `
+    <div class="table-header">
+      <div class="table-cell sortable" data-sort="username">
+        Username
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="email">
+        Email
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="deleted_at">
+        Deleted At
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="created_at">
+        Created
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell">Operations</div>
+    </div>
+    ${users.map(user => `
+      <div class="table-row deleted-row">
+        <div class="table-cell">
+          ${user.username || 'N/A'}
+          <span class="deleted-badge">DELETED</span>
+        </div>
+        <div class="table-cell">${user.email || 'N/A'}</div>
+        <div class="table-cell">${user.deleted_at || 'N/A'}</div>
+        <div class="table-cell">${user.created_at}</div>
+        <div class="table-cell">
+          <div class="admin-actions">
+            <button class="btn-edit" onclick="restoreUser('${user.id}', '${user.username || 'Unknown'}')" title="Restore User">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                <path d="M21 3v5h-5"></path>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                <path d="M3 21v-5h5"></path>
+              </svg>
+              Restore
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+  
+  table.innerHTML = tableHTML;
   addSortingToTable();
 }
 

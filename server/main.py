@@ -1010,6 +1010,7 @@ def create_renewal_session(
             print(f"[PAYMENT] Creating Stripe checkout session...")
             print(f"[PAYMENT] Stripe API key: {stripe.api_key[:10]}...")
             print(f"[PAYMENT] Frontend URL: {FRONTEND_URL}")
+            print(f"[PAYMENT] Using price ID: {RENEWAL_PRICE_ID if RENEWAL_PRICE_ID else 'dynamic pricing'}")
             
             # 创建Stripe Checkout会话
             if RENEWAL_PRICE_ID:
@@ -1032,19 +1033,26 @@ def create_renewal_session(
                     'quantity': 1,
                 }]
             
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=line_items,
-                mode='payment',
-                success_url=f"{FRONTEND_URL}/portal?renewal=success",
-                cancel_url=f"{FRONTEND_URL}/portal?renewal=cancelled",
-                metadata={
-                    'user_id': user.user_id,
-                    'type': 'renewal',
-                    'new_valid_until': new_valid_until.isoformat(),
-                    'amount': '999'
-                }
-            )
+            try:
+                print(f"[PAYMENT] Calling Stripe API...")
+                checkout_session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
+                    line_items=line_items,
+                    mode='payment',
+                    success_url=f"{FRONTEND_URL}/portal?renewal=success",
+                    cancel_url=f"{FRONTEND_URL}/portal?renewal=cancelled",
+                    metadata={
+                        'user_id': user.user_id,
+                        'type': 'renewal',
+                        'new_valid_until': new_valid_until.isoformat(),
+                        'amount': '999'
+                    }
+                )
+                print(f"[PAYMENT] Stripe API call successful!")
+            except Exception as stripe_error:
+                print(f"[PAYMENT] Stripe API error: {str(stripe_error)}")
+                print(f"[PAYMENT] Stripe error type: {type(stripe_error)}")
+                raise stripe_error
             
             print(f"[PAYMENT] Stripe session created: {checkout_session.id}")
             print(f"[PAYMENT] Checkout URL: {checkout_session.url}")

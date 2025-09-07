@@ -24,10 +24,15 @@ from database import DatabaseService, get_db
 UTC = timezone.utc
 
 # Stripe configuration
-stripe.api_key = "sk_test_51S4XMwArEWZmSCjIIer2BJld1LCOgBChTEArYVFRSB0ipcNMdy8t6nUdpS13usrh1nIs9XlNnhJ07xcJ2kpqMdd900GMFxfive"  # 替换为你的实际Secret Key
-STRIPE_PUBLISHABLE_KEY = "pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu"
-STRIPE_WEBHOOK_SECRET = "whsec_Jjnz17IhJYwbOSMqeat8USOG02I2mLJz"  # 替换为你的实际Webhook Secret
-FRONTEND_URL = "https://mythicalhelper.org"  # 实际域名
+# Stripe 配置
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "sk_test_51S4XMwArEWZmSCjIIer2BJld1LCOgBChTEArYVFRSB0ipcNMdy8t6nUdpS13usrh1nIs9XlNnhJ07xcJ2kpqMdd900GMFxfive")
+stripe.api_key = STRIPE_SECRET_KEY
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_Jjnz17IhJYwbOSMqeat8USOG02I2mLJz")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://mythicalhelper.org")
+
+# Stripe 价格配置
+RENEWAL_PRICE_ID = os.getenv("RENEWAL_PRICE_ID", None)  # 如果设置了价格ID，使用固定价格；否则使用动态价格
 
 # Create database and tables
 create_database()
@@ -1007,9 +1012,15 @@ def create_renewal_session(
             print(f"[PAYMENT] Frontend URL: {FRONTEND_URL}")
             
             # 创建Stripe Checkout会话
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
+            if RENEWAL_PRICE_ID:
+                # 使用固定价格ID
+                line_items = [{
+                    'price': RENEWAL_PRICE_ID,
+                    'quantity': 1,
+                }]
+            else:
+                # 使用动态价格
+                line_items = [{
                     'price_data': {
                         'currency': 'usd',
                         'product_data': {
@@ -1019,7 +1030,11 @@ def create_renewal_session(
                         'unit_amount': 999,  # $9.99 in cents
                     },
                     'quantity': 1,
-                }],
+                }]
+            
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=line_items,
                 mode='payment',
                 success_url=f"{FRONTEND_URL}/portal?session_id={checkout_session.id}",
                 cancel_url=f"{FRONTEND_URL}/portal?renewal=cancelled",

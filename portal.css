@@ -1894,13 +1894,51 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
-.portal .renewal-action-item .btn.primary:hover {
+.portal .renewal-action-item .btn.primary:hover:not(.processing) {
   background: linear-gradient(135deg, #2563eb, #1e40af);
   border-color: #2563eb;
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
   transform: translateY(-1px);
+}
+
+/* Processing state */
+.portal .renewal-action-item .btn.primary.processing {
+  background: linear-gradient(135deg, #1e40af, #1e3a8a);
+  border-color: #1e40af;
+  cursor: not-allowed;
+  opacity: 0.9;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+}
+
+/* Loading spinner */
+.portal .renewal-action-item .btn.primary .loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+.portal .renewal-action-item .btn.primary .loading-text {
+  font-size: inherit;
+  font-weight: inherit;
+  text-transform: uppercase;
+  letter-spacing: inherit;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .portal .renewal-action-item .btn.secondary {

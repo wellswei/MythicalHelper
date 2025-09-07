@@ -2453,10 +2453,20 @@ async function showRenewalModal() {
   const renewBtn = document.getElementById('btnRenewMembership');
   
   try {
-    // 设置加载状态
+    // 设置加载状态 - 立即提供视觉反馈
     if (renewBtn) {
       renewBtn.disabled = true;
-      renewBtn.textContent = 'Processing...';
+      renewBtn.classList.add('processing');
+      
+      // 创建loading动画
+      const originalText = renewBtn.textContent;
+      renewBtn.innerHTML = `
+        <span class="loading-spinner"></span>
+        <span class="loading-text">Creating Payment Session...</span>
+      `;
+      
+      // 存储原始文本以便恢复
+      renewBtn.dataset.originalText = originalText;
     }
     
     console.log('Calling /api/payment/renewal...');
@@ -2476,8 +2486,19 @@ async function showRenewalModal() {
     
     if (data?.checkout_url) {
       console.log('Redirecting to Stripe:', data.checkout_url);
-      // 不重置按钮状态，因为即将跳转
-      window.location.href = data.checkout_url;
+      
+      // 更新按钮状态为即将跳转
+      if (renewBtn) {
+        renewBtn.innerHTML = `
+          <span class="loading-spinner"></span>
+          <span class="loading-text">Redirecting to Payment...</span>
+        `;
+      }
+      
+      // 短暂延迟让用户看到状态变化
+      setTimeout(() => {
+        window.location.href = data.checkout_url;
+      }, 500);
     } else {
       throw new Error('Invalid response from payment service');
     }
@@ -2499,7 +2520,8 @@ async function showRenewalModal() {
     // 恢复按钮状态
     if (renewBtn) {
       renewBtn.disabled = false;
-      renewBtn.textContent = 'Renew Membership';
+      renewBtn.classList.remove('processing');
+      renewBtn.textContent = renewBtn.dataset.originalText || 'RENEW YOUR ENCHANTMENT';
     }
   }
 }

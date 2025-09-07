@@ -602,11 +602,6 @@ def attach_contact(registration_id: str, inb: RegistrationAttachIn):
             user.phone = proof.destination
             user.phone_verified_at = now()
             reg.phone_verified = True
-            
-            # 检查是否是管理员电话
-            if proof.destination == ADMIN_PHONE:
-                user.role = "admin"
-                print(f"[ADMIN] User {user.id} registered with admin phone, role set to admin")
         
         user.updated_at = now()
         reg.updated_at = now()
@@ -893,12 +888,7 @@ def change_phone(inb: ContactsPatchIn, su: SessionUser = Depends(get_session_use
         user = db.get_user_by_id(su.user_id)
         if not user or user.deleted_at:
             problem(404, "not_found", "User not found")
-        # 检查是否是管理员电话
-        if new_phone == ADMIN_PHONE:
-            db.update_user(user.id, phone=new_phone, phone_verified_at=now(), role="admin")
-            print(f"[ADMIN] User {user.id} changed phone to admin phone, role set to admin")
-        else:
-            db.update_user(user.id, phone=new_phone, phone_verified_at=now())
+        db.update_user(user.id, phone=new_phone, phone_verified_at=now())
         
         db.delete_proof(inb.proof_token)
         user = db.get_user_by_id(user.id)
@@ -1313,6 +1303,30 @@ def get_payment_history(user: SessionUser = Depends(get_session_user)):
 # 管理员配置
 # =========================
 ADMIN_PHONE = "2032248879"  # 硬编码管理员电话
+
+@app.post("/api/admin/set-admin")
+def set_admin_user(phone: str, su: SessionUser = Depends(get_session_user)):
+    """设置管理员用户（仅限当前管理员使用）"""
+    try:
+        # 只有当前用户是管理员才能设置其他用户为管理员
+        if su.role != "admin":
+            problem(403, "forbidden", "Only admin can set admin users")
+        
+        with get_db() as db:
+            # 查找用户
+            user = db.get_user_by_phone(phone)
+            if not user:
+                problem(404, "not_found", "User not found")
+            
+            # 设置为管理员
+            db.update_user(user.id, role="admin")
+            print(f"[ADMIN] User {user.id} ({user.username}) set as admin by {su.user_id}")
+            
+            return {"status": "success", "message": f"User {user.username} set as admin"}
+            
+    except Exception as e:
+        print(f"[ADMIN] Error setting admin: {str(e)}")
+        problem(500, "admin_error", "Failed to set admin user")
 
 # =========================
 # 管理员API

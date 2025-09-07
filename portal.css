@@ -2550,19 +2550,76 @@ body {
 }
 
 .admin-header {
-  text-align: center;
   margin-bottom: 30px;
 }
 
-.admin-header h1 {
+.admin-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.admin-title {
+  text-align: left;
+}
+
+.admin-title h1 {
   color: #fff;
   font-size: 2.5rem;
   margin-bottom: 10px;
 }
 
-.admin-header p {
+.admin-title p {
   color: rgba(255, 255, 255, 0.7);
   font-size: 1.1rem;
+}
+
+.admin-logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.admin-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.admin-logout-btn svg {
+  flex-shrink: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .admin-header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .admin-title {
+    text-align: center;
+  }
+  
+  .admin-title h1 {
+    font-size: 2rem;
+  }
+  
+  .admin-logout-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .admin-stats {

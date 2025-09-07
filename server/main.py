@@ -27,7 +27,7 @@ UTC = timezone.utc
 stripe.api_key = "sk_test_51S4XMwArEWZmSCjIIer2BJld1LCOgBChTEArYVFRSB0ipcNMdy8t6nUdpS13usrh1nIs9XlNnhJ07xcJ2kpqMdd900GMFxfive"  # 替换为你的实际Secret Key
 STRIPE_PUBLISHABLE_KEY = "pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu"
 STRIPE_WEBHOOK_SECRET = "whsec_Jjnz17IhJYwbOSMqeat8USOG02I2mLJz"  # 替换为你的实际Webhook Secret
-FRONTEND_URL = "https://mythicalhelper.pages.dev"  # Cloudflare Pages域名
+FRONTEND_URL = "https://mythicalhelper.org"  # 实际域名
 
 # Create database and tables
 create_database()
@@ -48,6 +48,7 @@ TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverif
 TURNSTILE_SECRET = os.getenv("TURNSTILE_SECRET")
 
 async def verify_turnstile(request: Request) -> None:
+    
     if not TURNSTILE_SECRET:
         print("[TURNSTILE] ERROR: TURNSTILE_SECRET not set")
         raise HTTPException(500, "Server missing TURNSTILE_SECRET")

@@ -2420,10 +2420,16 @@ async function showRenewalModal() {
       body: JSON.stringify({})
     });
     
+    console.log('Renewal API response:', data);
+    console.log('checkout_url:', data.checkout_url);
+    console.log('session_id:', data.session_id);
+    
     if (data.checkout_url) {
+      console.log('Redirecting to Stripe Checkout:', data.checkout_url);
       // 重定向到Stripe Checkout
       window.location.href = data.checkout_url;
     } else {
+      console.error('No checkout_url in response:', data);
       showError('Failed to create renewal session');
     }
   } catch (error) {

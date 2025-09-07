@@ -656,6 +656,18 @@ async function loadUserData() {
     // 徽章区
     updateBadges();
     // 历史记录
+    console.log('About to call loadPurchaseHistory...');
+    
+    // 测试DOM元素是否存在
+    const testHistoryList = document.getElementById('historyList');
+    const testHistoryLoading = document.getElementById('historyLoading');
+    const testNoHistory = document.getElementById('noHistory');
+    console.log('DOM elements test:', {
+      historyList: !!testHistoryList,
+      historyLoading: !!testHistoryLoading,
+      noHistory: !!testNoHistory
+    });
+    
     loadPurchaseHistory();
     const editor = $('#badgesEditor');
     if (editor) {

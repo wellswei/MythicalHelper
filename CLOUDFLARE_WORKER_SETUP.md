@@ -15,7 +15,7 @@ AWS Lightsail IPv6-only 实例无法直接访问 Stripe API（仅支持 IPv4）
 
 ### 2. 部署 Worker 代码
 
-复制 `portal.js` 末尾注释中的 Worker 代码到 Cloudflare Worker 编辑器
+复制 `stripe-worker.js` 文件的内容到 Cloudflare Worker 编辑器
 
 ### 3. 配置环境变量
 

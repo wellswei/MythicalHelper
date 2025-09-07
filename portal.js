@@ -582,7 +582,13 @@ async function apiCall(endpoint, options = {}) {
     },
   };
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const url = `${API_BASE}${endpoint}`;
+  console.log('=== API CALL DEBUG ===');
+  console.log('URL:', url);
+  console.log('Headers:', defaultOptions.headers);
+  console.log('Token length:', token.length);
+
+  const response = await fetch(url, {
     ...defaultOptions,
     ...options,
     headers: {
@@ -590,6 +596,9 @@ async function apiCall(endpoint, options = {}) {
       ...options.headers,
     },
   });
+
+  console.log('Response status:', response.status);
+  console.log('Response ok:', response.ok);
 
   if (response.status === 401) {
     clearAuthToken();
@@ -624,6 +633,8 @@ async function loadUserData() {
     const token = getAuthToken();
     console.log('=== LOADING USER DATA ===');
     console.log('Token exists:', !!token);
+    console.log('API_BASE:', API_BASE);
+    console.log('About to make API call to:', `${API_BASE}/users/me`);
     
     currentUser = await apiCall('/users/me');
     console.log('User data loaded:', currentUser);

@@ -149,7 +149,13 @@ def normalize_email(v: str) -> str:
     return v.strip().lower()
 
 def normalize_phone(v: str) -> str:
-    return re.sub(r"\s+", "", v.strip())
+    # 移除所有空格和+号，确保格式一致
+    normalized = re.sub(r"[\s+]+", "", v.strip())
+    # 如果以1开头且长度为11位，保持原样
+    # 如果以其他数字开头且长度为10位，添加1前缀
+    if len(normalized) == 10 and normalized[0] != '1':
+        normalized = '1' + normalized
+    return normalized
 
 def problem(status: int, title: str, detail: str, type_uri: str = "about:blank", extra: dict | None = None):
     payload = {"type": type_uri, "title": title, "status": status, "detail": detail}

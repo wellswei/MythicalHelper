@@ -1041,6 +1041,17 @@ def create_renewal_session(
                 stripe.api_version = "2023-10-16"  # 使用稳定版本
                 stripe.api_timeout = 30  # 设置30秒超时
                 
+                # 强制使用 IPv4 连接
+                import os
+                os.environ['STRIPE_HTTP_CLIENT'] = 'requests'
+                
+                # 设置 DNS 解析优先使用 IPv4
+                import socket
+                original_getaddrinfo = socket.getaddrinfo
+                def getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
+                    return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+                socket.getaddrinfo = getaddrinfo_ipv4
+                
                 checkout_session = stripe.checkout.Session.create(
                     payment_method_types=['card'],
                     line_items=line_items,

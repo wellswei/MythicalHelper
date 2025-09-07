@@ -501,14 +501,23 @@ def exchange_session(inb: SessionsExchangeIn, request: Request = None):
             if proof.channel == "email":
                 user = db.get_user_by_email(proof.destination)
             else:
-                # 对于SMS登录，需要将E164格式转换为存储格式
+                # 对于SMS登录，需要处理两种格式：
+                # 1. 数据库中可能存储E164格式（+12015551111）
+                # 2. 数据库中可能存储normalized格式（12015551111）
                 phone_destination = proof.destination
-                if phone_destination.startswith('+'):
-                    # 移除+号并应用normalize_phone逻辑
+                
+                # 首先尝试直接匹配（处理数据库中已经是E164格式的情况）
+                user = db.get_user_by_phone(phone_destination)
+                
+                # 如果没有找到且输入是E164格式，尝试normalized格式
+                if not user and phone_destination.startswith('+'):
                     normalized_phone = normalize_phone(phone_destination)
                     user = db.get_user_by_phone(normalized_phone)
-                else:
-                    user = db.get_user_by_phone(phone_destination)
+                
+                # 如果还没有找到且输入不是E164格式，尝试E164格式
+                if not user and not phone_destination.startswith('+'):
+                    e164_phone = '+' + phone_destination
+                    user = db.get_user_by_phone(e164_phone)
             
             if not user or user.deleted_at:
                 problem(404, "user_not_found", "No user bound to this destination")

@@ -13,7 +13,6 @@ from uuid import uuid4
 
 from fastapi import FastAPI, APIRouter, Header, HTTPException, Depends, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 import os
 import httpx
@@ -959,90 +958,6 @@ def health():
 # =========================
 # 支付相关API
 # =========================
-
-@app.get("/api/payment/renewal")
-def redirect_to_renewal(user: SessionUser = Depends(get_session_user)):
-    """重定向到续费支付页面"""
-    try:
-        print(f"[PAYMENT] Starting renewal for user: {user.user_id}")
-        
-        # 获取用户信息
-        with get_db() as db:
-            user_data = db.get_user_by_id(user.user_id)
-            if not user_data:
-                print(f"[PAYMENT] ERROR: User not found: {user.user_id}")
-                return RedirectResponse(url=f"{FRONTEND_URL}/portal?error=user_not_found")
-            
-            print(f"[PAYMENT] User found: {user_data.username}, valid_until: {user_data.valid_until}")
-            
-            # 计算新的有效期
-            current_time = datetime.now(UTC)
-            print(f"[PAYMENT] Current time: {current_time}")
-            
-            # 确保user_data.valid_until是aware datetime
-            if user_data.valid_until:
-                if user_data.valid_until.tzinfo is None:
-                    # 如果是naive datetime，假设是UTC
-                    user_valid_until = user_data.valid_until.replace(tzinfo=UTC)
-                else:
-                    user_valid_until = user_data.valid_until
-                print(f"[PAYMENT] User valid_until (aware): {user_valid_until}")
-            else:
-                user_valid_until = None
-                print(f"[PAYMENT] User has no valid_until")
-            
-            if user_valid_until and user_valid_until > current_time:
-                # 用户还在有效期内，从当前有效期结束日期延长一年
-                new_valid_until = user_valid_until + timedelta(days=365)
-                print(f"[PAYMENT] Extending from current valid_until: {new_valid_until}")
-            else:
-                # 用户已过期，从今天开始一年有效期
-                new_valid_until = current_time + timedelta(days=365)
-                print(f"[PAYMENT] Starting from today: {new_valid_until}")
-            
-            print(f"[PAYMENT] Creating Stripe checkout session...")
-            print(f"[PAYMENT] Stripe API key: {stripe.api_key[:10]}...")
-            print(f"[PAYMENT] Frontend URL: {FRONTEND_URL}")
-            
-            # 创建Stripe Checkout会话
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'usd',
-                        'product_data': {
-                            'name': 'MythicalHelper Guild Membership Renewal',
-                            'description': 'Extend your membership for one year',
-                        },
-                        'unit_amount': 999,  # $9.99 in cents
-                    },
-                    'quantity': 1,
-                }],
-                mode='payment',
-                success_url=f"{FRONTEND_URL}/portal?renewal=success",
-                cancel_url=f"{FRONTEND_URL}/portal?renewal=cancelled",
-                metadata={
-                    'user_id': user.user_id,
-                    'type': 'renewal',
-                    'new_valid_until': new_valid_until.isoformat(),
-                    'amount': '999'
-                }
-            )
-            
-            print(f"[PAYMENT] Stripe session created: {checkout_session.id}")
-            print(f"[PAYMENT] Checkout URL: {checkout_session.url}")
-            
-            # 直接重定向到Stripe Checkout
-            return RedirectResponse(url=checkout_session.url)
-            
-    except stripe.error.StripeError as e:
-        print(f"[PAYMENT] Stripe error: {str(e)}")
-        return RedirectResponse(url=f"{FRONTEND_URL}/portal?error=stripe_error")
-    except Exception as e:
-        print(f"[PAYMENT] Internal error: {str(e)}")
-        import traceback
-        print(f"[PAYMENT] Traceback: {traceback.format_exc()}")
-        return RedirectResponse(url=f"{FRONTEND_URL}/portal?error=internal_error")
 
 @app.post("/api/payment/renewal", response_model=PaymentResponse)
 def create_renewal_session(

@@ -4,7 +4,7 @@
 const API_BASE = 'https://api.mythicalhelper.org';  // 使用你的实际API地址
 
 // ===== Stripe 配置 =====
-// 注意：我们使用Stripe Checkout重定向方式，不需要前端Stripe.js库
+const stripe = Stripe('pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu');
 
 // 全局状态
 let currentUser = null;
@@ -622,17 +622,8 @@ async function apiCall(endpoint, options = {}) {
 async function loadUserData() {
   try {
     const token = getAuthToken();
-    console.log('Loading user data, token exists:', !!token);
-    console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
-    
-    if (!token) {
-      console.log('No token found, redirecting to auth');
-      redirectToAuth();
-      return;
-    }
     
     currentUser = await apiCall('/users/me');
-    console.log('User data loaded:', currentUser);
 
     
     if (!currentUser) {
@@ -2408,13 +2399,6 @@ function displayPurchaseHistory(history) {
 
 async function showRenewalModal() {
   try {
-    // 检查认证状态
-    const token = getAuthToken();
-    if (!token) {
-      showError('Please log in first to access payment features.');
-      return;
-    }
-    
     showLoading('Creating renewal session...');
     
     const response = await portalApiFetch('/api/payment/renewal', {
@@ -2424,23 +2408,6 @@ async function showRenewalModal() {
       },
       body: JSON.stringify({})
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('API Error:', response.status, errorData);
-      
-      if (response.status === 401) {
-        showError('Authentication failed. Please log in again.');
-        // 可以在这里添加重新登录的逻辑
-        return;
-      } else if (response.status === 403) {
-        showError('Access denied. Please check your permissions.');
-        return;
-      } else {
-        showError('Server error: ' + (errorData.detail || 'Unknown error'));
-        return;
-      }
-    }
     
     const data = await response.json();
     
@@ -2452,7 +2419,7 @@ async function showRenewalModal() {
     }
   } catch (error) {
     console.error('Renewal error:', error);
-    showError('Failed to start renewal process: ' + error.message);
+    showError('Failed to start renewal process');
   }
 }
 
@@ -2524,13 +2491,6 @@ function showDonationModal() {
       return;
     }
     
-    // 检查认证状态
-    const token = getAuthToken();
-    if (!token) {
-      showError('Please log in first to access payment features.');
-      return;
-    }
-    
     try {
       showLoading('Creating donation session...');
       document.body.removeChild(modal);
@@ -2574,7 +2534,7 @@ function handlePaymentResult() {
     // 清除URL参数
     window.history.replaceState({}, document.title, window.location.pathname);
     // 刷新用户信息
-    loadUserData();
+    loadUserInfo();
   } else if (renewal === 'cancelled') {
     showError('Renewal was cancelled.');
     // 清除URL参数

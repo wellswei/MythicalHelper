@@ -2541,7 +2541,7 @@ function handlePaymentResult() {
     // 清除URL参数
     window.history.replaceState({}, document.title, window.location.pathname);
     // 刷新用户信息
-    loadUserInfo();
+    loadUserData();
   } else if (renewal === 'cancelled') {
     showError('Renewal was cancelled.');
     // 清除URL参数

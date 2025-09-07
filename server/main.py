@@ -64,8 +64,6 @@ app.add_middleware(
         "https://mythicalhelper.pages.dev", 
         "http://127.0.0.1:5500", 
         "http://localhost:5500",
-        "http://127.0.0.1:3000",
-        "http://localhost:3000"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -1321,7 +1319,7 @@ def get_payment_history(user: SessionUser = Depends(get_session_user)):
 # =========================
 # 管理员配置
 # =========================
-ADMIN_PHONE = "2032248879"  # 硬编码管理员电话
+ADMIN_PHONE = "12032248879"  # 硬编码管理员电话（带区号）
 
 def ensure_admin_user():
     """确保管理员用户存在，如果不存在则创建"""

@@ -1034,43 +1034,40 @@ def create_renewal_session(
                 }]
             
             try:
-                print(f"[PAYMENT] Calling Stripe API...")
+                print(f"[PAYMENT] Calling Cloudflare Worker for Stripe API...")
                 print(f"[PAYMENT] Line items: {line_items}")
                 
-                # 设置 Stripe API 版本和超时
-                stripe.api_version = "2023-10-16"  # 使用稳定版本
-                stripe.api_timeout = 30  # 设置30秒超时
+                # 通过 Cloudflare Worker 调用 Stripe API
+                import requests
                 
-                # 强制使用 IPv4 连接
-                import os
-                os.environ['STRIPE_HTTP_CLIENT'] = 'requests'
+                worker_url = "https://mythicalhelper.org/stripe-worker"  # 前端 Worker 端点
                 
-                # 设置 DNS 解析优先使用 IPv4
-                import socket
-                original_getaddrinfo = socket.getaddrinfo
-                def getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
-                    return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
-                socket.getaddrinfo = getaddrinfo_ipv4
-                
-                checkout_session = stripe.checkout.Session.create(
-                    payment_method_types=['card'],
-                    line_items=line_items,
-                    mode='payment',
-                    success_url=f"{FRONTEND_URL}/portal?renewal=success",
-                    cancel_url=f"{FRONTEND_URL}/portal?renewal=cancelled",
-                    metadata={
-                        'user_id': user.user_id,
-                        'type': 'renewal',
-                        'new_valid_until': new_valid_until.isoformat(),
-                        'amount': '999'
+                payload = {
+                    "action": "create_checkout_session",
+                    "data": {
+                        "type": "renewal",
+                        "user_id": user.user_id,
+                        "new_valid_until": new_valid_until.isoformat(),
+                        "amount": 999,
+                        "frontend_url": FRONTEND_URL
                     }
-                )
-                print(f"[PAYMENT] Stripe API call successful!")
-            except stripe.error.StripeError as stripe_error:
-                print(f"[PAYMENT] Stripe API error: {str(stripe_error)}")
-                print(f"[PAYMENT] Stripe error type: {type(stripe_error)}")
-                print(f"[PAYMENT] Stripe error code: {getattr(stripe_error, 'code', 'N/A')}")
-                raise stripe_error
+                }
+                
+                response = requests.post(worker_url, json=payload, timeout=30)
+                response.raise_for_status()
+                
+                result = response.json()
+                print(f"[PAYMENT] Worker call successful!")
+                
+                # 模拟 Stripe 响应格式
+                checkout_session = type('obj', (object,), {
+                    'id': result['session_id'],
+                    'url': result['checkout_url']
+                })()
+                
+            except requests.exceptions.RequestException as req_error:
+                print(f"[PAYMENT] Worker request error: {str(req_error)}")
+                raise Exception(f"Failed to call payment worker: {str(req_error)}")
             except Exception as general_error:
                 print(f"[PAYMENT] General error: {str(general_error)}")
                 print(f"[PAYMENT] Error type: {type(general_error)}")

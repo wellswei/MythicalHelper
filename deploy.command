@@ -10,6 +10,12 @@ SERVER_PATH="/home/ubuntu/mythicalhelper"
 
 echo "🚀 更新 MythicalHelper 到 AWS 服务器..."
 
+echo "🛑 停止当前服务..."
+ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "sudo systemctl stop mythicalhelper"
+
+echo "⏳ 等待服务完全停止..."
+sleep 3
+
 # 上传所有Python文件
 echo "📤 上传 main.py..."
 scp -6 -i "$KEY_PATH" server/main.py "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
@@ -26,8 +32,14 @@ scp -6 -i "$KEY_PATH" server/requirements.txt "$USERNAME@[$SERVER_IP]:$SERVER_PA
 echo "📦 安装Python依赖..."
 ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "cd $SERVER_PATH && source venv/bin/activate && pip install -r requirements.txt"
 
-echo "🔄 重启服务器上的服务..."
-ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "sudo systemctl restart mythicalhelper"
+echo "🔄 启动新版本服务..."
+ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "sudo systemctl start mythicalhelper"
+
+echo "⏳ 等待服务启动..."
+sleep 5
+
+echo "✅ 检查服务状态..."
+ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "sudo systemctl status mythicalhelper --no-pager"
 
 echo "🎉 后端文件上传完成！"
 echo "🌐 API地址: http://[$SERVER_IP]:8000"

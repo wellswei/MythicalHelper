@@ -2997,7 +2997,11 @@ function addSortingToTable() {
 // 排序用户表格
 function sortUsersTable(field, direction) {
   const table = document.getElementById('usersTable');
+  const header = table.querySelector('.table-header');
   const rows = Array.from(table.querySelectorAll('.table-row'));
+  
+  // 创建临时容器来存储排序后的行
+  const tempContainer = document.createElement('div');
   
   rows.sort((a, b) => {
     let aValue, bValue;
@@ -3037,14 +3041,17 @@ function sortUsersTable(field, direction) {
     return 0;
   });
   
-  // 重新排列行
-  const tbody = table.querySelector('.table-header').nextElementSibling;
-  if (tbody) {
-    rows.forEach(row => tbody.appendChild(row));
-  } else {
-    // 如果没有tbody，直接重新排列
-    const header = table.querySelector('.table-header');
-    rows.forEach(row => table.appendChild(row));
+  // 将排序后的行添加到临时容器
+  rows.forEach(row => tempContainer.appendChild(row));
+  
+  // 清空表格内容（保留header）
+  while (table.children.length > 1) {
+    table.removeChild(table.lastChild);
+  }
+  
+  // 将排序后的行添加回表格
+  while (tempContainer.firstChild) {
+    table.appendChild(tempContainer.firstChild);
   }
 }
 

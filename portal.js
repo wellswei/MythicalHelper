@@ -2449,6 +2449,13 @@ async function showRenewalModal() {
   console.log('Current user:', currentUser);
   console.log('Auth token exists:', !!getAuthToken());
   
+  // 定义 showLoading 函数（如果不存在）
+  if (typeof showLoading === 'undefined') {
+    window.showLoading = function(message) {
+      console.log('Loading: ' + message);
+    };
+  }
+  
   try {
     console.log('Calling /api/payment/renewal...');
     const data = await portalApiFetch('/api/payment/renewal', {

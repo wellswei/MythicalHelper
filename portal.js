@@ -582,13 +582,7 @@ async function apiCall(endpoint, options = {}) {
     },
   };
 
-  const url = `${API_BASE}${endpoint}`;
-  console.log('=== API CALL DEBUG ===');
-  console.log('URL:', url);
-  console.log('Headers:', defaultOptions.headers);
-  console.log('Token length:', token.length);
-
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
     ...defaultOptions,
     ...options,
     headers: {
@@ -597,16 +591,13 @@ async function apiCall(endpoint, options = {}) {
     },
   });
 
-  console.log('Response status:', response.status);
-  console.log('Response ok:', response.ok);
-
   if (response.status === 401) {
     clearAuthToken();
     // 在邮箱修改流程中不跳转
     if (!isInEmailChangeFlow) {
       redirectToAuth();
     }
-    throw new Error('401 Unauthorized - Session expired or invalid');
+    return null;
   }
 
   if (!response.ok) {
@@ -631,17 +622,12 @@ async function apiCall(endpoint, options = {}) {
 async function loadUserData() {
   try {
     const token = getAuthToken();
-    console.log('=== LOADING USER DATA ===');
-    console.log('Token exists:', !!token);
-    console.log('API_BASE:', API_BASE);
-    console.log('About to make API call to:', `${API_BASE}/users/me`);
     
     currentUser = await apiCall('/users/me');
-    console.log('User data loaded:', currentUser);
 
     
     if (!currentUser) {
-      console.log('=== NO USER DATA, REDIRECTING ===');
+
       redirectToAuth();
       return;
     }
@@ -2156,9 +2142,7 @@ async function initializePortal() {
   console.log('User is authenticated, proceeding to load user data...');
   
   // 加载用户数据
-  console.log('About to call loadUserData()...');
   await loadUserData();
-  console.log('loadUserData() completed');
   
   // 设置事件监听器（在用户数据加载完成后）
   // 添加一个小延迟确保DOM完全加载
@@ -2415,13 +2399,6 @@ function displayPurchaseHistory(history) {
 
 async function showRenewalModal() {
   try {
-    // 检查用户是否已登录
-    const token = getAuthToken();
-    if (!token) {
-      showError('Please log in first to access payment features');
-      return;
-    }
-    
     showLoading('Creating renewal session...');
     
     const response = await portalApiFetch('/api/payment/renewal', {
@@ -2431,14 +2408,6 @@ async function showRenewalModal() {
       },
       body: JSON.stringify({})
     });
-    
-    if (!response.ok) {
-      if (response.status === 401) {
-        showError('Session expired. Please log in again.');
-        return;
-      }
-      throw new Error(`HTTP ${response.status}`);
-    }
     
     const data = await response.json();
     
@@ -2450,7 +2419,7 @@ async function showRenewalModal() {
     }
   } catch (error) {
     console.error('Renewal error:', error);
-    showError('Failed to start renewal process: ' + error.message);
+    showError('Failed to start renewal process');
   }
 }
 
@@ -2522,14 +2491,6 @@ function showDonationModal() {
       return;
     }
     
-    // 检查用户是否已登录
-    const token = getAuthToken();
-    if (!token) {
-      showError('Please log in first to access payment features');
-      document.body.removeChild(modal);
-      return;
-    }
-    
     try {
       showLoading('Creating donation session...');
       document.body.removeChild(modal);
@@ -2544,14 +2505,6 @@ function showDonationModal() {
         })
       });
       
-      if (!response.ok) {
-        if (response.status === 401) {
-          showError('Session expired. Please log in again.');
-          return;
-        }
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
       const data = await response.json();
       
       if (data.checkout_url) {
@@ -2562,7 +2515,7 @@ function showDonationModal() {
       }
     } catch (error) {
       console.error('Donation error:', error);
-      showError('Failed to start donation process: ' + error.message);
+      showError('Failed to start donation process');
     }
   });
   
@@ -2581,7 +2534,7 @@ function handlePaymentResult() {
     // 清除URL参数
     window.history.replaceState({}, document.title, window.location.pathname);
     // 刷新用户信息
-    loadUserData();
+    loadUserInfo();
   } else if (renewal === 'cancelled') {
     showError('Renewal was cancelled.');
     // 清除URL参数

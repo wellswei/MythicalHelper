@@ -2412,15 +2412,13 @@ async function showRenewalModal() {
   try {
     showLoading('Creating renewal session...');
     
-    const response = await portalApiFetch('/api/payment/renewal', {
+    const data = await portalApiFetch('/api/payment/renewal', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({})
     });
-    
-    const data = await response.json();
     
     if (data.checkout_url) {
       // 重定向到Stripe Checkout
@@ -2506,7 +2504,7 @@ function showDonationModal() {
       showLoading('Creating donation session...');
       document.body.removeChild(modal);
       
-      const response = await portalApiFetch('/api/payment/donation', {
+      const data = await portalApiFetch('/api/payment/donation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2515,8 +2513,6 @@ function showDonationModal() {
           amount: Math.round(amount * 100) // 转换为美分
         })
       });
-      
-      const data = await response.json();
       
       if (data.checkout_url) {
         // 重定向到Stripe Checkout

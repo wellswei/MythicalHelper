@@ -2410,25 +2410,19 @@ function displayPurchaseHistory(history) {
 
 async function showRenewalModal() {
   try {
-    showLoading('Creating renewal session...');
-    
     const data = await portalApiFetch('/api/payment/renewal', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({})
     });
     
     if (data.checkout_url) {
-      // 重定向到Stripe Checkout
       window.location.href = data.checkout_url;
     } else {
       showError('Failed to create renewal session');
     }
   } catch (error) {
     console.error('Renewal error:', error);
-    showError('Failed to start renewal process');
+    showError('Failed to start renewal process: ' + error.message);
   }
 }
 

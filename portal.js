@@ -153,7 +153,12 @@ async function waitForPortalTurnstileToken(timeoutMs = 10000) {
 
 // 带Turnstile的API请求
 async function portalApiFetch(path, options = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 
+    'Content-Type': 'application/json',
+    'User-Agent': 'Mozilla/5.0 (compatible; MythicalHelper/1.0)',
+    'Referer': window.location.origin,
+    'Origin': window.location.origin
+  };
   const hadTurnstileToken = !!portalTurnstileToken;
   
   // 添加认证头

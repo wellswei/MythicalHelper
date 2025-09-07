@@ -623,6 +623,13 @@ async function loadUserData() {
   try {
     const token = getAuthToken();
     console.log('Loading user data, token exists:', !!token);
+    console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
+    
+    if (!token) {
+      console.log('No token found, redirecting to auth');
+      redirectToAuth();
+      return;
+    }
     
     currentUser = await apiCall('/users/me');
     console.log('User data loaded:', currentUser);

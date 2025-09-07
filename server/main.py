@@ -1711,40 +1711,18 @@ def admin_get_purchases(
     """获取所有交易记录（管理员）"""
     try:
         with get_db() as db:
-            # 构建查询（使用原始SQL避免schema不匹配问题）
-            base_query = "SELECT * FROM purchases"
-            count_query = "SELECT COUNT(*) FROM purchases"
-            where_clause = ""
-            params = []
+            # 使用ORM查询，但处理可能的schema不匹配问题
+            query = db.db.query(Purchase)
             
             if user_id:
-                where_clause = " WHERE user_id = ?"
-                params.append(user_id)
+                query = query.filter(Purchase.user_id == user_id)
             
             # 获取总数
-            total = db.db.execute(f"{count_query}{where_clause}", params).scalar()
+            total = query.count()
             
             # 获取分页数据
             offset = (page - 1) * limit
-            purchases_data = db.db.execute(
-                f"{base_query}{where_clause} ORDER BY purchased_at DESC LIMIT ? OFFSET ?",
-                params + [limit, offset]
-            ).fetchall()
-            
-            # 转换为Purchase对象
-            purchases = []
-            for row in purchases_data:
-                purchase = Purchase()
-                purchase.id = row[0]
-                purchase.user_id = row[1]
-                purchase.amount = row[2]
-                purchase.currency = row[3]
-                purchase.provider_payment_id = row[4]
-                purchase.status = getattr(row, 'status', 'completed') if hasattr(row, 'status') else 'completed'
-                purchase.purchased_at = row[5]
-                purchase.updated_at = getattr(row, 'updated_at', purchase.purchased_at) if hasattr(row, 'updated_at') else purchase.purchased_at
-                purchase.valid_until_after_purchase = row[6] if len(row) > 6 else None
-                purchases.append(purchase)
+            purchases = query.order_by(Purchase.purchased_at.desc()).offset(offset).limit(limit).all()
             
             # 转换为前端格式
             purchase_list = []

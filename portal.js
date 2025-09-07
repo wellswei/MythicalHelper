@@ -2928,7 +2928,7 @@ async function loadAdminPurchases(page = 1, limit = 20, search = '') {
     if (search) params.append('search', search);
     
     const data = await portalApiFetch(`/admin/purchases?${params}`);
-    displayAdminPurchases(data.purchases);
+    displayAdminPurchases(data.purchases, data.pagination, page, search);
   } catch (error) {
     console.error('Failed to load admin purchases:', error);
     document.getElementById('purchasesTable').innerHTML = '<div class="table-error">Failed to load transactions</div>';
@@ -3273,7 +3273,7 @@ async function permanentlyDeleteUser(userId, username) {
   }
 }
 
-function displayAdminPurchases(purchases) {
+function displayAdminPurchases(purchases, pagination, currentPage, search) {
   const table = document.getElementById('purchasesTable');
   if (!table) return;
   
@@ -3318,6 +3318,20 @@ function displayAdminPurchases(purchases) {
         </div>
       </div>
     `).join('')}
+    <div class="table-pagination">
+      <div class="pagination-info">
+        Showing ${((currentPage - 1) * 20) + 1} to ${Math.min(currentPage * 20, pagination.total)} of ${pagination.total} transactions
+      </div>
+      <div class="pagination-controls">
+        <button class="btn btn-pagination" onclick="loadAdminPurchases(${currentPage - 1}, 20, '${search}')" ${currentPage <= 1 ? 'disabled' : ''}>
+          Previous
+        </button>
+        <span class="pagination-page">Page ${currentPage} of ${pagination.pages}</span>
+        <button class="btn btn-pagination" onclick="loadAdminPurchases(${currentPage + 1}, 20, '${search}')" ${currentPage >= pagination.pages ? 'disabled' : ''}>
+          Next
+        </button>
+      </div>
+    </div>
   `;
   
   table.innerHTML = tableHTML;

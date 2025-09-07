@@ -2456,6 +2456,43 @@ body {
   .portal .renewal-action-desc {
     font-size: clamp(11px, 1.2vw, 13px);
   }
+  
+  /* 历史记录响应式 - 平板和手机 */
+  .portal .history-header {
+    display: none; /* 在平板和手机上隐藏表头 */
+  }
+  
+  .portal .history-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    padding: 12px;
+  }
+  
+  .portal .history-item-date::before {
+    content: "Date: ";
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .portal .history-item-type::before {
+    content: "Type: ";
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .portal .history-item-amount::before {
+    content: "Amount: ";
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .portal .history-item-status::before {
+    content: "Status: ";
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+  }
 }
 
 /* 手机竖屏 (480px) */
@@ -2497,42 +2534,6 @@ body {
     font-size: clamp(10px, 1.1vw, 12px);
   }
   
-  /* 历史记录响应式 */
-  .portal .history-header {
-    display: none; /* 在手机上隐藏表头 */
-  }
-  
-  .portal .history-item {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    text-align: center;
-    padding: 12px;
-  }
-  
-  .portal .history-item-date::before {
-    content: "Date: ";
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
-  }
-  
-  .portal .history-item-type::before {
-    content: "Type: ";
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
-  }
-  
-  .portal .history-item-amount::before {
-    content: "Amount: ";
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
-  }
-  
-  .portal .history-item-status::before {
-    content: "Status: ";
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
-  }
   
   /* Footer responsive adjustments */
   .portal .footer-brand .logo { 

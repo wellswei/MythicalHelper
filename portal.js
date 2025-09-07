@@ -622,8 +622,10 @@ async function apiCall(endpoint, options = {}) {
 async function loadUserData() {
   try {
     const token = getAuthToken();
+    console.log('Loading user data, token exists:', !!token);
     
     currentUser = await apiCall('/users/me');
+    console.log('User data loaded:', currentUser);
 
     
     if (!currentUser) {
@@ -2565,7 +2567,7 @@ function handlePaymentResult() {
     // 清除URL参数
     window.history.replaceState({}, document.title, window.location.pathname);
     // 刷新用户信息
-    loadUserInfo();
+    loadUserData();
   } else if (renewal === 'cancelled') {
     showError('Renewal was cancelled.');
     // 清除URL参数

@@ -1304,6 +1304,53 @@ def get_payment_history(user: SessionUser = Depends(get_session_user)):
 # =========================
 ADMIN_PHONE = "2032248879"  # 硬编码管理员电话
 
+def ensure_admin_user():
+    """确保管理员用户存在，如果不存在则创建"""
+    try:
+        with get_db() as db:
+            # 检查是否已存在管理员
+            existing_admin = db.get_user_by_phone(ADMIN_PHONE)
+            if existing_admin:
+                print(f"[ADMIN] 管理员账户已存在: {existing_admin.username} ({existing_admin.phone})")
+                return
+            
+            # 创建管理员用户
+            admin_id = "admin_001"
+            now = datetime.now(timezone.utc)
+            
+            admin_user = User(
+                id=admin_id,
+                username="Admin",
+                email="admin@mythicalhelper.org",
+                phone=ADMIN_PHONE,
+                phone_verified_at=now,
+                role="admin",
+                status="active",
+                badges="{}",
+                created_at=now,
+                updated_at=now
+            )
+            
+            db.db.add(admin_user)
+            db.db.commit()
+            
+            print(f"[ADMIN] ✅ 管理员账户创建成功!")
+            print(f"[ADMIN]   用户ID: {admin_id}")
+            print(f"[ADMIN]   用户名: Admin")
+            print(f"[ADMIN]   电话: {ADMIN_PHONE}")
+            print(f"[ADMIN]   角色: admin")
+            
+    except Exception as e:
+        print(f"[ADMIN] ❌ 创建管理员失败: {str(e)}")
+
+# 应用启动时自动创建管理员
+@app.on_event("startup")
+async def startup_event():
+    """应用启动时执行"""
+    print("[STARTUP] 正在启动 MythicalHelper 服务器...")
+    ensure_admin_user()
+    print("[STARTUP] 服务器启动完成!")
+
 @app.post("/api/admin/set-admin")
 def set_admin_user(phone: str, su: SessionUser = Depends(get_session_user)):
     """设置管理员用户（仅限当前管理员使用）"""

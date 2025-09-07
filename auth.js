@@ -177,7 +177,7 @@ async function onSendLoginSms() {
     // 切到验证码
     $('#loginSmsStep1').hidden = true; 
     $('#loginSmsStep2').hidden = false;
-    setStatus(status, 'SMS sent. Check your phone.', 'success');
+    setStatus(status, 'Code sent! Check your phone.', 'success');
     // 自动聚焦到第一个验证码输入框
     setTimeout(() => {
       const firstInput = document.querySelector('.login-sms-code-input');
@@ -895,7 +895,7 @@ async function onSendPhone(e) {
     state.phone = phone; 
     state.phoneTicketId = data.ticket_id;
     saveState();
-    setStatus(statusBar, 'SMS code sent.', 'success');
+    setStatus(statusBar, 'Code sent! Check your phone.', 'success');
     // 启动phone cooldown (只用于发送按钮，不影响修改手机号)
     state.resendLeft = data.cooldown_sec ?? RESEND_COOLDOWN;
     // 显示验证码输入区域
@@ -1659,7 +1659,7 @@ function initializeApp() {
       }
       $('#loginSmsStep1').hidden = true;
       $('#loginSmsStep2').hidden = false;
-      setStatus($('#loginPhoneStatus'), 'SMS sent. Check your phone.', 'success');
+      setStatus($('#loginPhoneStatus'), 'Code sent! Check your phone.', 'success');
       // 自动聚焦到第一个验证码输入框
       setTimeout(() => {
         const firstInput = document.querySelector('.login-sms-code-input');
@@ -1716,7 +1716,7 @@ function initializeApp() {
       hide($('#btnSendPhone'));
       hide($('#btnBackToEmail')); // 隐藏Back to Email按钮
       show($('#phoneCodeSection'));
-      setStatus($('#phoneStatus'), 'SMS code sent.', 'success');
+      setStatus($('#phoneStatus'), 'Code sent! Check your phone.', 'success');
       const phoneCodeBox = $('#phoneCodeBox');
       if (phoneCodeBox) {
         setupCodeInputs(phoneCodeBox.parentElement);

@@ -622,12 +622,15 @@ async function apiCall(endpoint, options = {}) {
 async function loadUserData() {
   try {
     const token = getAuthToken();
+    console.log('=== LOADING USER DATA ===');
+    console.log('Token exists:', !!token);
     
     currentUser = await apiCall('/users/me');
+    console.log('User data loaded:', currentUser);
 
     
     if (!currentUser) {
-
+      console.log('=== NO USER DATA, REDIRECTING ===');
       redirectToAuth();
       return;
     }
@@ -2565,7 +2568,7 @@ function handlePaymentResult() {
     // 清除URL参数
     window.history.replaceState({}, document.title, window.location.pathname);
     // 刷新用户信息
-    loadUserInfo();
+    loadUserData();
   } else if (renewal === 'cancelled') {
     showError('Renewal was cancelled.');
     // 清除URL参数

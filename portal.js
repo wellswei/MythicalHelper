@@ -2460,23 +2460,42 @@ async function showRenewalModal() {
     }
     
     console.log('Calling /api/payment/renewal...');
+    
+    // 创建带超时的请求
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+    
     const data = await portalApiFetch('/api/payment/renewal', {
       method: 'POST',
-      body: JSON.stringify({})
+      body: JSON.stringify({}),
+      signal: controller.signal
     });
     
+    clearTimeout(timeoutId);
     console.log('Renewal API response:', data);
     
     if (data?.checkout_url) {
       console.log('Redirecting to Stripe:', data.checkout_url);
+      // 不重置按钮状态，因为即将跳转
       window.location.href = data.checkout_url;
     } else {
       throw new Error('Invalid response from payment service');
     }
   } catch (error) {
     console.error('Renewal error:', error);
-    showError('Failed to start renewal: ' + error.message);
-  } finally {
+    
+    // 根据错误类型显示不同的消息
+    let errorMessage = 'Failed to start renewal: ';
+    if (error.name === 'AbortError') {
+      errorMessage += 'Request timed out. Please try again.';
+    } else if (error.message.includes('timeout')) {
+      errorMessage += 'Request timed out. Please try again.';
+    } else {
+      errorMessage += error.message;
+    }
+    
+    showError(errorMessage);
+    
     // 恢复按钮状态
     if (renewBtn) {
       renewBtn.disabled = false;

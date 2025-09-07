@@ -1257,7 +1257,7 @@ function logout(event) {
   try { clearAuthToken(); } catch {}
   try { sessionStorage.removeItem('loginState'); } catch {}
   try { sessionStorage.removeItem('authState'); } catch {}
-  try { localStorage.removeItem('authToken'); } catch {}
+  try { sessionStorage.removeItem('authToken'); } catch {}
   
   // 更可靠的跳转（不保留历史）到主页
   try { window.location.replace('/index.html'); } catch {}
@@ -1949,7 +1949,7 @@ async function performDeleteAccount() {
     clearAuthToken(); 
     try { sessionStorage.removeItem('authState'); } catch {}
     try { sessionStorage.removeItem('loginState'); } catch {}
-    try { localStorage.removeItem('authToken'); } catch {}
+    try { sessionStorage.removeItem('authToken'); } catch {}
     redirectToAuth();
   } catch (error) {
     console.error('Failed to delete account:', error);
@@ -3196,7 +3196,7 @@ async function restoreUser(userId) {
     const response = await fetch(`${API_BASE}/admin/users/${userId}/restore`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+        'Authorization': `Bearer ${getAuthToken()}`,
         'Content-Type': 'application/json'
       }
     });
@@ -3225,7 +3225,7 @@ async function deleteUser(userId, username) {
     const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+        'Authorization': `Bearer ${getAuthToken()}`,
         'Content-Type': 'application/json'
       }
     });
@@ -3254,7 +3254,7 @@ async function permanentlyDeleteUser(userId, username) {
     const response = await fetch(`${API_BASE}/admin/users/${userId}/permanent`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+        'Authorization': `Bearer ${getAuthToken()}`,
         'Content-Type': 'application/json'
       }
     });

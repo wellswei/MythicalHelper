@@ -1047,8 +1047,7 @@ def create_renewal_session(
                 except Exception as conn_error:
                     print(f"[PAYMENT] Stripe API connectivity test failed: {str(conn_error)}")
                 
-                # 设置 Stripe 超时
-                import stripe
+                # 设置 Stripe API 版本
                 stripe.api_version = "2023-10-16"  # 使用稳定版本
                 
                 checkout_session = stripe.checkout.Session.create(

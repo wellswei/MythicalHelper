@@ -2386,36 +2386,21 @@ async function loadPurchaseHistory() {
   if (noHistory) noHistory.style.display = 'none';
 
   try {
-    // 这里应该调用API获取购买历史
+    console.log('Loading purchase history from API...');
     
-    // 模拟数据，实际应该从API获取
-    const mockHistory = [
-      {
-        id: 'transaction_1',
-        date: '2024-01-15',
-        amount: '$9.99',
-        type: 'Membership Renewal'
-      },
-      {
-        id: 'transaction_2', 
-        date: '2023-12-20',
-        amount: '$25.00',
-        type: 'Donation'
-      },
-      {
-        id: 'transaction_3', 
-        date: '2023-01-15',
-        amount: '$9.99',
-        type: 'Initial Membership'
-      }
-    ];
-
+    // 调用API获取购买历史
+    const response = await portalApiFetch('/api/payment/history', {
+      method: 'GET'
+    });
+    
+    console.log('Purchase history API response:', response);
+    
     if (historyLoading) historyLoading.style.display = 'none';
     
-    if (mockHistory.length === 0) {
-      if (noHistory) noHistory.style.display = 'block';
+    if (response.history && response.history.length > 0) {
+      displayPurchaseHistory(response.history);
     } else {
-      displayPurchaseHistory(mockHistory);
+      if (noHistory) noHistory.style.display = 'block';
     }
   } catch (error) {
     console.error('Failed to load purchase history:', error);

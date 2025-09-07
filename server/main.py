@@ -501,7 +501,14 @@ def exchange_session(inb: SessionsExchangeIn, request: Request = None):
             if proof.channel == "email":
                 user = db.get_user_by_email(proof.destination)
             else:
-                user = db.get_user_by_phone(proof.destination)
+                # 对于SMS登录，需要将E164格式转换为存储格式
+                phone_destination = proof.destination
+                if phone_destination.startswith('+'):
+                    # 移除+号并应用normalize_phone逻辑
+                    normalized_phone = normalize_phone(phone_destination)
+                    user = db.get_user_by_phone(normalized_phone)
+                else:
+                    user = db.get_user_by_phone(phone_destination)
             
             if not user or user.deleted_at:
                 problem(404, "user_not_found", "No user bound to this destination")

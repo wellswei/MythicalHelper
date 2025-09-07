@@ -2702,21 +2702,21 @@ async function handlePaymentResult() {
 // ===== 管理员界面 =====
 function showAdminInterface() {
   
-  // 隐藏普通用户界面
-  const profileCard = document.getElementById('profileCard');
+  // 隐藏普通用户界面 - 隐藏所有section
+  const infoSection = document.getElementById('infoSection');
+  const badgesSection = document.getElementById('badgesSection');
   const renewalSection = document.getElementById('renewalSection');
-  const historySection = document.getElementById('historySection');
   
-  if (profileCard) profileCard.style.display = 'none';
+  if (infoSection) infoSection.style.display = 'none';
+  if (badgesSection) badgesSection.style.display = 'none';
   if (renewalSection) renewalSection.style.display = 'none';
-  if (historySection) historySection.style.display = 'none';
   
   // 创建管理员界面
   createAdminInterface();
 }
 
 function createAdminInterface() {
-  const mainContent = document.querySelector('.portal-main');
+  const mainContent = document.querySelector('main');
   if (!mainContent) return;
   
   // 清空现有内容

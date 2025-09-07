@@ -1035,6 +1035,22 @@ def create_renewal_session(
             
             try:
                 print(f"[PAYMENT] Calling Stripe API...")
+                print(f"[PAYMENT] Line items: {line_items}")
+                
+                # 测试网络连接
+                import requests
+                try:
+                    test_response = requests.get("https://api.stripe.com/v1/charges", 
+                                               headers={"Authorization": f"Bearer {stripe.api_key}"}, 
+                                               timeout=5)
+                    print(f"[PAYMENT] Stripe API connectivity test: {test_response.status_code}")
+                except Exception as conn_error:
+                    print(f"[PAYMENT] Stripe API connectivity test failed: {str(conn_error)}")
+                
+                # 设置 Stripe 超时
+                import stripe
+                stripe.api_version = "2023-10-16"  # 使用稳定版本
+                
                 checkout_session = stripe.checkout.Session.create(
                     payment_method_types=['card'],
                     line_items=line_items,
@@ -1049,10 +1065,15 @@ def create_renewal_session(
                     }
                 )
                 print(f"[PAYMENT] Stripe API call successful!")
-            except Exception as stripe_error:
+            except stripe.error.StripeError as stripe_error:
                 print(f"[PAYMENT] Stripe API error: {str(stripe_error)}")
                 print(f"[PAYMENT] Stripe error type: {type(stripe_error)}")
+                print(f"[PAYMENT] Stripe error code: {getattr(stripe_error, 'code', 'N/A')}")
                 raise stripe_error
+            except Exception as general_error:
+                print(f"[PAYMENT] General error: {str(general_error)}")
+                print(f"[PAYMENT] Error type: {type(general_error)}")
+                raise general_error
             
             print(f"[PAYMENT] Stripe session created: {checkout_session.id}")
             print(f"[PAYMENT] Checkout URL: {checkout_session.url}")

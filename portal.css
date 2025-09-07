@@ -711,12 +711,12 @@ body {
 }
 
 /* Valid Until 状态颜色 */
-.portal .field .value.valid {
+.portal .info-section .profile-card .field .value.valid {
   color: #10b981;
   font-weight: 600;
 }
 
-.portal .field .value.expired {
+.portal .info-section .profile-card .field .value.expired {
   color: #ef4444;
   font-weight: 600;
 }

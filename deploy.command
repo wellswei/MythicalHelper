@@ -23,6 +23,9 @@ scp -6 -i "$KEY_PATH" server/database.py "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
 echo "📤 上传 requirements.txt..."
 scp -6 -i "$KEY_PATH" server/requirements.txt "$USERNAME@[$SERVER_IP]:$SERVER_PATH/"
 
+echo "📦 安装Python依赖..."
+ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "cd $SERVER_PATH && source venv/bin/activate && pip install -r requirements.txt"
+
 echo "🔄 重启服务器上的服务..."
 ssh -6 -i "$KEY_PATH" "$USERNAME@$SERVER_IP" "sudo systemctl restart mythicalhelper"
 

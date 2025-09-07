@@ -4,7 +4,15 @@
 const API_BASE = 'https://api.mythicalhelper.org';  // 使用你的实际API地址
 
 // ===== Stripe 配置 =====
-const stripe = Stripe('pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu');
+let stripe = null;
+
+// 初始化Stripe
+function initStripe() {
+  if (typeof Stripe !== 'undefined' && !stripe) {
+    stripe = Stripe('pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu');
+    console.log('Stripe initialized successfully');
+  }
+}
 
 // 全局状态
 let currentUser = null;
@@ -2399,6 +2407,22 @@ function displayPurchaseHistory(history) {
 
 async function showRenewalModal() {
   try {
+    // 检查认证状态
+    const token = getAuthToken();
+    if (!token) {
+      showError('Please log in first to access payment features.');
+      return;
+    }
+    
+    // 确保Stripe已初始化
+    if (!stripe) {
+      initStripe();
+      if (!stripe) {
+        showError('Stripe is not loaded. Please refresh the page and try again.');
+        return;
+      }
+    }
+    
     showLoading('Creating renewal session...');
     
     const response = await portalApiFetch('/api/payment/renewal', {
@@ -2408,6 +2432,23 @@ async function showRenewalModal() {
       },
       body: JSON.stringify({})
     });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('API Error:', response.status, errorData);
+      
+      if (response.status === 401) {
+        showError('Authentication failed. Please log in again.');
+        // 可以在这里添加重新登录的逻辑
+        return;
+      } else if (response.status === 403) {
+        showError('Access denied. Please check your permissions.');
+        return;
+      } else {
+        showError('Server error: ' + (errorData.detail || 'Unknown error'));
+        return;
+      }
+    }
     
     const data = await response.json();
     
@@ -2419,7 +2460,7 @@ async function showRenewalModal() {
     }
   } catch (error) {
     console.error('Renewal error:', error);
-    showError('Failed to start renewal process');
+    showError('Failed to start renewal process: ' + error.message);
   }
 }
 
@@ -2488,6 +2529,13 @@ function showDonationModal() {
     const amount = parseFloat(amountInput.value);
     if (!amount || amount < 1) {
       showError('Please enter a valid amount (minimum $1)');
+      return;
+    }
+    
+    // 检查认证状态
+    const token = getAuthToken();
+    if (!token) {
+      showError('Please log in first to access payment features.');
       return;
     }
     

@@ -27,7 +27,7 @@ UTC = timezone.utc
 stripe.api_key = "sk_test_51S4XMwArEWZmSCjIIer2BJld1LCOgBChTEArYVFRSB0ipcNMdy8t6nUdpS13usrh1nIs9XlNnhJ07xcJ2kpqMdd900GMFxfive"  # 替换为你的实际Secret Key
 STRIPE_PUBLISHABLE_KEY = "pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu"
 STRIPE_WEBHOOK_SECRET = "whsec_Jjnz17IhJYwbOSMqeat8USOG02I2mLJz"  # 替换为你的实际Webhook Secret
-FRONTEND_URL = "https://your-actual-frontend-domain.com"  # 替换为你的实际前端域名
+FRONTEND_URL = "https://mythicalhelper.pages.dev"  # Cloudflare Pages域名
 
 # Create database and tables
 create_database()

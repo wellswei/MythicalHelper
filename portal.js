@@ -3196,7 +3196,7 @@ async function restoreUser(userId) {
     const response = await fetch(`${API_BASE}/admin/users/${userId}/restore`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -3225,7 +3225,7 @@ async function deleteUser(userId, username) {
     const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -3254,7 +3254,7 @@ async function permanentlyDeleteUser(userId, username) {
     const response = await fetch(`${API_BASE}/admin/users/${userId}/permanent`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });

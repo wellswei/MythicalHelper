@@ -149,13 +149,24 @@ def normalize_email(v: str) -> str:
     return v.strip().lower()
 
 def normalize_phone(v: str) -> str:
-    # 移除所有空格和+号，确保格式一致
-    normalized = re.sub(r"[\s+]+", "", v.strip())
-    # 如果以1开头且长度为11位，保持原样
-    # 如果以其他数字开头且长度为10位，添加1前缀
-    if len(normalized) == 10 and normalized[0] != '1':
-        normalized = '1' + normalized
-    return normalized
+    # 统一使用E164格式：+[国家代码][号码]
+    # 移除所有空格
+    cleaned = re.sub(r"\s+", "", v.strip())
+    
+    # 如果已经是E164格式，直接返回
+    if cleaned.startswith('+'):
+        return cleaned
+    
+    # 如果不是E164格式，添加+号
+    # 如果以1开头且长度为11位，添加+号
+    if len(cleaned) == 11 and cleaned[0] == '1':
+        return '+' + cleaned
+    # 如果长度为10位，添加+1前缀
+    elif len(cleaned) == 10:
+        return '+1' + cleaned
+    # 其他情况，直接添加+号
+    else:
+        return '+' + cleaned
 
 def problem(status: int, title: str, detail: str, type_uri: str = "about:blank", extra: dict | None = None):
     payload = {"type": type_uri, "title": title, "status": status, "detail": detail}
@@ -501,23 +512,9 @@ def exchange_session(inb: SessionsExchangeIn, request: Request = None):
             if proof.channel == "email":
                 user = db.get_user_by_email(proof.destination)
             else:
-                # 对于SMS登录，需要处理两种格式：
-                # 1. 数据库中可能存储E164格式（+12015551111）
-                # 2. 数据库中可能存储normalized格式（12015551111）
-                phone_destination = proof.destination
-                
-                # 首先尝试直接匹配（处理数据库中已经是E164格式的情况）
+                # 对于SMS登录，统一使用E164格式
+                phone_destination = normalize_phone(proof.destination)
                 user = db.get_user_by_phone(phone_destination)
-                
-                # 如果没有找到且输入是E164格式，尝试normalized格式
-                if not user and phone_destination.startswith('+'):
-                    normalized_phone = normalize_phone(phone_destination)
-                    user = db.get_user_by_phone(normalized_phone)
-                
-                # 如果还没有找到且输入不是E164格式，尝试E164格式
-                if not user and not phone_destination.startswith('+'):
-                    e164_phone = '+' + phone_destination
-                    user = db.get_user_by_phone(e164_phone)
             
             if not user or user.deleted_at:
                 problem(404, "user_not_found", "No user bound to this destination")

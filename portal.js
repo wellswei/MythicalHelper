@@ -2290,6 +2290,24 @@ function getEnchantedUntil(validUntil) {
   return formatDate(earlierDate);
 }
 
+// ===== Valid Until 颜色工具函数 =====
+function getValidUntilWithColor(validUntil) {
+  if (!validUntil) return 'N/A';
+  
+  const today = new Date();
+  const validDate = new Date(validUntil);
+  today.setHours(0, 0, 0, 0);
+  validDate.setHours(0, 0, 0, 0);
+  
+  const formattedDate = formatDate(validDate);
+  
+  if (validDate >= today) {
+    return `<span class="valid">${formattedDate}</span>`;
+  } else {
+    return `<span class="expired">${formattedDate}</span>`;
+  }
+}
+
 // ===== Badge Seal 生成函数 =====
 function getBadgeSeal(realm) {
   const seals = {
@@ -2984,7 +3002,7 @@ function displayAdminUsers(users) {
         <div class="table-cell">${user.email || 'N/A'}</div>
         <div class="table-cell">${user.phone || 'N/A'}</div>
         <div class="table-cell">${user.created_at}</div>
-        <div class="table-cell">${user.valid_until || 'N/A'}</div>
+        <div class="table-cell">${getValidUntilWithColor(user.valid_until)}</div>
         <div class="table-cell">
           <div class="admin-actions">
             <button class="btn-edit" onclick="openEditUserModal('${user.id}')" title="Edit User">

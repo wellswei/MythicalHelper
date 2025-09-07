@@ -524,6 +524,9 @@ function showLoading(message) {
   // 可以在这里添加更美观的加载提示UI
 }
 
+// 确保函数在全局作用域中可用
+window.showLoading = showLoading;
+
 function setupCodeInputs(container) {
   if (!container) return;
   const inputs = container.querySelectorAll('input[maxlength="1"][inputmode="numeric"]');

@@ -1036,7 +1036,7 @@ def create_renewal_session(
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
-                success_url=f"{FRONTEND_URL}/portal?session_id={checkout_session.id}",
+                success_url=f"{FRONTEND_URL}/portal?renewal=success",
                 cancel_url=f"{FRONTEND_URL}/portal?renewal=cancelled",
                 metadata={
                     'user_id': user.user_id,
@@ -1085,7 +1085,7 @@ def create_donation_session(
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f"{FRONTEND_URL}/portal?session_id={checkout_session.id}",
+            success_url=f"{FRONTEND_URL}/portal?donation=success",
             cancel_url=f"{FRONTEND_URL}/portal?donation=cancelled",
             metadata={
                 'user_id': user.user_id,

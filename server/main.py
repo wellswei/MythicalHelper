@@ -1021,7 +1021,7 @@ def create_renewal_session(
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=f"{FRONTEND_URL}/portal?renewal=success",
+                success_url=f"{FRONTEND_URL}/portal?session_id={checkout_session.id}",
                 cancel_url=f"{FRONTEND_URL}/portal?renewal=cancelled",
                 metadata={
                     'user_id': user.user_id,
@@ -1070,7 +1070,7 @@ def create_donation_session(
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f"{FRONTEND_URL}/portal?donation=success",
+            success_url=f"{FRONTEND_URL}/portal?session_id={checkout_session.id}",
             cancel_url=f"{FRONTEND_URL}/portal?donation=cancelled",
             metadata={
                 'user_id': user.user_id,
@@ -1138,3 +1138,44 @@ async def stripe_webhook(request: Request):
             db.session.commit()
     
     return {"status": "success"}
+
+@app.get("/api/payment/verify-session/{session_id}")
+def verify_payment_session(session_id: str, user: SessionUser = Depends(get_session_user)):
+    """验证支付会话状态"""
+    try:
+        # 从Stripe获取会话信息
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        # 检查会话是否属于当前用户
+        metadata = session.get('metadata', {})
+        if metadata.get('user_id') != user.user_id:
+            problem(403, "forbidden", "Session does not belong to current user")
+        
+        # 返回会话状态
+        if session.payment_status == 'paid':
+            return {
+                "status": "complete",
+                "session_id": session_id,
+                "payment_status": session.payment_status,
+                "amount_total": session.amount_total,
+                "currency": session.currency
+            }
+        elif session.status == 'open':
+            return {
+                "status": "pending",
+                "session_id": session_id,
+                "payment_status": session.payment_status
+            }
+        else:
+            return {
+                "status": "cancelled",
+                "session_id": session_id,
+                "payment_status": session.payment_status
+            }
+            
+    except stripe.error.StripeError as e:
+        print(f"[PAYMENT] Stripe error verifying session: {str(e)}")
+        problem(400, "payment_error", f"Stripe error: {str(e)}")
+    except Exception as e:
+        print(f"[PAYMENT] Internal error verifying session: {str(e)}")
+        problem(500, "internal_error", f"Internal error: {str(e)}")

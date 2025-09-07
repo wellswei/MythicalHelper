@@ -177,7 +177,15 @@ async function onSendLoginSms() {
     // 切到验证码
     $('#loginSmsStep1').hidden = true; 
     $('#loginSmsStep2').hidden = false;
-    setStatus(status, 'Code sent! Check your phone.', 'success');
+    
+    // 显示手机号
+    const phoneDisplay = $('#loginPhoneDisplay');
+    if (phoneDisplay) {
+      phoneDisplay.textContent = phone;
+    }
+    
+    setStatus($('#loginPhoneStatusDisplay'), 'Code sent! Check your phone.', 'success');
+    show($('#loginSmsStep2'));
     setupCodeInputs($('#loginSmsStep2'));
     // 自动聚焦到第一个验证码输入框
     setTimeout(() => {
@@ -1660,7 +1668,15 @@ function initializeApp() {
       }
       $('#loginSmsStep1').hidden = true;
       $('#loginSmsStep2').hidden = false;
-      setStatus($('#loginPhoneStatus'), 'Code sent! Check your phone.', 'success');
+      
+      // 显示手机号
+      const phoneDisplay = $('#loginPhoneDisplay');
+      if (phoneDisplay && loginState.phone) {
+        phoneDisplay.textContent = loginState.phone;
+      }
+      
+      setStatus($('#loginPhoneStatusDisplay'), 'Code sent! Check your phone.', 'success');
+      show($('#loginSmsStep2'));
       setupCodeInputs($('#loginSmsStep2'));
       // 自动聚焦到第一个验证码输入框
       setTimeout(() => {

@@ -526,8 +526,8 @@ function onTurnstileExpired() {
   console.log('Turnstile token expired, clearing token...');
   state.turnstileToken = null;
   
-  // 更新状态提示
-  updateTurnstileMessage('⚠ Verification expired - please refresh', '#f59e0b');
+  // 隐藏状态提示（不再显示过期文本）
+  hideTurnstileStatus();
   
   // 禁用当前步骤的发送按钮
   if (state.currentStep === 1) {
@@ -544,8 +544,8 @@ function onTurnstileExpired() {
 function onTurnstileError(error) {
   state.turnstileToken = null;
   
-  // 更新状态提示
-  updateTurnstileMessage('❌ Verification failed - please try again', '#ef4444');
+  // 隐藏状态提示（不再显示错误文本）
+  hideTurnstileStatus();
   
   // 禁用当前步骤的发送按钮
   if (state.currentStep === 1) {
@@ -630,8 +630,8 @@ function resetTurnstile() {
     });
   }
   
-  // 重置状态提示
-  updateTurnstileMessage('Security verification required', 'rgba(255,255,255,0.7)');
+  // 隐藏状态提示（不再显示任何文本）
+  hideTurnstileStatus();
   
   // 禁用当前步骤的发送按钮，直到新的token生成
   if (state.currentStep === 1) {

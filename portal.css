@@ -721,6 +721,17 @@ body {
   font-weight: 600;
 }
 
+/* Admin表格中的Valid Until状态颜色 */
+.admin-table .table-cell .valid {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.admin-table .table-cell .expired {
+  color: #ef4444;
+  font-weight: 600;
+}
+
 /* 在change email/phone时隐藏静态字段 */
 .portal .info-section .profile-card .static-field {
   transition: opacity 0.3s ease, height 0.3s ease, margin 0.3s ease;

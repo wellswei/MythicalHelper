@@ -2399,6 +2399,13 @@ function displayPurchaseHistory(history) {
 
 async function showRenewalModal() {
   try {
+    // 检查用户是否已登录
+    const token = getAuthToken();
+    if (!token) {
+      showError('Please log in first to access payment features');
+      return;
+    }
+    
     showLoading('Creating renewal session...');
     
     const response = await portalApiFetch('/api/payment/renewal', {
@@ -2408,6 +2415,14 @@ async function showRenewalModal() {
       },
       body: JSON.stringify({})
     });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        showError('Session expired. Please log in again.');
+        return;
+      }
+      throw new Error(`HTTP ${response.status}`);
+    }
     
     const data = await response.json();
     
@@ -2419,7 +2434,7 @@ async function showRenewalModal() {
     }
   } catch (error) {
     console.error('Renewal error:', error);
-    showError('Failed to start renewal process');
+    showError('Failed to start renewal process: ' + error.message);
   }
 }
 
@@ -2491,6 +2506,14 @@ function showDonationModal() {
       return;
     }
     
+    // 检查用户是否已登录
+    const token = getAuthToken();
+    if (!token) {
+      showError('Please log in first to access payment features');
+      document.body.removeChild(modal);
+      return;
+    }
+    
     try {
       showLoading('Creating donation session...');
       document.body.removeChild(modal);
@@ -2505,6 +2528,14 @@ function showDonationModal() {
         })
       });
       
+      if (!response.ok) {
+        if (response.status === 401) {
+          showError('Session expired. Please log in again.');
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.checkout_url) {
@@ -2515,7 +2546,7 @@ function showDonationModal() {
       }
     } catch (error) {
       console.error('Donation error:', error);
-      showError('Failed to start donation process');
+      showError('Failed to start donation process: ' + error.message);
     }
   });
   

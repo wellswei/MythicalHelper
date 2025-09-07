@@ -966,20 +966,14 @@ def create_renewal_session(
 ):
     """创建续费支付会话"""
     try:
-        print(f"[PAYMENT] Starting renewal for user: {user.user_id}")
-        
         # 获取用户信息
         with get_db() as db:
             user_data = db.get_user_by_id(user.user_id)
             if not user_data:
-                print(f"[PAYMENT] ERROR: User not found: {user.user_id}")
                 problem(404, "not_found", "User not found")
-            
-            print(f"[PAYMENT] User found: {user_data.username}, valid_until: {user_data.valid_until}")
             
             # 计算新的有效期
             current_time = datetime.now(UTC)
-            print(f"[PAYMENT] Current time: {current_time}")
             
             # 确保user_data.valid_until是aware datetime
             if user_data.valid_until:
@@ -988,23 +982,15 @@ def create_renewal_session(
                     user_valid_until = user_data.valid_until.replace(tzinfo=UTC)
                 else:
                     user_valid_until = user_data.valid_until
-                print(f"[PAYMENT] User valid_until (aware): {user_valid_until}")
             else:
                 user_valid_until = None
-                print(f"[PAYMENT] User has no valid_until")
             
             if user_valid_until and user_valid_until > current_time:
                 # 用户还在有效期内，从当前有效期结束日期延长一年
                 new_valid_until = user_valid_until + timedelta(days=365)
-                print(f"[PAYMENT] Extending from current valid_until: {new_valid_until}")
             else:
                 # 用户已过期，从今天开始一年有效期
                 new_valid_until = current_time + timedelta(days=365)
-                print(f"[PAYMENT] Starting from today: {new_valid_until}")
-            
-            print(f"[PAYMENT] Creating Stripe checkout session...")
-            print(f"[PAYMENT] Stripe API key: {stripe.api_key[:10]}...")
-            print(f"[PAYMENT] Frontend URL: {FRONTEND_URL}")
             
             # 创建Stripe Checkout会话
             checkout_session = stripe.checkout.Session.create(
@@ -1031,21 +1017,14 @@ def create_renewal_session(
                 }
             )
             
-            print(f"[PAYMENT] Stripe session created: {checkout_session.id}")
-            print(f"[PAYMENT] Checkout URL: {checkout_session.url}")
-            
             return PaymentResponse(
                 checkout_url=checkout_session.url,
                 session_id=checkout_session.id
             )
             
     except stripe.error.StripeError as e:
-        print(f"[PAYMENT] Stripe error: {str(e)}")
         problem(400, "payment_error", f"Stripe error: {str(e)}")
     except Exception as e:
-        print(f"[PAYMENT] Internal error: {str(e)}")
-        import traceback
-        print(f"[PAYMENT] Traceback: {traceback.format_exc()}")
         problem(500, "internal_error", f"Internal error: {str(e)}")
 
 @app.post("/api/payment/donation", response_model=PaymentResponse)

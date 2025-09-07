@@ -37,6 +37,7 @@ ADMIN_PHONE = "+12032248879"  # 硬编码管理员电话（带区号）
 # Stripe 价格配置
 RENEWAL_PRICE_ID = os.getenv("RENEWAL_PRICE_ID", None)  # 如果设置了价格ID，使用固定价格；否则使用动态价格
 RENEWAL_AMOUNT_CENTS = int(os.getenv("RENEWAL_AMOUNT_CENTS", "999"))  # 续费价格（美分），默认$9.99
+DONATION_AMOUNT_CENTS = int(os.getenv("DONATION_AMOUNT_CENTS", "1000"))  # 捐赠价格（美分），默认$10.00
 
 # Create database and tables
 create_database()
@@ -281,7 +282,7 @@ class RenewalRequest(BaseModel):
 
 class DonationRequest(BaseModel):
     """捐赠请求"""
-    amount: int = Field(..., description="捐赠金额（美分）", ge=100)  # 最少1美元
+    pass  # 使用固定金额，不需要用户输入
 
 class PaymentResponse(BaseModel):
     """支付响应"""
@@ -1149,6 +1150,9 @@ def create_donation_session(
 ):
     """创建捐赠支付会话"""
     try:
+        print(f"[PAYMENT] Starting donation for user: {user.user_id}")
+        print(f"[PAYMENT] Donation amount: ${DONATION_AMOUNT_CENTS / 100:.2f}")
+        
         # 通过 Cloudflare Worker 代理调用 Stripe API
         import requests
         
@@ -1165,20 +1169,24 @@ def create_donation_session(
             "line_items[0][price_data][currency]": "usd",
             "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Donation",
             "line_items[0][price_data][product_data][description]": "Support the Guild with your generous gift",
-            "line_items[0][price_data][unit_amount]": str(request.amount),
+            "line_items[0][price_data][unit_amount]": str(DONATION_AMOUNT_CENTS),
             "line_items[0][quantity]": "1",
             "mode": "payment",
             "success_url": f"{FRONTEND_URL}/portal?donation=success",
             "cancel_url": f"{FRONTEND_URL}/portal?donation=cancelled",
             "metadata[user_id]": user.user_id,
             "metadata[type]": "donation",
-            "metadata[amount]": str(request.amount)
+            "metadata[amount]": str(DONATION_AMOUNT_CENTS)
         }
+        
+        print(f"[PAYMENT] Calling Stripe API via Cloudflare Proxy...")
+        print(f"[PAYMENT] Line items: {payload}")
         
         response = requests.post(stripe_url, headers=headers, data=payload, timeout=30)
         response.raise_for_status()
         
         result = response.json()
+        print(f"[PAYMENT] Stripe API call successful!")
         
         return PaymentResponse(
             checkout_url=result['url'],
@@ -1186,8 +1194,12 @@ def create_donation_session(
         )
         
     except stripe.error.StripeError as e:
+        print(f"[PAYMENT] Stripe error: {str(e)}")
         problem(400, "payment_error", f"Stripe error: {str(e)}")
     except Exception as e:
+        print(f"[PAYMENT] Internal error: {str(e)}")
+        import traceback
+        print(f"[PAYMENT] Traceback: {traceback.format_exc()}")
         problem(500, "internal_error", f"Internal error: {str(e)}")
 
 @app.post("/api/payment/webhook")

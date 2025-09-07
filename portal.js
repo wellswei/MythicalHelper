@@ -637,8 +637,6 @@ async function apiCall(endpoint, options = {}) {
 
 // ===== 用户数据加载 =====
 async function loadUserData() {
-  console.log('=== LOAD USER DATA CALLED ===');
-  console.log('Current time:', new Date().toISOString());
   try {
     const token = getAuthToken();
     
@@ -2149,33 +2147,21 @@ async function onSaveBadges() {
 
 // ===== 初始化 =====
 async function initializePortal() {
-  console.log('=== PORTAL INITIALIZATION START ===');
-  console.log('Current URL:', window.location.href);
-  console.log('Current timestamp:', new Date().toISOString());
   
   // 处理支付结果
   handlePaymentResult();
   
   // 检查认证状态，添加重试机制
   let token = getAuthToken();
-  console.log('=== CHECKING AUTHENTICATION ===');
-  console.log('Portal initialization - Token exists:', !!token);
-  console.log('Portal initialization - Token length:', token ? token.length : 0);
-  console.log('Portal initialization - Token value:', token ? token.substring(0, 20) + '...' : 'null');
   
   // 如果token不存在，等待一小段时间后重试（处理注册后的时序问题）
   if (!token) {
-    console.log('=== NO TOKEN FOUND, RETRYING ===');
     console.log('No token found, waiting 200ms and retrying...');
     await new Promise(resolve => setTimeout(resolve, 200));
     token = getAuthToken();
-    console.log('Retry - Token exists:', !!token);
-    console.log('Retry - Token length:', token ? token.length : 0);
-    console.log('Retry - Token value:', token ? token.substring(0, 20) + '...' : 'null');
   }
   
   if (!isAuthenticated()) {
-    console.log('=== AUTHENTICATION FAILED ===');
     console.log('Not authenticated, redirecting to login');
     console.log('SessionStorage contents:', {
       authToken: sessionStorage.getItem('authToken'),
@@ -2187,7 +2173,6 @@ async function initializePortal() {
     return;
   }
   
-  console.log('=== AUTHENTICATION SUCCESSFUL ===');
   console.log('User is authenticated, proceeding to load user data...');
   
   // 加载用户数据
@@ -2271,7 +2256,6 @@ document.addEventListener('DOMContentLoaded', initializePortal);
 
 // 额外的兜底事件绑定 - 确保续费按钮能工作
 window.addEventListener('load', function() {
-  console.log('=== WINDOW LOAD EVENT ===');
   const renewalBtn = document.getElementById('btnRenewMembership');
   if (renewalBtn) {
     console.log('Renewal button found on window load, adding event listener');
@@ -2393,7 +2377,6 @@ function updateRenewalInfo() {
 }
 
 async function loadPurchaseHistory() {
-  console.log('=== LOADING PURCHASE HISTORY ===');
   console.log('Current user:', currentUser);
   
   if (!currentUser) {
@@ -2441,7 +2424,6 @@ async function loadPurchaseHistory() {
 }
 
 function displayPurchaseHistory(history) {
-  console.log('=== DISPLAYING PURCHASE HISTORY ===');
   console.log('History data:', history);
   
   const historyList = $('#historyList');
@@ -2493,7 +2475,6 @@ function displayPurchaseHistory(history) {
 }
 
 async function showRenewalModal() {
-  console.log('=== RENEWAL MODAL CLICKED ===');
   console.log('Current user:', currentUser);
   console.log('Auth token exists:', !!getAuthToken());
   
@@ -2720,7 +2701,6 @@ async function handlePaymentResult() {
 
 // ===== 管理员界面 =====
 function showAdminInterface() {
-  console.log('=== SHOWING ADMIN INTERFACE ===');
   
   // 隐藏普通用户界面
   const profileCard = document.getElementById('profileCard');

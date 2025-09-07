@@ -37,7 +37,26 @@ RENEWAL_PRICE_ID = os.getenv("RENEWAL_PRICE_ID", None)  # 如果设置了价格I
 # Create database and tables
 create_database()
 
-app = FastAPI(title="Mythical Helper API (SQLAlchemy)")
+# 应用生命周期管理
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理"""
+    # 启动时执行
+    print("[STARTUP] 正在启动 MythicalHelper 服务器...")
+    ensure_admin_user()
+    print("[STARTUP] 服务器启动完成!")
+    
+    yield
+    
+    # 关闭时执行（如果需要）
+    print("[SHUTDOWN] 服务器正在关闭...")
+
+app = FastAPI(
+    title="Mythical Helper API (SQLAlchemy)",
+    lifespan=lifespan
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -1343,37 +1362,6 @@ def ensure_admin_user():
     except Exception as e:
         print(f"[ADMIN] ❌ 创建管理员失败: {str(e)}")
 
-# 应用启动时自动创建管理员
-@app.on_event("startup")
-async def startup_event():
-    """应用启动时执行"""
-    print("[STARTUP] 正在启动 MythicalHelper 服务器...")
-    ensure_admin_user()
-    print("[STARTUP] 服务器启动完成!")
-
-@app.post("/api/admin/set-admin")
-def set_admin_user(phone: str, su: SessionUser = Depends(get_session_user)):
-    """设置管理员用户（仅限当前管理员使用）"""
-    try:
-        # 只有当前用户是管理员才能设置其他用户为管理员
-        if su.role != "admin":
-            problem(403, "forbidden", "Only admin can set admin users")
-        
-        with get_db() as db:
-            # 查找用户
-            user = db.get_user_by_phone(phone)
-            if not user:
-                problem(404, "not_found", "User not found")
-            
-            # 设置为管理员
-            db.update_user(user.id, role="admin")
-            print(f"[ADMIN] User {user.id} ({user.username}) set as admin by {su.user_id}")
-            
-            return {"status": "success", "message": f"User {user.username} set as admin"}
-            
-    except Exception as e:
-        print(f"[ADMIN] Error setting admin: {str(e)}")
-        problem(500, "admin_error", "Failed to set admin user")
 
 # =========================
 # 管理员API

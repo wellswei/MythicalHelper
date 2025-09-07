@@ -2630,9 +2630,9 @@ async function handlePaymentResult() {
   }
 }
 
-// ===== Cloudflare Worker 说明 =====
+// ===== Cloudflare Stripe Proxy 说明 =====
 // 由于 AWS Lightsail IPv6-only 实例无法直接访问 Stripe API，
-// 需要使用 Cloudflare Worker 作为代理。
+// 需要使用 Cloudflare Worker 作为通用代理。
 // 
-// Worker 代码位于: stripe-worker.js
+// Worker 代码位于: stripe-proxy.js
 // 部署指南位于: CLOUDFLARE_WORKER_SETUP.md

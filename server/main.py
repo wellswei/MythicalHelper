@@ -1034,40 +1034,54 @@ def create_renewal_session(
                 }]
             
             try:
-                print(f"[PAYMENT] Calling Cloudflare Worker for Stripe API...")
+                print(f"[PAYMENT] Calling Stripe API via Cloudflare Proxy...")
                 print(f"[PAYMENT] Line items: {line_items}")
                 
-                # 通过 Cloudflare Worker 调用 Stripe API
+                # 通过 Cloudflare Worker 代理调用 Stripe API
                 import requests
                 
-                worker_url = "https://mythicalhelper.org/stripe-worker"  # 前端 Worker 端点
+                proxy_url = "https://stripe-proxy.mythicalhelper.org"  # Stripe 代理端点
                 
-                payload = {
-                    "action": "create_checkout_session",
-                    "data": {
-                        "type": "renewal",
-                        "user_id": user.user_id,
-                        "new_valid_until": new_valid_until.isoformat(),
-                        "amount": 999,
-                        "frontend_url": FRONTEND_URL
-                    }
+                # 直接调用 Stripe API 端点
+                stripe_url = f"{proxy_url}/v1/checkout/sessions"
+                
+                headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-Worker-Auth": "your-auth-token"  # 可选：添加认证
                 }
                 
-                response = requests.post(worker_url, json=payload, timeout=30)
+                # 构建 Stripe API 请求数据
+                data = {
+                    "payment_method_types[]": "card",
+                    "line_items[0][price_data][currency]": "usd",
+                    "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Membership Renewal",
+                    "line_items[0][price_data][product_data][description]": "Extend your membership for one year",
+                    "line_items[0][price_data][unit_amount]": "999",
+                    "line_items[0][quantity]": "1",
+                    "mode": "payment",
+                    "success_url": f"{FRONTEND_URL}/portal?renewal=success",
+                    "cancel_url": f"{FRONTEND_URL}/portal?renewal=cancelled",
+                    "metadata[user_id]": user.user_id,
+                    "metadata[type]": "renewal",
+                    "metadata[new_valid_until]": new_valid_until.isoformat(),
+                    "metadata[amount]": "999"
+                }
+                
+                response = requests.post(stripe_url, data=data, headers=headers, timeout=30)
                 response.raise_for_status()
                 
                 result = response.json()
-                print(f"[PAYMENT] Worker call successful!")
+                print(f"[PAYMENT] Stripe API call successful!")
                 
                 # 模拟 Stripe 响应格式
                 checkout_session = type('obj', (object,), {
-                    'id': result['session_id'],
-                    'url': result['checkout_url']
+                    'id': result['id'],
+                    'url': result['url']
                 })()
                 
             except requests.exceptions.RequestException as req_error:
-                print(f"[PAYMENT] Worker request error: {str(req_error)}")
-                raise Exception(f"Failed to call payment worker: {str(req_error)}")
+                print(f"[PAYMENT] Stripe proxy request error: {str(req_error)}")
+                raise Exception(f"Failed to call Stripe via proxy: {str(req_error)}")
             except Exception as general_error:
                 print(f"[PAYMENT] General error: {str(general_error)}")
                 print(f"[PAYMENT] Error type: {type(general_error)}")

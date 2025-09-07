@@ -4,15 +4,7 @@
 const API_BASE = 'https://api.mythicalhelper.org';  // 使用你的实际API地址
 
 // ===== Stripe 配置 =====
-let stripe = null;
-
-// 初始化Stripe
-function initStripe() {
-  if (typeof Stripe !== 'undefined' && !stripe) {
-    stripe = Stripe('pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu');
-    console.log('Stripe initialized successfully');
-  }
-}
+// 注意：我们使用Stripe Checkout重定向方式，不需要前端Stripe.js库
 
 // 全局状态
 let currentUser = null;
@@ -2412,15 +2404,6 @@ async function showRenewalModal() {
     if (!token) {
       showError('Please log in first to access payment features.');
       return;
-    }
-    
-    // 确保Stripe已初始化
-    if (!stripe) {
-      initStripe();
-      if (!stripe) {
-        showError('Stripe is not loaded. Please refresh the page and try again.');
-        return;
-      }
     }
     
     showLoading('Creating renewal session...');

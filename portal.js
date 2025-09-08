@@ -3533,6 +3533,9 @@ document.addEventListener('DOMContentLoaded', function() {
       closeEditUserModal();
     }
   });
+  
+  // 关闭按钮事件
+  document.querySelector('#editUserModal .modal-close')?.addEventListener('click', closeEditUserModal);
 });
 
 // ===== Cloudflare Stripe Proxy 说明 =====

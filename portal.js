@@ -3443,8 +3443,11 @@ async function saveUserChanges() {
     return;
   }
   
-  // 清除之前的错误信息
-  clearEditForm();
+  // 只清除错误信息，不清空表单
+  document.querySelectorAll('.error-message').forEach(el => {
+    el.classList.remove('show');
+    el.textContent = '';
+  });
   
   // 获取表单数据
   const formData = {

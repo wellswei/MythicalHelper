@@ -2916,6 +2916,7 @@ async function loadAdminStats() {
 
 async function loadAdminUsers(page = 1, limit = 20, search = '', includeDeleted = false) {
   try {
+    console.log('Loading admin users...', { page, limit, search, includeDeleted });
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString()
@@ -2924,10 +2925,16 @@ async function loadAdminUsers(page = 1, limit = 20, search = '', includeDeleted 
     if (includeDeleted) params.append('include_deleted', 'true');
     
     const data = await portalApiFetch(`/admin/users?${params}`);
+    console.log('Admin users data received:', data);
     displayAdminUsers(data.users);
   } catch (error) {
     console.error('Failed to load admin users:', error);
-    document.getElementById('usersTable').innerHTML = '<div class="table-error">Failed to load users</div>';
+    const usersTable = document.getElementById('usersTable');
+    if (usersTable) {
+      usersTable.innerHTML = '<div class="table-error">Failed to load users: ' + error.message + '</div>';
+    } else {
+      console.error('usersTable element not found!');
+    }
   }
 }
 
@@ -2967,10 +2974,15 @@ async function loadAdminPurchases(page = 1, limit = 20, search = '') {
 }
 
 function displayAdminUsers(users) {
+  console.log('Displaying admin users:', users);
   const table = document.getElementById('usersTable');
-  if (!table) return;
+  if (!table) {
+    console.error('usersTable element not found!');
+    return;
+  }
   
-  if (users.length === 0) {
+  if (!users || users.length === 0) {
+    console.log('No users to display');
     table.innerHTML = '<div class="table-empty">No users found</div>';
     return;
   }

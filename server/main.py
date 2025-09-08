@@ -1476,65 +1476,6 @@ def admin_get_users(
         print(f"[ADMIN] Error getting users: {str(e)}")
         problem(500, "users_failed", "Failed to get users")
 
-@admin.put("/users/{user_id}")
-def admin_update_user(
-    user_id: str,
-    username: str = None,
-    email: str = None,
-    phone: str = None,
-    status: str = None,
-    valid_until: str = None,
-    su: SessionUser = Depends(require_admin)
-):
-    """更新用户信息（管理员）"""
-    try:
-        with get_db() as db:
-            user = db.get_user_by_id(user_id)
-            if not user:
-                problem(404, "not_found", "User not found")
-            
-            # 更新字段
-            if username is not None:
-                # 检查用户名是否已存在
-                existing_user = db.get_user_by_username(username)
-                if existing_user and existing_user.id != user_id:
-                    problem(409, "conflict", "Username already exists")
-                user.username = username
-            
-            if email is not None:
-                # 检查邮箱是否已存在
-                existing_user = db.get_user_by_email(email)
-                if existing_user and existing_user.id != user_id:
-                    problem(409, "conflict", "Email already exists")
-                user.email = email
-            
-            if phone is not None:
-                # 检查手机号是否已存在
-                existing_user = db.get_user_by_phone(phone)
-                if existing_user and existing_user.id != user_id:
-                    problem(409, "conflict", "Phone already exists")
-                user.phone = phone
-            
-            if status is not None:
-                user.status = status
-            
-            if valid_until is not None:
-                if valid_until == "":
-                    user.valid_until = None
-                else:
-                    try:
-                        user.valid_until = datetime.fromisoformat(valid_until.replace('Z', '+00:00'))
-                    except ValueError:
-                        problem(400, "invalid_date", "Invalid date format")
-            
-            user.updated_at = datetime.now(timezone.utc)
-            db.db.commit()
-            
-            return {"message": "User updated successfully"}
-            
-    except Exception as e:
-        print(f"[ADMIN] Error updating user: {str(e)}")
-        problem(500, "update_failed", "Failed to update user")
 
 @admin.delete("/users/{user_id}")
 def admin_delete_user(
@@ -1661,10 +1602,17 @@ def admin_get_user(
         print(f"[ADMIN] Error getting user: {str(e)}")
         problem(500, "get_user_failed", "Failed to get user")
 
+class UserUpdateRequest(BaseModel):
+    """用户更新请求"""
+    username: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    valid_until: Optional[str] = None
+
 @admin.put("/users/{user_id}")
 def admin_update_user(
     user_id: str,
-    user_data: dict,
+    user_data: UserUpdateRequest,
     su: SessionUser = Depends(require_admin)
 ):
     """更新用户信息（管理员）"""
@@ -1675,34 +1623,35 @@ def admin_update_user(
                 problem(404, "not_found", "User not found")
             
             # 检查email是否重复
-            if 'email' in user_data and user_data['email']:
-                existing_user = db.get_user_by_email(user_data['email'])
+            if user_data.email:
+                existing_user = db.get_user_by_email(user_data.email)
                 if existing_user and existing_user.id != user_id:
                     problem(400, "email_exists", "Email already exists")
             
             # 检查phone是否重复
-            if 'phone' in user_data and user_data['phone']:
-                existing_user = db.get_user_by_phone(user_data['phone'])
+            if user_data.phone:
+                existing_user = db.get_user_by_phone(user_data.phone)
                 if existing_user and existing_user.id != user_id:
                     problem(400, "phone_exists", "Phone number already exists")
             
             # 检查username是否重复
-            if 'username' in user_data and user_data['username']:
-                existing_user = db.get_user_by_username(user_data['username'])
+            if user_data.username:
+                existing_user = db.get_user_by_username(user_data.username)
                 if existing_user and existing_user.id != user_id:
                     problem(400, "username_exists", "Username already exists")
             
             # 更新用户信息
-            if 'username' in user_data:
-                user.username = user_data['username']
-            if 'email' in user_data:
-                user.email = user_data['email']
-            if 'phone' in user_data:
-                user.phone = user_data['phone']
-            if 'valid_until' in user_data and user_data['valid_until']:
-                user.valid_until = datetime.fromisoformat(user_data['valid_until'].replace('Z', '+00:00'))
-            elif 'valid_until' in user_data and not user_data['valid_until']:
-                user.valid_until = None
+            if user_data.username is not None:
+                user.username = user_data.username
+            if user_data.email is not None:
+                user.email = user_data.email
+            if user_data.phone is not None:
+                user.phone = user_data.phone
+            if user_data.valid_until is not None:
+                if user_data.valid_until:
+                    user.valid_until = datetime.fromisoformat(user_data.valid_until.replace('Z', '+00:00'))
+                else:
+                    user.valid_until = None
             
             user.updated_at = datetime.now(timezone.utc)
             db.db.commit()

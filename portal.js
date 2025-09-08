@@ -3507,22 +3507,25 @@ async function saveUserChanges() {
     console.error('Failed to update user:', error);
     
     // 处理特定错误
-    if (error.message.includes('email already exists')) {
+    if (error.message.includes('email_exists') || error.message.includes('Email already exists')) {
       showEditError('editEmailError', 'Email already exists');
-    } else if (error.message.includes('phone already exists')) {
+    } else if (error.message.includes('phone_exists') || error.message.includes('Phone number already exists')) {
       showEditError('editPhoneError', 'Phone number already exists');
-    } else if (error.message.includes('username already exists')) {
+    } else if (error.message.includes('username_exists') || error.message.includes('Username already exists')) {
       showEditError('editUsernameError', 'Username already exists');
     } else {
-      alert('Failed to update user: ' + error.message);
+      showEditError('editGeneralError', 'Failed to update user: ' + error.message);
     }
   }
 }
 
 function showEditError(elementId, message) {
   const errorElement = document.getElementById(elementId);
-  errorElement.textContent = message;
-  errorElement.classList.add('show');
+  if (errorElement) {
+    errorElement.textContent = message;
+    errorElement.classList.add('show');
+    errorElement.style.display = 'block';
+  }
 }
 
 // ===== REFUND FUNCTIONALITY =====

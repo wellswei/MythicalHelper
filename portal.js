@@ -2580,84 +2580,103 @@ async function showRenewalModal() {
   }
 }
 
-async function showDonationModal() {
-  console.log('Current user:', currentUser);
-  console.log('Auth token exists:', !!getAuthToken());
+function showDonationModal() {
+  // 显示捐赠金额输入模态框
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content donation-modal">
+      <div class="modal-header">
+        <h3>Share a Gift of Kindness</h3>
+        <button class="modal-close" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Any amount you give will help our guild shine brighter.</p>
+        <div class="donation-amount-section">
+          <label for="donationAmount">Donation Amount (USD)</label>
+          <div class="donation-input-group">
+            <span class="currency-symbol">$</span>
+            <input type="number" id="donationAmount" min="1" step="0.01" placeholder="10.00" value="10.00">
+          </div>
+          <div class="donation-presets">
+            <button class="preset-btn" data-amount="5">$5</button>
+            <button class="preset-btn" data-amount="10">$10</button>
+            <button class="preset-btn" data-amount="25">$25</button>
+            <button class="preset-btn" data-amount="50">$50</button>
+            <button class="preset-btn" data-amount="100">$100</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" id="cancelDonation" type="button">Cancel</button>
+        <button class="btn primary" id="confirmDonation" type="button">Continue to Payment</button>
+      </div>
+    </div>
+  `;
   
-  const donateBtn = document.getElementById('btnMakeDonation');
+  document.body.appendChild(modal);
   
-  try {
-    // 设置加载状态 - 立即提供视觉反馈
-    if (donateBtn) {
-      donateBtn.disabled = true;
-      donateBtn.classList.add('processing');
-      
-      // 创建loading动画
-      const originalText = donateBtn.textContent;
-      donateBtn.innerHTML = `
-        <span class="loading-spinner"></span>
-        <span class="loading-text">Creating Payment Session...</span>
-      `;
-      
-      // 存储原始文本以便恢复
-      donateBtn.dataset.originalText = originalText;
-    }
-    
-    console.log('Calling /api/payment/donation...');
-    
-    // 创建带超时的请求
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
-    
-    const data = await portalApiFetch('/api/payment/donation', {
-      method: 'POST',
-      body: JSON.stringify({}),
-      signal: controller.signal
+  // 绑定事件
+  const amountInput = modal.querySelector('#donationAmount');
+  const presetBtns = modal.querySelectorAll('.preset-btn');
+  const cancelBtn = modal.querySelector('#cancelDonation');
+  const confirmBtn = modal.querySelector('#confirmDonation');
+  const closeBtn = modal.querySelector('.modal-close');
+  
+  // 预设金额按钮
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      amountInput.value = btn.dataset.amount;
     });
+  });
+  
+  // 取消按钮
+  cancelBtn.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  closeBtn.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  // 确认按钮
+  confirmBtn.addEventListener('click', async () => {
+    const amount = parseFloat(amountInput.value);
+    if (!amount || amount < 1) {
+      showError('Please enter a valid amount (minimum $1)');
+      return;
+    }
     
-    clearTimeout(timeoutId);
-    console.log('Donation API response:', data);
-    
-    if (data?.checkout_url) {
-      console.log('Redirecting to Stripe:', data.checkout_url);
+    try {
+      showLoading('Creating donation session...');
+      document.body.removeChild(modal);
       
-      // 更新按钮状态为即将跳转
-      if (donateBtn) {
-        donateBtn.innerHTML = `
-          <span class="loading-spinner"></span>
-          <span class="loading-text">Redirecting to Payment...</span>
-        `;
-      }
+      const data = await portalApiFetch('/api/payment/donation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: Math.round(amount * 100) // 转换为美分
+        })
+      });
       
-      // 短暂延迟让用户看到状态变化
-      setTimeout(() => {
+      if (data.checkout_url) {
+        // 重定向到Stripe Checkout
         window.location.href = data.checkout_url;
-      }, 500);
-    } else {
-      throw new Error('Invalid response from payment service');
+      } else {
+        showError('Failed to create donation session');
+      }
+    } catch (error) {
+      console.error('Donation error:', error);
+      showError('Failed to start donation process');
     }
-  } catch (error) {
-    console.error('Donation error:', error);
-    
-    // 根据错误类型显示不同的消息
-    let errorMessage = 'Failed to start donation: ';
-    if (error.name === 'AbortError') {
-      errorMessage += 'Request timed out. Please try again.';
-    } else if (error.message.includes('timeout')) {
-      errorMessage += 'Request timed out. Please try again.';
-    } else {
-      errorMessage += error.message;
-    }
-    
-    showError(errorMessage);
-    
-    // 恢复按钮状态
-    if (donateBtn) {
-      donateBtn.disabled = false;
-      donateBtn.classList.remove('processing');
-      donateBtn.textContent = donateBtn.dataset.originalText || 'MAKE A DONATION';
-    }
-  }
+  });
+  
+  // 默认选中$10
+  modal.querySelector('[data-amount="10"]').click();
 }
 
 // 处理支付结果

@@ -282,7 +282,7 @@ class RenewalRequest(BaseModel):
 
 class DonationRequest(BaseModel):
     """捐赠请求"""
-    pass  # 使用固定金额，不需要用户输入
+    amount: int = Field(..., description="捐赠金额（美分）", ge=100)  # 最少1美元
 
 class PaymentResponse(BaseModel):
     """支付响应"""
@@ -1151,7 +1151,7 @@ def create_donation_session(
     """创建捐赠支付会话"""
     try:
         print(f"[PAYMENT] Starting donation for user: {user.user_id}")
-        print(f"[PAYMENT] Donation amount: ${DONATION_AMOUNT_CENTS / 100:.2f}")
+        print(f"[PAYMENT] Donation amount: ${request.amount / 100:.2f}")
         
         # 通过 Cloudflare Worker 代理调用 Stripe API
         import requests
@@ -1169,14 +1169,14 @@ def create_donation_session(
             "line_items[0][price_data][currency]": "usd",
             "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Donation",
             "line_items[0][price_data][product_data][description]": "Support the Guild with your generous gift",
-            "line_items[0][price_data][unit_amount]": str(DONATION_AMOUNT_CENTS),
+            "line_items[0][price_data][unit_amount]": str(request.amount),
             "line_items[0][quantity]": "1",
             "mode": "payment",
             "success_url": f"{FRONTEND_URL}/portal?donation=success",
             "cancel_url": f"{FRONTEND_URL}/portal?donation=cancelled",
             "metadata[user_id]": user.user_id,
             "metadata[type]": "donation",
-            "metadata[amount]": str(DONATION_AMOUNT_CENTS)
+            "metadata[amount]": str(request.amount)
         }
         
         print(f"[PAYMENT] Calling Stripe API via Cloudflare Proxy...")

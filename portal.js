@@ -3475,8 +3475,7 @@ async function saveUserChanges() {
       body: JSON.stringify(formData)
     });
     
-    // 成功，关闭模态框并刷新页面
-    closeEditUserModal();
+    // 成功，刷新页面
     window.location.reload();
     
   } catch (error) {

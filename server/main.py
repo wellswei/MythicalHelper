@@ -1617,9 +1617,11 @@ def admin_update_user(
 ):
     """更新用户信息（管理员）"""
     try:
+        print(f"[ADMIN] Update user request: user_id={user_id}, data={user_data}")
         with get_db() as db:
             user = db.get_user_by_id(user_id)
             if not user:
+                print(f"[ADMIN] User not found: {user_id}")
                 problem(404, "not_found", "User not found")
             
             # 检查email是否重复
@@ -1656,6 +1658,7 @@ def admin_update_user(
             user.updated_at = datetime.now(timezone.utc)
             db.db.commit()
             
+            print(f"[ADMIN] User updated successfully: {user_id}")
             return {"message": "User updated successfully"}
             
     except Exception as e:

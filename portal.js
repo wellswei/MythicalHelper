@@ -3478,14 +3478,21 @@ async function saveUserChanges() {
   }
   
   try {
+    console.log('Sending update request:', {
+      userId: currentEditUserId,
+      formData: formData
+    });
+    
     // 发送更新请求
-    await portalApiFetch(`/admin/users/${currentEditUserId}`, {
+    const response = await portalApiFetch(`/admin/users/${currentEditUserId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(formData)
     });
+    
+    console.log('Update response:', response);
     
     // 成功，刷新页面
     window.location.reload();

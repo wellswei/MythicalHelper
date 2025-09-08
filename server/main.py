@@ -1636,11 +1636,7 @@ def admin_update_user(
                 if existing_user and existing_user.id != user_id:
                     problem(400, "phone_exists", "Phone number already exists")
             
-            # 检查username是否重复
-            if user_data.username:
-                existing_user = db.get_user_by_username(user_data.username)
-                if existing_user and existing_user.id != user_id:
-                    problem(400, "username_exists", "Username already exists")
+            # username不需要验证唯一性
             
             # 更新用户信息
             if user_data.username is not None:

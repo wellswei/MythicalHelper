@@ -3454,19 +3454,25 @@ async function saveUserChanges() {
     valid_until: document.getElementById('editValidUntil').value
   };
   
+  console.log('Form data:', formData);
+  alert('Form data: ' + JSON.stringify(formData));
+  
   // 验证必填字段
+  console.log('Checking username:', formData.username);
   if (!formData.username) {
     showEditError('editUsernameError', 'Username is required');
     alert('Username is required');
     return;
   }
   
+  console.log('Checking email:', formData.email);
   if (!formData.email) {
     showEditError('editEmailError', 'Email is required');
     alert('Email is required');
     return;
   }
   
+  console.log('Checking phone:', formData.phone);
   if (!formData.phone) {
     showEditError('editPhoneError', 'Phone is required');
     alert('Phone is required');
@@ -3474,6 +3480,7 @@ async function saveUserChanges() {
   }
   
   // 验证email格式
+  console.log('Validating email format:', formData.email);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(formData.email)) {
     showEditError('editEmailError', 'Please enter a valid email address');
@@ -3482,12 +3489,15 @@ async function saveUserChanges() {
   }
   
   // 验证phone格式（E164）
+  console.log('Validating phone format:', formData.phone);
   const phoneRegex = /^\+[1-9]\d{1,14}$/;
   if (!phoneRegex.test(formData.phone)) {
     showEditError('editPhoneError', 'Please enter a valid phone number in E164 format (+1234567890)');
     alert('Please enter a valid phone number in E164 format (+1234567890)');
     return;
   }
+  
+  console.log('All validations passed, proceeding with request');
   
   try {
     console.log('Sending update request:', {

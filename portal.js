@@ -3545,9 +3545,28 @@ async function refundPurchase(purchaseId) {
 
 // ===== EVENT LISTENERS =====
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOMContentLoaded - binding event listeners');
+  
   // 用户编辑模态框事件监听器
-  document.getElementById('btnSaveUser')?.addEventListener('click', saveUserChanges);
-  document.getElementById('btnCancelEdit')?.addEventListener('click', closeEditUserModal);
+  const saveBtn = document.getElementById('btnSaveUser');
+  const cancelBtn = document.getElementById('btnCancelEdit');
+  
+  console.log('Save button found:', !!saveBtn);
+  console.log('Cancel button found:', !!cancelBtn);
+  
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveUserChanges);
+    console.log('Save button event listener bound');
+  } else {
+    console.error('Save button not found!');
+  }
+  
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeEditUserModal);
+    console.log('Cancel button event listener bound');
+  } else {
+    console.error('Cancel button not found!');
+  }
   
   // 点击模态框外部关闭
   document.getElementById('editUserModal')?.addEventListener('click', function(e) {

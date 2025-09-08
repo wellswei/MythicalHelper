@@ -1,4 +1,5 @@
 // ===== PORTAL JAVASCRIPT =====
+console.log('Portal.js loaded successfully!');
 
 // 配置
 const API_BASE = 'https://api.mythicalhelper.org';  // 使用你的实际API地址
@@ -3434,7 +3435,10 @@ async function loadUserForEdit(userId) {
 }
 
 async function saveUserChanges() {
+  console.log('=== SAVE USER CHANGES CALLED ===');
   console.log('saveUserChanges called, currentEditUserId:', currentEditUserId);
+  alert('Save button clicked! Check console for details.');
+  
   if (!currentEditUserId) {
     console.error('No currentEditUserId, cannot save');
     return;

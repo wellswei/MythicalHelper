@@ -3509,12 +3509,20 @@ async function saveUserChanges() {
     // 处理特定错误
     if (error.message.includes('email_exists') || error.message.includes('Email already exists')) {
       showEditError('editEmailError', 'Email already exists');
+      showEditError('editGeneralError', 'Email already exists');
     } else if (error.message.includes('phone_exists') || error.message.includes('Phone number already exists')) {
       showEditError('editPhoneError', 'Phone number already exists');
+      showEditError('editGeneralError', 'Phone number already exists');
     } else if (error.message.includes('username_exists') || error.message.includes('Username already exists')) {
       showEditError('editUsernameError', 'Username already exists');
+      showEditError('editGeneralError', 'Username already exists');
     } else {
-      showEditError('editGeneralError', 'Failed to update user: ' + error.message);
+      // 显示更详细的错误信息
+      let errorMessage = error.message;
+      if (errorMessage.includes('failed to update user')) {
+        errorMessage = errorMessage.replace('failed to update user: ', '');
+      }
+      showEditError('editGeneralError', errorMessage);
     }
   }
 }
@@ -3552,7 +3560,6 @@ async function refundPurchase(purchaseId) {
 document.addEventListener('DOMContentLoaded', function() {
   // 用户编辑模态框事件监听器
   document.getElementById('btnSaveUser')?.addEventListener('click', saveUserChanges);
-  document.getElementById('btnCancelEdit')?.addEventListener('click', closeEditUserModal);
   
   // 点击模态框外部关闭
   document.getElementById('editUserModal')?.addEventListener('click', function(e) {

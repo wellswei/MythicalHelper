@@ -3434,7 +3434,11 @@ async function loadUserForEdit(userId) {
 }
 
 async function saveUserChanges() {
-  if (!currentEditUserId) return;
+  console.log('saveUserChanges called, currentEditUserId:', currentEditUserId);
+  if (!currentEditUserId) {
+    console.error('No currentEditUserId, cannot save');
+    return;
+  }
   
   // 清除之前的错误信息
   clearEditForm();

@@ -3434,7 +3434,7 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  justify-content: space-between;
 }
 
 .edit-user-modal .modal-footer .btn {
@@ -3445,6 +3445,7 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  flex: 1;
 }
 
 .edit-user-modal .modal-footer .btn.secondary {

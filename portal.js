@@ -1,5 +1,4 @@
 // ===== PORTAL JAVASCRIPT =====
-console.log('Portal.js loaded successfully!');
 
 // 配置
 const API_BASE = 'https://api.mythicalhelper.org';  // 使用你的实际API地址
@@ -3435,12 +3434,12 @@ async function loadUserForEdit(userId) {
 }
 
 async function saveUserChanges() {
-  console.log('=== SAVE USER CHANGES CALLED ===');
   console.log('saveUserChanges called, currentEditUserId:', currentEditUserId);
-  alert('Save button clicked! Check console for details.');
+  alert('Save button clicked! Function is being called.');
   
   if (!currentEditUserId) {
     console.error('No currentEditUserId, cannot save');
+    alert('No currentEditUserId, cannot save');
     return;
   }
   
@@ -3458,16 +3457,19 @@ async function saveUserChanges() {
   // 验证必填字段
   if (!formData.username) {
     showEditError('editUsernameError', 'Username is required');
+    alert('Username is required');
     return;
   }
   
   if (!formData.email) {
     showEditError('editEmailError', 'Email is required');
+    alert('Email is required');
     return;
   }
   
   if (!formData.phone) {
     showEditError('editPhoneError', 'Phone is required');
+    alert('Phone is required');
     return;
   }
   
@@ -3475,6 +3477,7 @@ async function saveUserChanges() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(formData.email)) {
     showEditError('editEmailError', 'Please enter a valid email address');
+    alert('Please enter a valid email address');
     return;
   }
   
@@ -3482,6 +3485,7 @@ async function saveUserChanges() {
   const phoneRegex = /^\+[1-9]\d{1,14}$/;
   if (!phoneRegex.test(formData.phone)) {
     showEditError('editPhoneError', 'Please enter a valid phone number in E164 format (+1234567890)');
+    alert('Please enter a valid phone number in E164 format (+1234567890)');
     return;
   }
   
@@ -3549,28 +3553,9 @@ async function refundPurchase(purchaseId) {
 
 // ===== EVENT LISTENERS =====
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOMContentLoaded - binding event listeners');
-  
   // 用户编辑模态框事件监听器
-  const saveBtn = document.getElementById('btnSaveUser');
-  const cancelBtn = document.getElementById('btnCancelEdit');
-  
-  console.log('Save button found:', !!saveBtn);
-  console.log('Cancel button found:', !!cancelBtn);
-  
-  if (saveBtn) {
-    saveBtn.addEventListener('click', saveUserChanges);
-    console.log('Save button event listener bound');
-  } else {
-    console.error('Save button not found!');
-  }
-  
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', closeEditUserModal);
-    console.log('Cancel button event listener bound');
-  } else {
-    console.error('Cancel button not found!');
-  }
+  document.getElementById('btnSaveUser')?.addEventListener('click', saveUserChanges);
+  document.getElementById('btnCancelEdit')?.addEventListener('click', closeEditUserModal);
   
   // 点击模态框外部关闭
   document.getElementById('editUserModal')?.addEventListener('click', function(e) {

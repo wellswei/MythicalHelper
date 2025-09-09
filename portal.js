@@ -3505,6 +3505,8 @@ async function saveUserChanges() {
     
   } catch (error) {
     console.error('Failed to update user:', error);
+    console.log('Error message:', error.message);
+    console.log('Error type:', typeof error.message);
     
     // 处理特定错误
     if (error.message.includes('email_exists') || error.message.includes('Email already exists')) {

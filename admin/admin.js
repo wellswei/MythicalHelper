@@ -23,30 +23,42 @@ function $(id) {
 // 调试函数：测试时间转换
 function testTimeConversion() {
     console.log('=== 时间转换测试 ===');
-    const testUTC = '2025-09-09T23:41:03.123456'; // 示例UTC时间
-    console.log('UTC时间:', testUTC);
+    const testUTC = '2025-09-09T23:41:03.123456'; // 示例UTC时间（无Z后缀）
+    console.log('原始UTC时间:', testUTC);
     
     const parsedDate = parseServerDateToDate(testUTC);
     console.log('解析后的Date对象:', parsedDate);
-    console.log('UTC时间戳:', parsedDate.getTime());
-    console.log('本地时间戳:', new Date().getTime());
+    console.log('本地时间显示:', parsedDate.toLocaleString());
+    console.log('UTC时间显示:', parsedDate.toISOString());
     console.log('时区偏移(分钟):', parsedDate.getTimezoneOffset());
     
     console.log('formatAdminDateTime结果:', formatAdminDateTime(testUTC));
     console.log('formatAdminDate结果:', formatAdminDate(testUTC));
     console.log('当前本地时间:', new Date().toLocaleString());
     console.log('当前UTC时间:', new Date().toISOString());
+    
+    // 测试服务器实际返回的格式
+    const serverTime = '2025-09-09T23:36:55.069922';
+    console.log('服务器时间:', serverTime);
+    console.log('服务器时间转换结果:', formatAdminDateTime(serverTime));
     console.log('==================');
 }
 
 // 解析服务器返回时间：
-// 服务器现在返回ISO格式的UTC时间戳，直接使用原生Date解析
+// 服务器返回ISO格式的UTC时间戳，需要强制按UTC解析然后转换为本地时间
 function parseServerDateToDate(serverDateString) {
     if (!serverDateString) return null;
     
-    // 直接解析ISO格式的时间戳
-    const dt = new Date(serverDateString);
+    // 确保时间字符串有UTC标识符，如果没有则添加
+    let utcString = serverDateString;
+    if (!utcString.endsWith('Z') && !utcString.includes('+') && !utcString.includes('-', 10)) {
+        utcString = utcString + 'Z';
+    }
+    
+    // 解析为UTC时间，然后JavaScript会自动转换为本地时间
+    const dt = new Date(utcString);
     if (isNaN(dt.getTime())) return null;
+    
     return dt;
 }
 
@@ -128,13 +140,23 @@ async function portalApiFetch(url, options = {}) {
         let errorMessage = 'Request failed';
         try {
             const errorData = await response.json();
+            
             if (errorData.detail) {
                 if (typeof errorData.detail === 'string') {
                     errorMessage = errorData.detail;
-                } else if (errorData.detail.message) {
-                    errorMessage = errorData.detail.message;
-                } else if (errorData.detail.title) {
-                    errorMessage = errorData.detail.title;
+                } else if (typeof errorData.detail === 'object') {
+                    // 如果detail是对象，尝试获取message、detail或title
+                    if (errorData.detail.detail) {
+                        // 真正的错误信息通常在detail.detail中
+                        errorMessage = errorData.detail.detail;
+                    } else if (errorData.detail.message) {
+                        errorMessage = errorData.detail.message;
+                    } else if (errorData.detail.title) {
+                        errorMessage = errorData.detail.title;
+                    } else {
+                        // 如果都没有，尝试将对象转换为字符串
+                        errorMessage = JSON.stringify(errorData.detail);
+                    }
                 }
             } else if (errorData.message) {
                 errorMessage = errorData.message;
@@ -222,14 +244,23 @@ function displayAdminUsers(users) {
         return;
     }
     
-    // 调试：显示第一个用户的时间数据
-    if (users.length > 0) {
-        console.log('=== 服务器返回的时间数据 ===');
-        console.log('第一个用户的created_at:', users[0].created_at);
-        console.log('第一个用户的valid_until:', users[0].valid_until);
-        console.log('created_at类型:', typeof users[0].created_at);
-        console.log('==========================');
-    }
+    // 调试：显示第一个用户的时间数据（调试用）
+    // if (users.length > 0) {
+    //     console.log('=== 服务器返回的时间数据 ===');
+    //     console.log('第一个用户的created_at:', users[0].created_at);
+    //     console.log('第一个用户的valid_until:', users[0].valid_until);
+    //     console.log('created_at类型:', typeof users[0].created_at);
+    //     console.log('valid_until类型:', typeof users[0].valid_until);
+    //     
+    //     // 测试valid_until的转换
+    //     if (users[0].valid_until) {
+    //         const validDate = parseServerDateToDate(users[0].valid_until);
+    //         console.log('valid_until解析结果:', validDate);
+    //         console.log('valid_until本地时间:', validDate.toLocaleString());
+    //         console.log('formatAdminDateTime结果:', formatAdminDateTime(users[0].valid_until));
+    //     }
+    //     console.log('==========================');
+    // }
     
     const tableHTML = users.map(user => `
         <tr>
@@ -405,9 +436,9 @@ function displayAdminPurchases(purchases) {
     
     const tableHTML = purchases.map(purchase => {
         const statusClass = purchase.status === 'Completed' ? 'status-completed' : 
-                           purchase.status === 'refunded' ? 'status-refunded' : 'status-pending';
+                           purchase.status === 'Refunded' ? 'status-refunded' : 'status-pending';
         const statusText = purchase.status === 'Completed' ? '✓ Completed' : 
-                          purchase.status === 'refunded' ? '↩ Refunded' : '⏳ Pending';
+                          purchase.status === 'Refunded' ? '↩ Refunded' : '⏳ Pending';
         const email = purchase.email || purchase.user?.email || 'N/A';
         const phone = purchase.phone || purchase.user?.phone || 'N/A';
         const amount = typeof purchase.amount === 'number' ? `$${(purchase.amount / 100).toFixed(2)}` : (purchase.amount || 'N/A');
@@ -598,8 +629,46 @@ async function saveUserChanges() {
         loadAdminUsers();
     } catch (error) {
         console.error('Failed to save user changes:', error);
-        // 显示后端返回的具体错误
-        showEditError(error?.message || 'Failed to update user');
+        
+        // 解析后端返回的具体错误信息
+        let errorMessage = 'Failed to update user';
+        
+        if (error?.message) {
+            // 检查是否是重复电话错误
+            if (error.message.includes('phone_exists') || error.message.includes('Phone number already exists')) {
+                errorMessage = 'This phone number is already in use by another user';
+            }
+            // 检查是否是重复邮箱错误
+            else if (error.message.includes('email_exists') || error.message.includes('Email already exists')) {
+                errorMessage = 'This email address is already in use by another user';
+            }
+            // 检查是否是重复用户名错误
+            else if (error.message.includes('username_exists') || error.message.includes('Username already exists')) {
+                errorMessage = 'This username is already in use by another user';
+            }
+            // 检查是否是用户名格式错误
+            else if (error.message.includes('invalid_username') || error.message.includes('2–20 chars, letters/numbers/underscore/spaces')) {
+                errorMessage = 'Username must be 2-20 characters with letters, numbers, underscores, or spaces, and must include at least one letter';
+            }
+            // 检查是否是用户名被禁用错误
+            else if (error.message.includes('username_not_allowed') || error.message.includes('Username not allowed')) {
+                errorMessage = 'This username is not allowed (reserved words)';
+            }
+            // 检查是否是邮箱格式错误
+            else if (error.message.includes('invalid_email') || error.message.includes('Invalid email format')) {
+                errorMessage = 'Please enter a valid email address';
+            }
+            // 检查是否是电话格式错误
+            else if (error.message.includes('invalid_phone') || error.message.includes('Invalid phone format')) {
+                errorMessage = 'Please enter a valid phone number in E.164 format (e.g. +12035550123)';
+            }
+            // 其他错误直接显示
+            else {
+                errorMessage = error.message;
+            }
+        }
+        
+        showEditError(errorMessage);
     }
 }
 
@@ -699,8 +768,8 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAdminStats();
     loadAdminUsers();
 
-    // 测试时间转换
-    testTimeConversion();
+    // 测试时间转换（调试用）
+    // testTimeConversion();
 
     // Render Admin badge next to brand (for consistent UI across pages)
     addAdminBadge();

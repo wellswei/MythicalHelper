@@ -3439,6 +3439,9 @@ async function loadUserForEdit(userId) {
 }
 
 async function saveUserChanges() {
+  console.log('=== SAVE USER CHANGES FUNCTION CALLED ===');
+  alert('Save User Changes function called!');
+  
   if (!currentEditUserId) {
     console.error('No currentEditUserId, cannot save');
     return;

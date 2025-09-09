@@ -1778,6 +1778,28 @@ def admin_refund_purchase(
         print(f"[ADMIN] Error refunding purchase: {str(e)}")
         problem(500, "refund_failed", "Failed to process refund")
 
+@admin.delete("/purchases/{purchase_id}")
+def admin_delete_purchase(
+    purchase_id: str,
+    su: SessionUser = Depends(require_admin)
+):
+    """删除购买记录（管理员）"""
+    try:
+        with get_db() as db:
+            purchase = db.db.query(Purchase).filter(Purchase.id == purchase_id).first()
+            if not purchase:
+                problem(404, "not_found", "Purchase not found")
+            
+            # 删除购买记录
+            db.db.delete(purchase)
+            db.db.commit()
+            
+            return {"message": "Purchase deleted successfully"}
+            
+    except Exception as e:
+        print(f"[ADMIN] Error deleting purchase: {str(e)}")
+        problem(500, "delete_failed", f"Failed to delete purchase: {str(e)}")
+
 @admin.get("/stats")
 def admin_get_stats(su: SessionUser = Depends(require_admin)):
     """获取统计信息（管理员）"""
@@ -1806,16 +1828,18 @@ def admin_get_stats(su: SessionUser = Depends(require_admin)):
                 User.created_at >= month_start.replace(tzinfo=None)
             ).count()
             
-            # 总收入（美分转美元）
+            # 总收入（美分转美元）- 排除已退款的
             from sqlalchemy import func
             total_revenue = db.db.query(Purchase).filter(
-                Purchase.provider_payment_id.isnot(None)
+                Purchase.provider_payment_id.isnot(None),
+                Purchase.status != "refunded"
             ).with_entities(func.sum(Purchase.amount)).scalar() or 0
             total_revenue_dollars = total_revenue / 100
             
-            # 本月收入
+            # 本月收入 - 排除已退款的
             monthly_revenue = db.db.query(Purchase).filter(
                 Purchase.provider_payment_id.isnot(None),
+                Purchase.status != "refunded",
                 Purchase.purchased_at >= month_start.replace(tzinfo=None)
             ).with_entities(func.sum(Purchase.amount)).scalar() or 0
             monthly_revenue_dollars = monthly_revenue / 100

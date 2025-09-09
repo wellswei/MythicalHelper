@@ -2494,6 +2494,7 @@ function displayPurchaseHistory(history) {
     <div class="history-header-type">Type</div>
     <div class="history-header-amount">Amount</div>
     <div class="history-header-status">Status</div>
+    <div class="history-header-actions">Actions</div>
   `;
   table.appendChild(header);
 
@@ -2507,11 +2508,48 @@ function displayPurchaseHistory(history) {
     const statusClass = transaction.status === 'Completed' ? 'status-completed' : 'status-pending';
     const statusText = transaction.status === 'Completed' ? '✓ Completed' : '⏳ Pending';
     
+    // 操作按钮
+    let actionsHTML = '';
+    if (transaction.status === 'Completed') {
+      actionsHTML = `
+        <div class="history-actions">
+          <button class="btn-refund" onclick="refundPurchase('${transaction.id}')" title="Refund">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+              <path d="M21 3v5h-5"></path>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+              <path d="M3 21v-5h5"></path>
+            </svg>
+          </button>
+          <button class="btn-delete" onclick="deletePurchase('${transaction.id}')" title="Delete">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+    } else {
+      actionsHTML = `
+        <div class="history-actions">
+          <button class="btn-delete" onclick="deletePurchase('${transaction.id}')" title="Delete">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+    }
+
     historyItem.innerHTML = `
       <div class="history-item-date">${formatDate(transaction.date)}</div>
       <div class="history-item-type">${transaction.type}</div>
       <div class="history-item-amount">${transaction.amount}</div>
       <div class="history-item-status ${statusClass}">${statusText}</div>
+      <div class="history-item-actions">${actionsHTML}</div>
     `;
     table.appendChild(historyItem);
   });
@@ -3588,6 +3626,25 @@ async function refundPurchase(purchaseId) {
   } catch (error) {
     console.error('Failed to refund purchase:', error);
     alert('Failed to process refund: ' + error.message);
+  }
+}
+
+async function deletePurchase(purchaseId) {
+  if (!confirm('Are you sure you want to delete this purchase? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    await portalApiFetch(`/admin/purchases/${purchaseId}`, {
+      method: 'DELETE'
+    });
+    
+    alert('Purchase deleted successfully');
+    window.location.reload();
+    
+  } catch (error) {
+    console.error('Failed to delete purchase:', error);
+    alert('Failed to delete purchase: ' + error.message);
   }
 }
 

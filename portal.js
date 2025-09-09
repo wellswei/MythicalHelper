@@ -2994,7 +2994,7 @@ async function loadAdminUsers(page = 1, limit = 20, search = '', includeDeleted 
     
     const data = await portalApiFetch(`/admin/users?${params}`);
     console.log('Admin users data received:', data);
-    displayAdminUsers(data.users);
+    displayAdminUsers(data.users, data.pagination, page, search);
   } catch (error) {
     console.error('Failed to load admin users:', error);
     const usersTable = document.getElementById('usersTable');
@@ -3018,7 +3018,7 @@ async function loadBlocklistUsers(page = 1, limit = 20, search = '') {
     const data = await portalApiFetch(`/admin/users?${params}`);
     // 只显示已删除的用户
     const deletedUsers = data.users.filter(user => user.is_deleted);
-    displayBlocklistUsers(deletedUsers);
+    displayBlocklistUsers(deletedUsers, data.pagination, page, search);
   } catch (error) {
     console.error('Failed to load blocklist users:', error);
     document.getElementById('blocklistTable').innerHTML = '<div class="table-error">Failed to load deleted users</div>';
@@ -3041,7 +3041,7 @@ async function loadAdminPurchases(page = 1, limit = 20, search = '') {
   }
 }
 
-function displayAdminUsers(users) {
+function displayAdminUsers(users, pagination, currentPage, search) {
   console.log('Displaying admin users:', users);
   const table = document.getElementById('usersTable');
   if (!table) {
@@ -3114,9 +3114,29 @@ function displayAdminUsers(users) {
   
   // 添加排序功能
   addSortingToTable();
+  
+  // 添加分页控件
+  if (pagination && pagination.total_pages > 1) {
+    const paginationHTML = `
+      <div class="table-pagination">
+        <div class="pagination-info">
+          Showing ${((currentPage - 1) * 20) + 1} to ${Math.min(currentPage * 20, pagination.total)} of ${pagination.total} users
+        </div>
+        <div class="pagination-controls">
+          ${currentPage > 1 ? `<button class="btn-pagination" onclick="loadAdminUsers(${currentPage - 1}, 20, '${search || ''}', false)">Previous</button>` : ''}
+          ${Array.from({length: Math.min(5, pagination.total_pages)}, (_, i) => {
+            const page = i + 1;
+            return `<button class="btn-pagination ${page === currentPage ? 'active' : ''}" onclick="loadAdminUsers(${page}, 20, '${search || ''}', false)">${page}</button>`;
+          }).join('')}
+          ${currentPage < pagination.total_pages ? `<button class="btn-pagination" onclick="loadAdminUsers(${currentPage + 1}, 20, '${search || ''}', false)">Next</button>` : ''}
+        </div>
+      </div>
+    `;
+    table.insertAdjacentHTML('afterend', paginationHTML);
+  }
 }
 
-function displayBlocklistUsers(users) {
+function displayBlocklistUsers(users, pagination, currentPage, search) {
   const table = document.getElementById('blocklistTable');
   if (!table) return;
   
@@ -3184,6 +3204,26 @@ function displayBlocklistUsers(users) {
   
   table.innerHTML = tableHTML;
   addSortingToTable();
+  
+  // 添加分页控件
+  if (pagination && pagination.total_pages > 1) {
+    const paginationHTML = `
+      <div class="table-pagination">
+        <div class="pagination-info">
+          Showing ${((currentPage - 1) * 20) + 1} to ${Math.min(currentPage * 20, pagination.total)} of ${pagination.total} deleted users
+        </div>
+        <div class="pagination-controls">
+          ${currentPage > 1 ? `<button class="btn-pagination" onclick="loadBlocklistUsers(${currentPage - 1}, 20, '${search || ''}')">Previous</button>` : ''}
+          ${Array.from({length: Math.min(5, pagination.total_pages)}, (_, i) => {
+            const page = i + 1;
+            return `<button class="btn-pagination ${page === currentPage ? 'active' : ''}" onclick="loadBlocklistUsers(${page}, 20, '${search || ''}')">${page}</button>`;
+          }).join('')}
+          ${currentPage < pagination.total_pages ? `<button class="btn-pagination" onclick="loadBlocklistUsers(${currentPage + 1}, 20, '${search || ''}')">Next</button>` : ''}
+        </div>
+      </div>
+    `;
+    table.insertAdjacentHTML('afterend', paginationHTML);
+  }
 }
 
 // 添加排序功能到表格

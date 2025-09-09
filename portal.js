@@ -193,9 +193,6 @@ async function portalApiFetch(path, options = {}) {
     if (!res.ok) {
       const j = await res.json().catch(() => ({ detail: 'Request failed' }));
       console.error('Portal request failed:', path, res.status, j);
-      console.log('Raw error response:', j);
-      console.log('j.detail:', j.detail);
-      console.log('j.title:', j.title);
       
       // 提取错误信息，优先使用detail字段
       let errorMessage = 'Request failed';
@@ -209,11 +206,16 @@ async function portalApiFetch(path, options = {}) {
       } else if (j) {
         errorMessage = String(j);
       }
+      
+      // 特殊处理：如果错误信息是"Failed to update user"，显示更友好的错误信息
+      if (errorMessage === 'Failed to update user') {
+        errorMessage = 'Update failed. Please check the server logs for details.';
+      }
+      
       // 确保errorMessage是字符串
       if (typeof errorMessage !== 'string') {
         errorMessage = String(errorMessage);
       }
-      console.log('Final error message:', errorMessage);
       throw new Error(errorMessage);
     }
     
@@ -3439,9 +3441,6 @@ async function loadUserForEdit(userId) {
 }
 
 async function saveUserChanges() {
-  console.log('=== SAVE USER CHANGES FUNCTION CALLED ===');
-  alert('Save User Changes function called!');
-  
   if (!currentEditUserId) {
     console.error('No currentEditUserId, cannot save');
     return;
@@ -3513,8 +3512,6 @@ async function saveUserChanges() {
     
   } catch (error) {
     console.error('Failed to update user:', error);
-    console.log('Error message:', error.message);
-    console.log('Error type:', typeof error.message);
     
     // 处理特定错误
     if (error.message.includes('email_exists') || error.message.includes('Email already exists')) {
@@ -3527,12 +3524,8 @@ async function saveUserChanges() {
       showEditError('editUsernameError', 'Username already exists');
       showEditError('editGeneralError', 'Username already exists');
     } else {
-      // 显示更详细的错误信息
-      let errorMessage = error.message;
-      if (errorMessage.includes('failed to update user')) {
-        errorMessage = errorMessage.replace('failed to update user: ', '');
-      }
-      showEditError('editGeneralError', errorMessage);
+      // 显示错误信息
+      showEditError('editGeneralError', error.message);
     }
   }
 }

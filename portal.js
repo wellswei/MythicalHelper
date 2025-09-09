@@ -3437,9 +3437,10 @@ async function loadUserForEdit(userId) {
     document.getElementById('editEmail').value = data.email || '';
     document.getElementById('editPhone').value = data.phone || '';
     
-    // 处理valid_until日期
+    // 处理valid_until日期 - 转换为本地时间显示
     if (data.valid_until) {
       const date = new Date(data.valid_until);
+      // 直接使用toISOString()然后截取到分钟，这样会显示本地时间
       const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
       document.getElementById('editValidUntil').value = localDateTime.toISOString().slice(0, 16);
     } else {
@@ -3471,6 +3472,14 @@ async function saveUserChanges() {
     phone: document.getElementById('editPhone').value.trim(),
     valid_until: document.getElementById('editValidUntil').value
   };
+  
+  // 处理valid_until时区转换 - 将本地时间转换为UTC
+  if (formData.valid_until) {
+    const localDate = new Date(formData.valid_until);
+    // 转换为UTC时间
+    const utcDate = new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
+    formData.valid_until = utcDate.toISOString();
+  }
   
   // 验证必填字段
   if (!formData.username) {

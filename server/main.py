@@ -1659,7 +1659,7 @@ def admin_update_user(
             
     except Exception as e:
         print(f"[ADMIN] Error updating user: {str(e)}")
-        problem(500, "update_failed", "Failed to update user")
+        problem(500, "update_failed", f"Failed to update user: {str(e)}")
 
 @admin.get("/purchases")
 def admin_get_purchases(

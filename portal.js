@@ -193,6 +193,10 @@ async function portalApiFetch(path, options = {}) {
     if (!res.ok) {
       const j = await res.json().catch(() => ({ detail: 'Request failed' }));
       console.error('Portal request failed:', path, res.status, j);
+      console.log('Raw error response:', j);
+      console.log('j.detail:', j.detail);
+      console.log('j.title:', j.title);
+      
       // 提取错误信息，优先使用detail字段
       let errorMessage = 'Request failed';
       if (j && typeof j === 'object') {
@@ -209,6 +213,7 @@ async function portalApiFetch(path, options = {}) {
       if (typeof errorMessage !== 'string') {
         errorMessage = String(errorMessage);
       }
+      console.log('Final error message:', errorMessage);
       throw new Error(errorMessage);
     }
     

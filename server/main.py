@@ -1456,7 +1456,7 @@ def admin_get_users(
                     "phone": user.phone,
                     "role": user.role,
                     "status": user.status,
-                    "created_at": user.created_at.strftime("%Y-%m-%d %H:%M"),
+                    "created_at": user.created_at.strftime("%Y-%m-%d"),
                     "valid_until": user.valid_until.strftime("%Y-%m-%d") if user.valid_until else None,
                     "is_active": user.valid_until and user.valid_until.replace(tzinfo=UTC) > datetime.now(UTC) if user.valid_until else False,
                     "is_deleted": user.deleted_at is not None,

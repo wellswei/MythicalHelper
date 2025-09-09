@@ -698,7 +698,10 @@ async function loadUserData() {
       generateQRCode(currentUser.user_id);
     }, 100);
     
-    // 普通用户界面，无需特殊处理
+    // 根据用户角色显示不同的内容
+    if (currentUser.role === 'admin') {
+      showAdminInterface();
+    }
     
   } catch (error) {
     console.error('Failed to load user data:', error);
@@ -2785,15 +2788,841 @@ async function handlePaymentResult() {
   }
 }
 
-// ===== 缺失的函数定义 =====
-function saveUserChanges() {
-  // 这个函数在admin.js中定义，这里提供一个空实现
-  console.log('saveUserChanges called - this function is now in admin.js');
+// ===== EVENT LISTENERS =====
+
+
+function createAdminInterface() {
+  const mainContent = document.querySelector('main');
+  if (!mainContent) return;
+  
+  // 清空现有内容
+  mainContent.innerHTML = '';
+  
+  // 创建管理员界面HTML
+  mainContent.innerHTML = `
+    <div class="admin-interface">
+      <div class="admin-header">
+        <div class="admin-header-content">
+          <div class="admin-title">
+            <h1>Admin Dashboard</h1>
+            <p>Manage users and transactions</p>
+          </div>
+          <button class="admin-logout-btn" onclick="logout()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16,17 21,12 16,7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Logout
+          </button>
+        </div>
+      </div>
+      
+      <div class="admin-stats">
+        <div class="stat-card">
+          <h3>Total Users</h3>
+          <div class="stat-value" id="totalUsers">-</div>
+        </div>
+        <div class="stat-card">
+          <h3>Active Users</h3>
+          <div class="stat-value" id="activeUsers">-</div>
+        </div>
+        <div class="stat-card">
+          <h3>Total Revenue</h3>
+          <div class="stat-value" id="totalRevenue">-</div>
+        </div>
+        <div class="stat-card">
+          <h3>Monthly Revenue</h3>
+          <div class="stat-value" id="monthlyRevenue">-</div>
+        </div>
+      </div>
+      
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="users">Users</button>
+        <button class="tab-btn" data-tab="blocklist">Blocklist</button>
+        <button class="tab-btn" data-tab="purchases">Transactions</button>
+      </div>
+      
+      <div class="admin-content">
+        <div class="tab-content active" id="users-tab">
+          <div class="admin-search">
+            <input type="text" id="userSearch" placeholder="Search users...">
+            <button id="searchUsers">Search</button>
+          </div>
+          <div class="admin-table" id="usersTable">
+            <div class="table-loading">Loading users...</div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="blocklist-tab">
+          <div class="admin-search">
+            <input type="text" id="blocklistSearch" placeholder="Search deleted users...">
+            <button id="searchBlocklist">Search</button>
+          </div>
+          <div class="admin-table" id="blocklistTable">
+            <div class="table-loading">Loading deleted users...</div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="purchases-tab">
+          <div class="admin-search">
+            <input type="text" id="purchaseSearch" placeholder="Search transactions...">
+            <button id="searchPurchases">Search</button>
+          </div>
+          <div class="admin-table" id="purchasesTable">
+            <div class="table-loading">Loading transactions...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // 绑定事件
+  setupAdminEventListeners();
+  
+  // 加载数据
+  loadAdminStats();
+  loadAdminUsers();
+}
+
+function setupAdminEventListeners() {
+  // 标签切换
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      switchTab(tab);
+    });
+  });
+  
+  // 搜索功能
+  const userSearchBtn = document.getElementById('searchUsers');
+  const blocklistSearchBtn = document.getElementById('searchBlocklist');
+  const purchaseSearchBtn = document.getElementById('searchPurchases');
+  
+  if (userSearchBtn) {
+    userSearchBtn.addEventListener('click', () => {
+      const query = document.getElementById('userSearch').value;
+      loadAdminUsers(1, 20, query, false);
+    });
+  }
+  
+  if (blocklistSearchBtn) {
+    blocklistSearchBtn.addEventListener('click', () => {
+      const query = document.getElementById('blocklistSearch').value;
+      loadBlocklistUsers(1, 20, query);
+    });
+  }
+  
+  if (purchaseSearchBtn) {
+    purchaseSearchBtn.addEventListener('click', () => {
+      const query = document.getElementById('purchaseSearch').value;
+      loadAdminPurchases(1, 20, query);
+    });
+  }
+  
+}
+
+function switchTab(tab) {
+  // 更新标签按钮状态
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  
+  // 更新内容显示
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+  document.getElementById(`${tab}-tab`).classList.add('active');
+  
+  // 加载对应数据
+  if (tab === 'users') {
+    loadAdminUsers(1, 20, '', false);
+  } else if (tab === 'blocklist') {
+    loadBlocklistUsers();
+  } else if (tab === 'purchases') {
+    loadAdminPurchases();
+  }
+}
+
+async function loadAdminStats() {
+  try {
+    const stats = await portalApiFetch('/admin/stats');
+    
+    document.getElementById('totalUsers').textContent = stats.users.total;
+    document.getElementById('activeUsers').textContent = stats.users.active;
+    document.getElementById('totalRevenue').textContent = stats.revenue.total;
+    document.getElementById('monthlyRevenue').textContent = stats.revenue.monthly;
+  } catch (error) {
+    console.error('Failed to load admin stats:', error);
+  }
+}
+
+async function loadAdminUsers(page = 1, limit = 20, search = '', includeDeleted = false) {
+  try {
+    console.log('Loading admin users...', { page, limit, search, includeDeleted });
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    });
+    if (search) params.append('search', search);
+    if (includeDeleted) params.append('include_deleted', 'true');
+    
+    const data = await portalApiFetch(`/admin/users?${params}`);
+    console.log('Admin users data received:', data);
+    displayAdminUsers(data.users);
+  } catch (error) {
+    console.error('Failed to load admin users:', error);
+    const usersTable = document.getElementById('usersTable');
+    if (usersTable) {
+      usersTable.innerHTML = '<div class="table-error">Failed to load users: ' + error.message + '</div>';
+    } else {
+      console.error('usersTable element not found!');
+    }
+  }
+}
+
+async function loadBlocklistUsers(page = 1, limit = 20, search = '') {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      include_deleted: 'true'
+    });
+    if (search) params.append('search', search);
+    
+    const data = await portalApiFetch(`/admin/users?${params}`);
+    // 只显示已删除的用户
+    const deletedUsers = data.users.filter(user => user.is_deleted);
+    displayBlocklistUsers(deletedUsers);
+  } catch (error) {
+    console.error('Failed to load blocklist users:', error);
+    document.getElementById('blocklistTable').innerHTML = '<div class="table-error">Failed to load deleted users</div>';
+  }
+}
+
+async function loadAdminPurchases(page = 1, limit = 20, search = '') {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    });
+    if (search) params.append('search', search);
+    
+    const data = await portalApiFetch(`/admin/purchases?${params}`);
+    displayAdminPurchases(data.purchases, data.pagination, page, search);
+  } catch (error) {
+    console.error('Failed to load admin purchases:', error);
+    document.getElementById('purchasesTable').innerHTML = '<div class="table-error">Failed to load transactions</div>';
+  }
+}
+
+function displayAdminUsers(users) {
+  console.log('Displaying admin users:', users);
+  const table = document.getElementById('usersTable');
+  if (!table) {
+    console.error('usersTable element not found!');
+    return;
+  }
+  
+  if (!users || users.length === 0) {
+    console.log('No users to display');
+    table.innerHTML = '<div class="table-empty">No users found</div>';
+    return;
+  }
+  
+  const tableHTML = `
+    <div class="table-header">
+      <div class="table-cell sortable" data-sort="username">
+        Username
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="email">
+        Email
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="phone">
+        Phone
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="created_at">
+        Created
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="valid_until">
+        Valid Until
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell">Operations</div>
+    </div>
+    ${users.map(user => `
+      <div class="table-row">
+        <div class="table-cell">
+          ${user.username || 'N/A'}
+        </div>
+        <div class="table-cell">${user.email || 'N/A'}</div>
+        <div class="table-cell">${user.phone || 'N/A'}</div>
+        <div class="table-cell">${user.created_at}</div>
+        <div class="table-cell">${getValidUntilWithColor(user.valid_until)}</div>
+        <div class="table-cell">
+          <div class="admin-actions">
+            <button class="btn-edit" onclick="openEditUserModal('${user.id}')" title="Edit User">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            <button class="btn-delete" onclick="deleteUser('${user.id}', '${user.username || 'User'}')" title="Delete User">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+  
+  table.innerHTML = tableHTML;
+  
+  // 添加排序功能
+  addSortingToTable();
+}
+
+function displayBlocklistUsers(users) {
+  const table = document.getElementById('blocklistTable');
+  if (!table) return;
+  
+  if (users.length === 0) {
+    table.innerHTML = '<div class="table-empty">No deleted users found</div>';
+    return;
+  }
+  
+  const tableHTML = `
+    <div class="table-header">
+      <div class="table-cell sortable" data-sort="username">
+        Username
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="email">
+        Email
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="phone">
+        Phone
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="created_at">
+        Created
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell sortable" data-sort="deleted_at">
+        Deleted At
+        <span class="sort-icon">↕</span>
+      </div>
+      <div class="table-cell">Operations</div>
+    </div>
+    ${users.map(user => `
+      <div class="table-row deleted-row">
+        <div class="table-cell">
+          ${user.username || 'N/A'}
+        </div>
+        <div class="table-cell">${user.email || 'N/A'}</div>
+        <div class="table-cell">${user.phone || 'N/A'}</div>
+        <div class="table-cell">${user.created_at}</div>
+        <div class="table-cell">${user.deleted_at || 'N/A'}</div>
+        <div class="table-cell">
+          <div class="admin-actions">
+            <button class="btn-edit" onclick="restoreUser('${user.id}', '${user.username || 'Unknown'}')" title="Restore User">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                <path d="M21 3v5h-5"></path>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                <path d="M3 21v-5h5"></path>
+              </svg>
+            </button>
+            <button class="btn-delete" onclick="permanentlyDeleteUser('${user.id}', '${user.username || 'Unknown'}')" title="Permanently Delete User">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+  
+  table.innerHTML = tableHTML;
+  addSortingToTable();
+}
+
+// 添加排序功能到表格
+function addSortingToTable() {
+  const sortableHeaders = document.querySelectorAll('.table-header .sortable');
+  let currentSort = { field: null, direction: 'asc' };
+  
+  sortableHeaders.forEach(header => {
+    header.addEventListener('click', () => {
+      const field = header.dataset.sort;
+      const icon = header.querySelector('.sort-icon');
+      
+      // 确定排序方向
+      if (currentSort.field === field) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSort.direction = 'asc';
+      }
+      currentSort.field = field;
+      
+      // 更新所有排序图标
+      sortableHeaders.forEach(h => {
+        const i = h.querySelector('.sort-icon');
+        i.textContent = '↕';
+        i.className = 'sort-icon';
+      });
+      
+      // 更新当前排序图标
+      icon.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+      icon.className = `sort-icon ${currentSort.direction}`;
+      
+      // 执行排序
+      sortUsersTable(field, currentSort.direction);
+    });
+  });
+}
+
+// 排序用户表格
+function sortUsersTable(field, direction) {
+  const table = document.getElementById('usersTable');
+  const header = table.querySelector('.table-header');
+  const rows = Array.from(table.querySelectorAll('.table-row'));
+  
+  // 创建临时容器来存储排序后的行
+  const tempContainer = document.createElement('div');
+  
+  rows.sort((a, b) => {
+    let aValue, bValue;
+    
+    switch(field) {
+      case 'username':
+        aValue = a.querySelector('.table-cell').textContent.trim();
+        bValue = b.querySelector('.table-cell').textContent.trim();
+        break;
+      case 'email':
+        aValue = a.querySelectorAll('.table-cell')[1].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[1].textContent.trim();
+        break;
+      case 'phone':
+        aValue = a.querySelectorAll('.table-cell')[2].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[2].textContent.trim();
+        break;
+      case 'created_at':
+        aValue = a.querySelectorAll('.table-cell')[3].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[3].textContent.trim();
+        break;
+      case 'valid_until':
+        aValue = a.querySelectorAll('.table-cell')[4].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[4].textContent.trim();
+        break;
+      case 'deleted_at':
+        aValue = a.querySelectorAll('.table-cell')[4].textContent.trim();
+        bValue = b.querySelectorAll('.table-cell')[4].textContent.trim();
+        break;
+      default:
+        return 0;
+    }
+    
+    // 处理N/A值
+    if (aValue === 'N/A') aValue = '';
+    if (bValue === 'N/A') bValue = '';
+    
+    // 字符串比较
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  // 将排序后的行添加到临时容器
+  rows.forEach(row => tempContainer.appendChild(row));
+  
+  // 清空表格内容（保留header）
+  while (table.children.length > 1) {
+    table.removeChild(table.lastChild);
+  }
+  
+  // 将排序后的行添加回表格
+  while (tempContainer.firstChild) {
+    table.appendChild(tempContainer.firstChild);
+  }
+}
+
+// 编辑用户
+function editUser(userId, isDeleted = false) {
+  if (isDeleted) {
+    // 如果是已删除用户，询问是否恢复
+    if (confirm('This user has been deleted. Do you want to restore them?')) {
+      restoreUser(userId);
+    }
+  } else {
+    // 正常编辑用户
+    console.log('Edit user:', userId);
+    // TODO: 实现编辑用户功能
+    alert('Edit user functionality coming soon!');
+  }
+}
+
+// 恢复用户
+async function restoreUser(userId) {
+  try {
+    const response = await fetch(`${API_BASE}/admin/users/${userId}/restore`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      alert('User restored successfully!');
+      // 刷新整个页面以显示最新状态
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert(`Failed to restore user: ${error.detail || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Restore user error:', error);
+    alert('Failed to restore user. Please try again.');
+  }
+}
+
+// 删除用户（软删除）
+async function deleteUser(userId, username) {
+  if (!confirm(`Are you sure you want to delete user "${username}"? This will move the user to blocklist.`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      alert('User deleted successfully!');
+      // 刷新整个页面以显示最新状态
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert(`Failed to delete user: ${error.detail || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Delete user error:', error);
+    alert('Failed to delete user. Please try again.');
+  }
+}
+
+// 永久删除用户
+async function permanentlyDeleteUser(userId, username) {
+  if (!confirm(`Are you sure you want to PERMANENTLY delete user "${username}"? This action cannot be undone and will remove all user data.`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE}/admin/users/${userId}/permanent`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      alert('User permanently deleted!');
+      // 刷新整个页面以显示最新状态
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert(`Failed to permanently delete user: ${error.detail || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Permanent delete user error:', error);
+    alert('Failed to permanently delete user. Please try again.');
+  }
+}
+
+function displayAdminPurchases(purchases, pagination, currentPage, search) {
+  const table = document.getElementById('purchasesTable');
+  if (!table) return;
+  
+  if (purchases.length === 0) {
+    table.innerHTML = '<div class="table-empty">No transactions found</div>';
+    return;
+  }
+  
+  const tableHTML = `
+    <div class="table-header">
+      <div class="table-cell">User</div>
+      <div class="table-cell">Type</div>
+      <div class="table-cell">Amount</div>
+      <div class="table-cell">Status</div>
+      <div class="table-cell">Date</div>
+      <div class="table-cell">Actions</div>
+    </div>
+    ${purchases.map(purchase => `
+      <div class="table-row">
+        <div class="table-cell">${purchase.username}</div>
+        <div class="table-cell">${purchase.type}</div>
+        <div class="table-cell">${purchase.amount}</div>
+        <div class="table-cell">
+          <span class="status-badge ${purchase.status.toLowerCase()}">
+            ${purchase.status}
+          </span>
+        </div>
+        <div class="table-cell">${purchase.purchased_at}</div>
+        <div class="table-cell">
+          <div class="admin-actions">
+            ${purchase.status === 'Completed' ? `
+              <button class="btn-refund" onclick="refundPurchase('${purchase.id}')" title="Refund Purchase">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                  <path d="M21 3v5h-5"></path>
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                  <path d="M3 21v-5h5"></path>
+                </svg>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('')}
+    <div class="table-pagination">
+      <div class="pagination-info">
+        Showing ${((currentPage - 1) * 20) + 1} to ${Math.min(currentPage * 20, pagination.total)} of ${pagination.total} transactions
+      </div>
+      <div class="pagination-controls">
+        <button class="btn btn-pagination" onclick="loadAdminPurchases(${currentPage - 1}, 20, '${search}')" ${currentPage <= 1 ? 'disabled' : ''}>
+          Previous
+        </button>
+        <span class="pagination-page">Page ${currentPage} of ${pagination.pages}</span>
+        <button class="btn btn-pagination" onclick="loadAdminPurchases(${currentPage + 1}, 20, '${search}')" ${currentPage >= pagination.pages ? 'disabled' : ''}>
+          Next
+        </button>
+      </div>
+    </div>
+  `;
+  
+  table.innerHTML = tableHTML;
+}
+
+// ===== USER EDIT FUNCTIONALITY =====
+let currentEditUserId = null;
+
+function openEditUserModal(userId) {
+  currentEditUserId = userId;
+  
+  // 获取用户信息并填充表单
+  loadUserForEdit(userId);
+  
+  // 显示模态框
+  document.getElementById('editUserModal').style.display = 'flex';
 }
 
 function closeEditUserModal() {
-  // 这个函数在admin.js中定义，这里提供一个空实现
-  console.log('closeEditUserModal called - this function is now in admin.js');
+  currentEditUserId = null;
+  document.getElementById('editUserModal').style.display = 'none';
+  
+  // 清除表单和错误信息
+  clearEditForm();
+}
+
+function clearEditForm() {
+  document.getElementById('editUserForm').reset();
+  document.querySelectorAll('.error-message').forEach(el => {
+    el.classList.remove('show');
+    el.textContent = '';
+  });
+}
+
+async function loadUserForEdit(userId) {
+  try {
+    const data = await portalApiFetch(`/admin/users/${userId}`);
+    
+    // 填充表单
+    document.getElementById('editUsername').value = data.username || '';
+    document.getElementById('editEmail').value = data.email || '';
+    document.getElementById('editPhone').value = data.phone || '';
+    
+    // 处理valid_until日期 - 转换为本地时间显示
+    if (data.valid_until) {
+      const date = new Date(data.valid_until);
+      // 直接使用toISOString()然后截取到分钟，这样会显示本地时间
+      const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      document.getElementById('editValidUntil').value = localDateTime.toISOString().slice(0, 16);
+    } else {
+      document.getElementById('editValidUntil').value = '';
+    }
+    
+  } catch (error) {
+    console.error('Failed to load user for edit:', error);
+    alert('Failed to load user information');
+  }
+}
+
+async function saveUserChanges() {
+  if (!currentEditUserId) {
+    console.error('No currentEditUserId, cannot save');
+    return;
+  }
+  
+  // 只清除错误信息，不清空表单
+  document.querySelectorAll('.error-message').forEach(el => {
+    el.classList.remove('show');
+    el.textContent = '';
+  });
+  
+  // 获取表单数据
+  const formData = {
+    username: document.getElementById('editUsername').value.trim(),
+    email: document.getElementById('editEmail').value.trim(),
+    phone: document.getElementById('editPhone').value.trim(),
+    valid_until: document.getElementById('editValidUntil').value
+  };
+  
+  // 处理valid_until时区转换 - 将本地时间转换为UTC
+  if (formData.valid_until) {
+    const localDate = new Date(formData.valid_until);
+    // 转换为UTC时间
+    const utcDate = new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
+    formData.valid_until = utcDate.toISOString();
+  }
+  
+  // 验证必填字段
+  if (!formData.username) {
+    showEditError('editUsernameError', 'Username is required');
+    return;
+  }
+  
+  if (!formData.email) {
+    showEditError('editEmailError', 'Email is required');
+    return;
+  }
+  
+  if (!formData.phone) {
+    showEditError('editPhoneError', 'Phone is required');
+    return;
+  }
+  
+  // 验证email格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(formData.email)) {
+    showEditError('editEmailError', 'Please enter a valid email address');
+    return;
+  }
+  
+  // 验证phone格式（E164）
+  const phoneRegex = /^\+[1-9]\d{1,14}$/;
+  if (!phoneRegex.test(formData.phone)) {
+    showEditError('editPhoneError', 'Please enter a valid phone number in E164 format (+1234567890)');
+    return;
+  }
+  
+  try {
+    console.log('Sending update request:', {
+      userId: currentEditUserId,
+      formData: formData
+    });
+    
+    // 发送更新请求
+    const response = await portalApiFetch(`/admin/users/${currentEditUserId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData)
+    });
+    
+    console.log('Update response:', response);
+    
+    // 成功，刷新页面
+    window.location.reload();
+    
+  } catch (error) {
+    console.error('Failed to update user:', error);
+    
+    // 处理特定错误
+    if (error.message.includes('email_exists') || error.message.includes('Email already exists')) {
+      showEditError('editEmailError', 'Email already exists');
+      showEditError('editGeneralError', 'Email already exists');
+    } else if (error.message.includes('phone_exists') || error.message.includes('Phone number already exists')) {
+      showEditError('editPhoneError', 'Phone number already exists');
+      showEditError('editGeneralError', 'Phone number already exists');
+    } else if (error.message.includes('username_exists') || error.message.includes('Username already exists')) {
+      showEditError('editUsernameError', 'Username already exists');
+      showEditError('editGeneralError', 'Username already exists');
+    } else {
+      // 显示错误信息
+      showEditError('editGeneralError', error.message);
+    }
+  }
+}
+
+function showEditError(elementId, message) {
+  const errorElement = document.getElementById(elementId);
+  if (errorElement) {
+    errorElement.textContent = message;
+    errorElement.classList.add('show');
+    errorElement.style.display = 'block';
+  }
+}
+
+// ===== REFUND FUNCTIONALITY =====
+async function refundPurchase(purchaseId) {
+  if (!confirm('Are you sure you want to refund this purchase? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    await portalApiFetch(`/admin/purchases/${purchaseId}/refund`, {
+      method: 'POST'
+    });
+    
+    alert('Refund processed successfully');
+    window.location.reload();
+    
+  } catch (error) {
+    console.error('Failed to refund purchase:', error);
+    alert('Failed to process refund: ' + error.message);
+  }
+}
+
+async function deletePurchase(purchaseId) {
+  if (!confirm('Are you sure you want to delete this purchase? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    await portalApiFetch(`/admin/purchases/${purchaseId}`, {
+      method: 'DELETE'
+    });
+    
+    alert('Purchase deleted successfully');
+    window.location.reload();
+    
+  } catch (error) {
+    console.error('Failed to delete purchase:', error);
+    alert('Failed to delete purchase: ' + error.message);
+  }
 }
 
 // ===== EVENT LISTENERS =====
@@ -2811,3 +3640,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // 关闭按钮事件
   document.querySelector('#editUserModal .modal-close')?.addEventListener('click', closeEditUserModal);
 });
+
+// ===== Cloudflare Stripe Proxy 说明 =====
+// 由于 AWS Lightsail IPv6-only 实例无法直接访问 Stripe API，
+// 需要使用 Cloudflare Worker 作为通用代理。
+// 
+// Worker 代码位于: stripe-proxy.js
+// 部署指南位于: CLOUDFLARE_WORKER_SETUP.md

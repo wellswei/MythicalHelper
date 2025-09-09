@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MythicalHelper - Admin Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="logo.png" alt="MythicalHelper Logo" class="logo">
+                    <h1>MythicalHelper Admin</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-logout" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stats Section -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Users</h3>
+                        <div class="stat-value" id="totalUsers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Users</h3>
+                        <div class="stat-value" id="activeUsers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Monthly New</h3>
+                        <div class="stat-value" id="monthlyUsers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Revenue</h3>
+                        <div class="stat-value" id="totalRevenue">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Monthly Revenue</h3>
+                        <div class="stat-value" id="monthlyRevenue">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Renewals</h3>
+                        <div class="stat-value" id="renewalCount">-</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tabs -->
+            <section class="tabs-section">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="users">Users</button>
+                    <button class="tab-btn" data-tab="blocklist">Blocklist</button>
+                    <button class="tab-btn" data-tab="purchases">Purchases</button>
+                </div>
+            </section>
+
+            <!-- Users Tab -->
+            <section class="tab-content active" id="usersTab">
+                <div class="section-header">
+                    <h2>User Management</h2>
+                    <div class="search-box">
+                        <input type="text" id="userSearch" placeholder="Search users..." onkeyup="handleUserSearch(event)">
+                        <button class="btn btn-primary" onclick="searchUsers()">Search</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('username')">Username <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('email')">Email <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('phone')">Phone <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('created_at')">Created <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('valid_until')">Valid Until <span class="sort-arrow">↕</span></th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="6" class="loading">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Blocklist Tab -->
+            <section class="tab-content" id="blocklistTab">
+                <div class="section-header">
+                    <h2>Blocked Users</h2>
+                    <div class="search-box">
+                        <input type="text" id="blocklistSearch" placeholder="Search blocked users..." onkeyup="handleBlocklistSearch(event)">
+                        <button class="btn btn-primary" onclick="searchBlocklist()">Search</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table" id="blocklistTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('username')">Username <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('email')">Email <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('phone')">Phone <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('deleted_at')">Deleted <span class="sort-arrow">↕</span></th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blocklistTableBody">
+                            <tr>
+                                <td colspan="5" class="loading">Loading blocked users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Purchases Tab -->
+            <section class="tab-content" id="purchasesTab">
+                <div class="section-header">
+                    <h2>Purchase History</h2>
+                    <div class="search-box">
+                        <input type="text" id="purchaseSearch" placeholder="Search purchases..." onkeyup="handlePurchaseSearch(event)">
+                        <button class="btn btn-primary" onclick="searchPurchases()">Search</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table" id="purchasesTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('user_id')">User <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('type')">Type <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('amount')">Amount <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('status')">Status <span class="sort-arrow">↕</span></th>
+                                <th onclick="sortTable('purchased_at')">Date <span class="sort-arrow">↕</span></th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchasesTableBody">
+                            <tr>
+                                <td colspan="6" class="loading">Loading purchases...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal-overlay" id="editUserModal" style="display: none;">
+        <div class="modal-content edit-user-modal">
+            <div class="modal-header">
+                <h3>Edit User</h3>
+                <button class="modal-close" onclick="closeEditUserModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="error-message" id="editGeneralError" style="display: none;"></div>
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPhone">Phone</label>
+                    <input type="tel" id="editPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="editValidUntil">Valid Until</label>
+                    <input type="datetime-local" id="editValidUntil">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnSaveUser">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

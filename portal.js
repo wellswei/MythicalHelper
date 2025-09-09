@@ -494,6 +494,15 @@ function formatDate(dateString) {
   });
 }
 
+function formatDateShort(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function formatDateTime(dateString) {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
@@ -756,7 +765,7 @@ function updateUserInfo() {
     'userPhone': formatPhoneNumber(currentUser.phone) || 'Not provided',
     'userRole': currentUser.role || 'user',
     'userCreatedAt': formatDate(currentUser.created_at),
-    'userValidUntil': formatDate(currentUser.valid_until)
+    'userValidUntil': formatDateShort(currentUser.valid_until)
   };
 
 
@@ -2306,7 +2315,7 @@ function getEnchantedUntil(validUntil) {
   // 返回今天和valid_until中较早的日期
   const earlierDate = today < validDate ? today : validDate;
   
-  return formatDate(earlierDate);
+  return formatDateShort(earlierDate);
 }
 
 // ===== Valid Until 颜色工具函数 =====
@@ -2318,7 +2327,7 @@ function getValidUntilWithColor(validUntil) {
   today.setHours(0, 0, 0, 0);
   validDate.setHours(0, 0, 0, 0);
   
-  const formattedDate = formatDate(validDate);
+  const formattedDate = formatDateShort(validDate);
   
   if (validDate >= today) {
     return `<span class="valid">${formattedDate}</span>`;
@@ -2397,7 +2406,7 @@ function updateRenewalInfo() {
   const statusElement = $('#renewalStatus');
 
   if (validUntilElement) {
-    validUntilElement.textContent = formatDate(currentUser.valid_until) || 'Not specified';
+    validUntilElement.textContent = formatDateShort(currentUser.valid_until) || 'Not specified';
   }
 
   if (statusElement) {

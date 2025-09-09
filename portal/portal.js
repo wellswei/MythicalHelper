@@ -315,7 +315,7 @@ function resetEmailEditorUI(hideSection = true) {
     const phoneChangeCard = document.getElementById('phoneChangeCard');
     
     if (profileCard) profileCard.style.display = 'block';
-    if (emailChangeCard) emailChangeCard.style.display = 'none';
+    if (emailChangeCard) { emailChangeCard.style.minHeight = ''; emailChangeCard.style.display = 'none'; }
     if (phoneChangeCard) phoneChangeCard.style.display = 'none';
   }
   const err = document.getElementById('errPortalEmail'); if (err) err.textContent = '';
@@ -449,11 +449,15 @@ function openEmailEditor() {
   
 
   
+  // 记录当前卡片高度，用于稳定切换时的框体高度
+  const baseHeight = profileCard ? profileCard.offsetHeight : 0;
   if (profileCard) profileCard.style.display = 'none';
   if (phoneChangeCard) phoneChangeCard.style.display = 'none';
   
   if (emailChangeCard) {
     emailChangeCard.style.display = 'block';
+    // 锁定切换后的最小高度，避免框体视觉跳动
+    if (baseHeight) emailChangeCard.style.minHeight = `${baseHeight}px`;
     // 显示当前邮箱信息
     const currentEmailDisplay = document.getElementById('currentEmailDisplay');
     if (currentEmailDisplay && currentUser) {
@@ -504,6 +508,19 @@ function formatDateTime(dateString) {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
+  });
+}
+
+// Admin-facing date display used across Portal (valid until, badges, renewal)
+function formatPortalDate(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'N/A';
+  // Show a stable, date-only format to avoid timezone confusion
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 }
 
@@ -587,7 +604,7 @@ function isAuthenticated() {
 }
 
 function redirectToAuth() {
-  window.location.href = '/auth.html?mode=login';
+  window.location.href = '/auth/auth.html?mode=login';
 }
 
 function showNotAuthenticatedMessage() {
@@ -754,7 +771,7 @@ function updateUserInfo() {
     'userPhone': formatPhoneNumber(currentUser.phone) || 'Not provided',
     'userRole': currentUser.role || 'user',
     'userCreatedAt': formatDate(currentUser.created_at),
-    'userValidUntil': formatAdminDate(currentUser.valid_until)
+    'userValidUntil': formatPortalDate(currentUser.valid_until)
   };
 
 
@@ -1311,11 +1328,15 @@ function setupEventListeners() {
     const phoneChangeCard = document.getElementById('phoneChangeCard');
     const emailChangeCard = document.getElementById('emailChangeCard');
     
+    // 记录当前卡片高度，用于稳定切换时的框体高度
+    const baseHeight = profileCard ? profileCard.offsetHeight : 0;
     if (profileCard) profileCard.style.display = 'none';
     if (emailChangeCard) emailChangeCard.style.display = 'none';
     
     if (phoneChangeCard) {
       phoneChangeCard.style.display = 'block';
+      // 锁定切换后的最小高度，避免框体视觉跳动
+      if (baseHeight) phoneChangeCard.style.minHeight = `${baseHeight}px`;
       // 显示当前手机号信息
       const currentPhoneDisplay = document.getElementById('currentPhoneDisplay');
       if (currentPhoneDisplay && currentUser) {
@@ -1344,7 +1365,7 @@ function setupEventListeners() {
     
     if (profileCard) profileCard.style.display = 'block';
     if (emailChangeCard) emailChangeCard.style.display = 'none';
-    if (phoneChangeCard) phoneChangeCard.style.display = 'none';
+    if (phoneChangeCard) { phoneChangeCard.style.minHeight = ''; phoneChangeCard.style.display = 'none'; }
   });
   const sendPhoneBtn = $('#btnSendPhoneCode');
   if (sendPhoneBtn) sendPhoneBtn.addEventListener('click', onPhonePrimaryClick);
@@ -1416,12 +1437,14 @@ function setupEventListeners() {
         const profileCard = document.getElementById('profileCard');
         const phoneChangeCard = document.getElementById('phoneChangeCard');
         const emailChangeCard = document.getElementById('emailChangeCard');
-        
+        // 记录当前卡片高度作为切换后的最小高度，避免框体跳动
+        const baseHeight = profileCard ? profileCard.offsetHeight : 0;
         if (profileCard) profileCard.style.display = 'none';
-        if (emailChangeCard) emailChangeCard.style.display = 'none';
+        if (emailChangeCard) { emailChangeCard.style.minHeight = ''; emailChangeCard.style.display = 'none'; }
         
         if (phoneChangeCard) {
           phoneChangeCard.style.display = 'block';
+          if (baseHeight) phoneChangeCard.style.minHeight = `${baseHeight}px`;
           // 显示当前手机号信息
           const currentPhoneDisplay = document.getElementById('currentPhoneDisplay');
           if (currentPhoneDisplay && currentUser) {
@@ -1906,8 +1929,8 @@ async function onVerifyPortalPhone() {
     if (err) err.textContent = 'The code is incorrect or expired.';
   } finally {
     if (btn) {
-      btn.textContent = 'Verify Code';
       btn.disabled = false;
+      btn.textContent = portalState.phoneTxId ? 'Verify Code' : 'Send Code';
     }
   }
 }
@@ -2007,6 +2030,11 @@ function resetPhoneEditorUI(hideSection = true) {
     input.type = 'tel';
     input.value = '';
     input.classList.remove('tel-invalid');
+    // Clear any code-input constraints from previous flow
+    input.removeAttribute('maxLength');
+    input.removeAttribute('pattern');
+    input.removeAttribute('inputmode');
+    try { input.inputMode = ''; } catch {}
   }
   if (label) label.textContent = 'New Phone';
   if (btn) {
@@ -2215,8 +2243,10 @@ async function initializePortal() {
     if (loadPortalChangeState()) {
       // Email 恢复（新的单输入模式）
       if (portalState.emailTxId) {
-        const emailSec = document.getElementById('emailChangeCard'); if (emailSec) emailSec.style.display = 'block';
-        const phoneSec = document.getElementById('phoneChangeCard'); if (phoneSec) phoneSec.style.display = 'none';
+        const profileCard = document.getElementById('profileCard');
+        const baseHeight = profileCard ? profileCard.offsetHeight : 0;
+        const emailSec = document.getElementById('emailChangeCard'); if (emailSec) { emailSec.style.display = 'block'; if (baseHeight) emailSec.style.minHeight = `${baseHeight}px`; }
+        const phoneSec = document.getElementById('phoneChangeCard'); if (phoneSec) { phoneSec.style.minHeight = ''; phoneSec.style.display = 'none'; }
         const label = document.getElementById('emailLabel'); if (label) label.textContent = 'Enter 6-digit code';
         const input = document.getElementById('newEmailInput');
         if (input) {
@@ -2232,8 +2262,10 @@ async function initializePortal() {
       }
       // Phone 恢复
       if (portalState.phoneTxId) {
-        const phoneSec = document.getElementById('phoneChangeCard'); if (phoneSec) phoneSec.style.display = 'block';
-        const emailSec = document.getElementById('emailChangeCard'); if (emailSec) emailSec.style.display = 'none';
+        const profileCard = document.getElementById('profileCard');
+        const baseHeight = profileCard ? profileCard.offsetHeight : 0;
+        const phoneSec = document.getElementById('phoneChangeCard'); if (phoneSec) { phoneSec.style.display = 'block'; if (baseHeight) phoneSec.style.minHeight = `${baseHeight}px`; }
+        const emailSec = document.getElementById('emailChangeCard'); if (emailSec) { emailSec.style.minHeight = ''; emailSec.style.display = 'none'; }
         // 恢复到验证码阶段（单输入模式）
         const label = document.getElementById('phoneLabel'); if (label) label.textContent = 'Enter 6-digit code';
         const input = document.getElementById('newPhoneInput');
@@ -2267,13 +2299,21 @@ async function initializePortal() {
   if (navMember) {
     navMember.addEventListener('click', (e) => {
       e.preventDefault();
-      if (isAuthenticated()) {
-        window.location.href = '/portal.html';
-      } else {
-        window.location.href = '/auth.html?mode=login';
-      }
+      if (!isAuthenticated()) { window.location.href = '/auth/auth.html?mode=login'; return; }
+      // 已登录：检查是否管理员
+      apiCall('/users/me')
+        .then(me => {
+          if (me && (me.role === 'admin' || me.role === 'administrator')) {
+            window.location.href = '/admin/admin.html';
+          } else {
+            window.location.href = '/portal/portal.html';
+          }
+        })
+        .catch(() => window.location.href = '/portal/portal.html');
     });
   }
+  // show admin badge if applicable
+  maybeShowAdminBadge();
 }
 
 // ===== 页面加载完成后初始化 =====
@@ -2294,6 +2334,31 @@ window.addEventListener('load', function() {
   }
 });
 
+// Add small red Admin badge next to brand when role is admin
+function maybeShowAdminBadge() {
+  const brand = document.querySelector('.header .brand');
+  if (!brand) return;
+  // avoid duplicate
+  if (brand.querySelector('[data-role-badge="admin"]')) return;
+  apiCall('/users/me')
+    .then(me => {
+      if (!me || (me.role !== 'admin' && me.role !== 'administrator')) return;
+      const badge = document.createElement('span');
+      badge.textContent = 'Admin';
+      badge.dataset.roleBadge = 'admin';
+      badge.setAttribute('aria-label', 'Administrator');
+      badge.style.marginLeft = '8px';
+      badge.style.padding = '2px 6px';
+      badge.style.fontSize = '12px';
+      badge.style.borderRadius = '6px';
+      badge.style.background = '#ef4444';
+      badge.style.color = '#fff';
+      badge.style.opacity = '0.9';
+      brand.appendChild(badge);
+    })
+    .catch(() => {});
+}
+
 // ===== Badge 工具函数 =====
 function getEnchantedUntil(validUntil) {
   if (!validUntil) return 'Not specified';
@@ -2304,7 +2369,7 @@ function getEnchantedUntil(validUntil) {
   // 返回今天和valid_until中较早的日期
   const earlierDate = today < validDate ? today : validDate;
   
-  return formatAdminDate(earlierDate);
+  return formatPortalDate(earlierDate);
 }
 
 // ===== Valid Until 颜色工具函数 =====
@@ -2316,7 +2381,7 @@ function getValidUntilWithColor(validUntil) {
   today.setHours(0, 0, 0, 0);
   validDate.setHours(0, 0, 0, 0);
   
-  const formattedDate = formatAdminDate(validDate);
+  const formattedDate = formatPortalDate(validDate);
   
   if (validDate >= today) {
     return `<span class="valid">${formattedDate}</span>`;
@@ -2395,7 +2460,7 @@ function updateRenewalInfo() {
   const statusElement = $('#renewalStatus');
 
   if (validUntilElement) {
-    validUntilElement.textContent = formatAdminDate(currentUser.valid_until) || 'Not specified';
+    validUntilElement.textContent = formatPortalDate(currentUser.valid_until) || 'Not specified';
   }
 
   if (statusElement) {
@@ -2491,7 +2556,6 @@ function displayPurchaseHistory(history) {
     <div class="history-header-type">Type</div>
     <div class="history-header-amount">Amount</div>
     <div class="history-header-status">Status</div>
-    <div class="history-header-actions">Actions</div>
   `;
   table.appendChild(header);
 
@@ -2505,48 +2569,14 @@ function displayPurchaseHistory(history) {
     const statusClass = transaction.status === 'Completed' ? 'status-completed' : 'status-pending';
     const statusText = transaction.status === 'Completed' ? '✓ Completed' : '⏳ Pending';
     
-    // 操作按钮
+    // 操作按钮（会员端不展示退款/删除）
     let actionsHTML = '';
-    if (transaction.status === 'Completed') {
-      actionsHTML = `
-        <div class="history-actions">
-          <button class="btn-refund" onclick="refundPurchase('${transaction.id}')" title="Refund">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-              <path d="M21 3v5h-5"></path>
-              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-              <path d="M3 21v-5h5"></path>
-            </svg>
-          </button>
-          <button class="btn-delete" onclick="deletePurchase('${transaction.id}')" title="Delete">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 6h18"></path>
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-            </svg>
-          </button>
-        </div>
-      `;
-    } else {
-      actionsHTML = `
-        <div class="history-actions">
-          <button class="btn-delete" onclick="deletePurchase('${transaction.id}')" title="Delete">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 6h18"></path>
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-            </svg>
-          </button>
-        </div>
-      `;
-    }
 
     historyItem.innerHTML = `
       <div class="history-item-date">${formatDate(transaction.date)}</div>
       <div class="history-item-type">${transaction.type}</div>
       <div class="history-item-amount">${transaction.amount}</div>
       <div class="history-item-status ${statusClass}">${statusText}</div>
-      <div class="history-item-actions">${actionsHTML}</div>
     `;
     table.appendChild(historyItem);
   });
@@ -2785,29 +2815,4 @@ async function handlePaymentResult() {
   }
 }
 
-// ===== 缺失的函数定义 =====
-function saveUserChanges() {
-  // 这个函数在admin.js中定义，这里提供一个空实现
-  console.log('saveUserChanges called - this function is now in admin.js');
-}
-
-function closeEditUserModal() {
-  // 这个函数在admin.js中定义，这里提供一个空实现
-  console.log('closeEditUserModal called - this function is now in admin.js');
-}
-
-// ===== EVENT LISTENERS =====
-document.addEventListener('DOMContentLoaded', function() {
-  // 用户编辑模态框事件监听器
-  document.getElementById('btnSaveUser')?.addEventListener('click', saveUserChanges);
-  
-  // 点击模态框外部关闭
-  document.getElementById('editUserModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-      closeEditUserModal();
-    }
-  });
-  
-  // 关闭按钮事件
-  document.querySelector('#editUserModal .modal-close')?.addEventListener('click', closeEditUserModal);
-});
+// (removed) admin-only edit modal helpers and listeners

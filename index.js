@@ -1,5 +1,7 @@
 // === Mythical Helper – index.js (Home page only) ===
 
+const API_BASE = 'https://api.mythicalhelper.org';
+
 
 // 随机组合系统
 const roleCombinations = {
@@ -77,17 +79,18 @@ function populateLettersRandom() {
 }
 
 function initRandomLetterDefault() {
-  const letter = document.querySelector('.board-section .letter');
+  const letter = document.querySelector('.board .letter');
   if (letter) letter.dataset.active = 'north';
 }
 
 function initButtonHandlers() {
+  // 针对占位链接的降级处理（当前主页按钮已直接指向 auth/signup）
   const acceptButtons = document.querySelectorAll('a.btn.primary[href="#"]');
   acceptButtons.forEach(button => {
     button.addEventListener('click', (e) => {
       e.preventDefault();
-      // 跳转到模式选择页面，而不是直接进入注册流程
-      window.location.href = 'auth.html';
+      // 跳转到认证页
+      window.location.href = '/auth/auth.html';
     });
   });
 
@@ -102,11 +105,19 @@ function wireNavMember() {
   if (!navMember) return;
   navMember.addEventListener('click', (e) => {
     e.preventDefault();
-    if (isLoggedIn()) {
-      window.location.href = '/portal.html';
-    } else {
-      window.location.href = '/auth.html?mode=login';
-    }
+    if (!isLoggedIn()) { window.location.href = '/auth/auth.html?mode=login'; return; }
+    // Check role; admins go to admin portal
+    const token = sessionStorage.getItem('authToken');
+    fetch(`${API_BASE}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(me => {
+        if (me && (me.role === 'admin' || me.role === 'administrator')) {
+          window.location.href = '/admin/admin.html';
+        } else {
+          window.location.href = '/portal/portal.html';
+        }
+      })
+      .catch(() => window.location.href = '/portal/portal.html');
   });
 }
 
@@ -114,10 +125,26 @@ function wireReturningMember() {
   const returningLinks = document.querySelectorAll('a.btn[href*="mode=login"]');
   returningLinks.forEach((a) => {
     a.addEventListener('click', (e) => {
-      if (isLoggedIn()) {
-        e.preventDefault();
-        window.location.href = '/portal.html';
+      e.preventDefault();
+      
+      if (!isLoggedIn()) {
+        // 如果用户没有登录，跳转到登录页面
+        window.location.href = '/auth/auth.html?mode=login';
+        return;
       }
+      
+      // 如果用户已经登录，检查角色
+      const token = sessionStorage.getItem('authToken');
+      fetch(`${API_BASE}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(me => {
+          if (me && (me.role === 'admin' || me.role === 'administrator')) {
+            window.location.href = '/admin/admin.html';
+          } else {
+            window.location.href = '/portal/portal.html';
+          }
+        })
+        .catch(() => window.location.href = '/portal/portal.html');
     });
   });
 }
@@ -138,4 +165,29 @@ document.addEventListener('DOMContentLoaded', () => {
   initButtonHandlers();
   wireNavMember();
   wireReturningMember();
+  maybeShowAdminBadge();
 });
+
+function maybeShowAdminBadge() {
+  const token = sessionStorage.getItem('authToken');
+  if (!token) return;
+  fetch(`${API_BASE}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } })
+    .then(r => r.ok ? r.json() : null)
+    .then(me => {
+      if (!me || (me.role !== 'admin' && me.role !== 'administrator')) return;
+      const brand = document.querySelector('.header .brand');
+      if (!brand) return;
+      const badge = document.createElement('span');
+      badge.textContent = 'Admin';
+      badge.setAttribute('aria-label', 'Administrator');
+      badge.style.marginLeft = '8px';
+      badge.style.padding = '2px 6px';
+      badge.style.fontSize = '12px';
+      badge.style.borderRadius = '6px';
+      badge.style.background = '#ef4444';
+      badge.style.color = '#fff';
+      badge.style.opacity = '0.9';
+      brand.appendChild(badge);
+    })
+    .catch(() => {});
+}

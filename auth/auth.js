@@ -234,10 +234,8 @@ async function onVerifyLoginSms() {
     }
     clearLoginState();
     clearState(); // 清理注册状态
-    // 添加小延迟确保sessionStorage写入完成
-    setTimeout(() => {
-      window.location.href = '/portal.html';
-    }, 100);
+    // 添加小延迟确保sessionStorage写入完成，然后按角色跳转
+    setTimeout(() => { redirectToRoleHome(); }, 100);
   } catch (e) { showError(err, e.message || 'Invalid code'); }
   finally { unlockButton(btn, 'Verify Code'); }
 }
@@ -557,6 +555,26 @@ function onTurnstileError(error) {
   }
   
   // 登录流程不需要Turnstile验证
+}
+
+// ===== Post-login redirect helper (route admins to admin portal) =====
+async function redirectToRoleHome() {
+  try {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) { window.location.href = '/portal/portal.html'; return; }
+    const res = await fetch(`${API_BASE}/users/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) { window.location.href = '/portal/portal.html'; return; }
+    const me = await res.json();
+    if (me && (me.role === 'admin' || me.role === 'administrator')) {
+      window.location.href = '/admin/admin.html';
+    } else {
+      window.location.href = '/portal/portal.html';
+    }
+  } catch {
+    window.location.href = '/portal/portal.html';
+  }
 }
 
 // 更新Turnstile状态消息的辅助函数
@@ -1183,7 +1201,7 @@ async function onGoToMember() {
     // 用户已经登录，直接跳转到portal
     console.log('=== USER ALREADY AUTHENTICATED ===');
     console.log('Redirecting to portal...');
-    window.location.href = '/portal.html';
+    window.location.href = '/portal/portal.html';
     return;
   }
   
@@ -1237,7 +1255,7 @@ async function onGoToMember() {
       console.log('Redirecting to portal in 100ms...');
       setTimeout(() => {
         console.log('Executing redirect to portal...');
-        window.location.href = '/portal.html';
+        window.location.href = '/portal/portal.html';
       }, 100);
       return;
     } catch (error) {
@@ -1261,7 +1279,7 @@ async function onGoToMember() {
 
 // ===== 模式选择 =====
 function initializeMode() {
-  // 1) 显式 URL 参数优先级最高
+  // 统一不再显示模式选择器；通过URL或默认登录决定
   const urlParams = new URLSearchParams(window.location.search);
   const modeParam = urlParams.get('mode');
   if (modeParam === 'login') {
@@ -1271,18 +1289,8 @@ function initializeMode() {
   } else if (modeParam === 'signup') {
     currentAuthMode = 'signup';
   } else {
-    // 2) 没有显式参数时，再看持久化的临时状态
-    try {
-      if (sessionStorage.getItem('loginState')) {
-        currentAuthMode = 'login';
-      } else if (sessionStorage.getItem('authState')) {
-        currentAuthMode = 'signup';
-      } else {
-        currentAuthMode = null; // 显示模式选择器
-      }
-    } catch {
-      currentAuthMode = null;
-    }
+    // 默认登录
+    currentAuthMode = 'login';
   }
 
   const modeSelector = $('#modeSelector');
@@ -1304,34 +1312,17 @@ function initializeMode() {
     }
   };
   
+  if (modeSelector) modeSelector.hidden = true;
   if (currentAuthMode === 'signup') {
-    // 直接进入注册流程
-    if (modeSelector) modeSelector.hidden = true;
     if (signupFlow) signupFlow.hidden = false;
     if (loginFlow) loginFlow.hidden = true;
     if (loginSmsFlow) loginSmsFlow.hidden = true;
     setHero('signup');
-  } else if (currentAuthMode === 'login') {
-    // 登录模式
-    if (modeSelector) modeSelector.hidden = true;
+  } else {
     if (signupFlow) signupFlow.hidden = true;
     if (loginFlow) loginFlow.hidden = false;
     if (loginSmsFlow) loginSmsFlow.hidden = true;
     setHero('login');
-  } else {
-    // 没有明确指定模式，显示模式选择器
-    if (modeSelector) modeSelector.hidden = false;
-    if (signupFlow) signupFlow.hidden = true;
-    if (loginFlow) loginFlow.hidden = true;
-    if (loginSmsFlow) loginSmsFlow.hidden = true;
-    // 设置默认的标题
-    const titleEl = document.getElementById('authHeroTitle');
-    const leadEl = document.getElementById('authHeroLead');
-    if (titleEl && leadEl) {
-      titleEl.textContent = 'Welcome to Mythical Helper';
-      leadEl.textContent = 'Choose your path to join the guild.';
-      document.title = 'Mythical Helper – Auth';
-    }
   }
 }
 
@@ -1570,10 +1561,8 @@ async function onVerifyLoginCode() {
     clearLoginState();
     clearState(); // 清理注册状态
     
-    // 添加小延迟确保sessionStorage写入完成，然后跳转
-    setTimeout(() => {
-      window.location.href = '/portal.html';
-    }, 100);
+    // 添加小延迟确保sessionStorage写入完成，然后按角色跳转
+    setTimeout(() => { redirectToRoleHome(); }, 100);
     
   } catch (error) {
     console.error('Verify login code error:', error);
@@ -1851,13 +1840,9 @@ function initializeApp() {
     navMember.addEventListener('click', (e) => {
       e.preventDefault();
       const authToken = sessionStorage.getItem('authToken');
-      if (authToken) {
-        // 用户已登录，跳转到portal
-        window.location.href = '/portal.html';
-      } else {
-        // 用户未登录，跳转到登录页面
-        window.location.href = '/auth.html?mode=login';
-      }
+      if (!authToken) { window.location.href = '/auth/auth.html?mode=login'; return; }
+      // 已登录：按角色跳转
+      redirectToRoleHome();
     });
   }
 
@@ -1873,6 +1858,29 @@ function initializeApp() {
   
   // 确保登录SMS输入框初始化
   initLoginPhoneInput();
+  // 如果是管理员，在品牌旁显示小徽章
+  (async () => {
+    try {
+      const token = sessionStorage.getItem('authToken');
+      if (!token) return;
+      const res = await fetch(`${API_BASE}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (!res.ok) return;
+      const me = await res.json();
+      if (me && (me.role === 'admin' || me.role === 'administrator')) {
+        const brand = document.querySelector('.header .brand');
+        if (brand) {
+          const badge = document.createElement('span');
+          badge.textContent = 'Admin';
+          badge.setAttribute('aria-label', 'Administrator');
+          Object.assign(badge.style, {
+            marginLeft: '8px', padding: '2px 6px', fontSize: '12px', borderRadius: '6px',
+            background: '#ef4444', color: '#fff', opacity: '0.9'
+          });
+          brand.appendChild(badge);
+        }
+      }
+    } catch {}
+  })();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

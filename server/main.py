@@ -1337,7 +1337,7 @@ def get_payment_history(user: SessionUser = Depends(get_session_user)):
                 
                 history.append({
                     "id": purchase.id,
-                    "date": purchase.purchased_at.strftime("%Y-%m-%d"),
+                    "date": purchase.purchased_at.isoformat(),
                     "amount": amount_str,
                     "type": payment_type,
                     "status": status,
@@ -1456,11 +1456,11 @@ def admin_get_users(
                     "phone": user.phone,
                     "role": user.role,
                     "status": user.status,
-                    "created_at": user.created_at.strftime("%Y-%m-%d"),
-                    "valid_until": user.valid_until.strftime("%Y-%m-%d") if user.valid_until else None,
+                    "created_at": user.created_at.isoformat(),
+                    "valid_until": user.valid_until.isoformat() if user.valid_until else None,
                     "is_active": user.valid_until and user.valid_until.replace(tzinfo=UTC) > datetime.now(UTC) if user.valid_until else False,
                     "is_deleted": user.deleted_at is not None,
-                    "deleted_at": user.deleted_at.strftime("%Y-%m-%d %H:%M") if user.deleted_at else None
+                    "deleted_at": user.deleted_at.isoformat() if user.deleted_at else None
                 })
             
             return {
@@ -1690,6 +1690,8 @@ def admin_get_purchases(
                 # 获取用户信息
                 user = db.get_user_by_id(purchase.user_id)
                 username = user.username if user else "Unknown"
+                email = user.email if user else None
+                phone = user.phone if user else None
                 
                 # 确定支付类型
                 if purchase.valid_until_after_purchase:
@@ -1714,11 +1716,13 @@ def admin_get_purchases(
                     "id": purchase.id,
                     "user_id": purchase.user_id,
                     "username": username,
+                    "email": email,
+                    "phone": phone,
                     "amount": amount_str,
                     "currency": purchase.currency,
                     "type": payment_type,
                     "status": status,
-                    "purchased_at": purchase.purchased_at.strftime("%Y-%m-%d %H:%M"),
+                    "purchased_at": purchase.purchased_at.isoformat(),
                     "provider_payment_id": purchase.provider_payment_id
                 })
             

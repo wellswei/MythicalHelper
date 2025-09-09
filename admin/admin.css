@@ -1,0 +1,920 @@
+/* ===== MYTHICAL HELPER - ADMIN PAGE STYLES ===== */
+
+/* ===== FOUNDATION STYLES ===== */
+
+/* 引入字体 */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;600;700;900&family=Inter:wght@400;500;600;700&display=swap');
+
+/* 基础样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background: #0b1020;
+  color: #fff;
+  position: relative;
+  z-index: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Keep layout width stable across pages with/without scrollbar */
+html { scrollbar-gutter: stable; }
+@supports not (scrollbar-gutter: stable) {
+  html { overflow-y: scroll; }
+}
+
+/* 容器和分割线 */
+.admin .container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.admin .section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  margin: 40px auto;
+  max-width: 100%;
+}
+
+/* 全站星空背景 */
+/* 1) 星云层：柔和的彩色光带 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -10% -10% 0 -10%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 40% at 20% 10%, rgba(129,206,255,.22), transparent 60%),
+    radial-gradient(45% 35% at 80% 0%, rgba(255,224,138,.18), transparent 65%),
+    radial-gradient(35% 30% at 10% 85%, rgba(175,140,255,.12), transparent 70%);
+  filter: blur(18px) saturate(115%);
+  opacity: .9;
+}
+
+/* 2) 星点层：稀疏的点光，带轻微闪烁 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.85);
+  box-shadow:
+    2vw 8vh 0 rgba(255,255,255,.85),
+    12vw 24vh 0 rgba(255,255,255,.6),
+    22vw 10vh 0 rgba(255,255,255,.75),
+    34vw 18vh 0 rgba(255,255,255,.5),
+    46vw 6vh 0 rgba(255,255,255,.7),
+    58vw 22vh 0 rgba(255,255,255,.55),
+    70vw 12vh 0 rgba(255,255,255,.8),
+    82vw 26vh 0 rgba(255,255,255,.5),
+    10vw 32vh 0 rgba(255,255,255,.65),
+    28vw 38vh 0 rgba(255,255,255,.6),
+    44vw 34vh 0 rgba(255,255,255,.7),
+    62vw 36vh 0 rgba(255,255,255,.5),
+    78vw 40vh 0 rgba(255,255,255,.6),
+    90vw 28vh 0 rgba(255,255,255,.55);
+  animation: starTwinkle 3s ease-in-out infinite alternate;
+  opacity: .7;
+}
+
+/* 闪烁动画 */
+@keyframes starTwinkle {
+  from { opacity: .45; transform: translateZ(0); }
+  to { opacity: .9; }
+}
+
+/* 全站流星（随机位置，30秒周期） */
+.meteor {
+  position: fixed;
+  z-index: 1;
+  pointer-events: none;
+  width: 140px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.9));
+  filter: drop-shadow(0 0 6px #fff);
+  transform: rotate(18deg);
+  animation: shooting 30s linear infinite;
+  animation-delay: 0s;
+}
+
+.meteor:nth-child(2) {
+  animation-delay: 10s;
+  top: 25vh;
+  left: -15vw;
+}
+
+.meteor:nth-child(3) {
+  animation-delay: 20s;
+  top: 8vh;
+  left: -25vw;
+}
+
+@keyframes shooting {
+  0% { transform: translate(0,0) rotate(18deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate(140vw,45vh) rotate(18deg); opacity: 0; }
+}
+
+/* ===== HEADER SECTION ===== */
+
+/* 为固定头部留出空间 */
+body {
+  padding-top: 80px;
+}
+
+.admin .header { 
+  position: fixed;
+  top: 0; 
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #0b1020;
+  border-bottom: 1px solid #2a3a63;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 0 12px 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.admin .header .container { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+}
+
+.admin .header .brand { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  font-weight: 700; 
+  letter-spacing: .2px; 
+  font-size: 18px;
+}
+
+.admin .header .brand .logo {
+  height: 28px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  border-radius: 50%;
+}
+
+.admin .header .brand .name {
+  font-family: 'Cinzel Decorative', serif;
+  letter-spacing: .5px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #ffffff, #ffe08a 55%, #c7e7ff 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin .header .nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin .header .nav a { 
+  color: #fff;
+  text-decoration: none; 
+  padding: 6px 16px;
+  border-radius: 8px; 
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.admin .header .nav a:hover {
+  background: rgba(255,255,255,.08);
+}
+
+.admin .header .nav a.active {
+  background: #4d8dff;
+  box-shadow: 0 2px 8px rgba(77,141,255,.25);
+}
+
+.admin .header .lang-selector {
+  margin-left: 8px;
+}
+
+.admin .header .lang-selector select {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px;
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
+}
+
+.admin .header .lang-selector select:hover {
+  background-color: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.3);
+}
+
+.admin .header .lang-selector select:focus {
+  outline: none;
+  border-color: #4d8dff;
+  box-shadow: 0 0 0 3px rgba(77,141,255,.2);
+}
+
+.admin .header .lang-selector select option {
+  background: #1d2a4a;
+  color: #fff;
+  padding: 8px;
+}
+
+/* ===== DASHBOARD SECTION ===== */
+.admin .dashboard-content {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.admin .dashboard-welcome {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.admin .dashboard-stats {
+  text-align: center;
+}
+
+.admin .dashboard-note {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* 大屏幕 (1200px+) */
+@media (min-width: 1200px) {
+  .admin .container {
+    max-width: 1200px;
+  }
+}
+
+/* 中等屏幕 (900px - 1199px) */
+@media (min-width: 900px) and (max-width: 1199px) {
+  .admin .container {
+    max-width: 900px;
+  }
+}
+
+/* 平板屏幕 (768px - 899px) */
+@media (min-width: 768px) and (max-width: 899px) {
+  .admin .container {
+    max-width: 768px;
+    padding: 0 20px;
+  }
+}
+
+/* 小屏幕 (480px - 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  .admin .container {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin .container {
+    padding: 0 15px;
+  }
+
+  .admin .header .nav {
+    gap: 20px;
+  }
+}
+
+/* 手机屏幕 (320px - 479px) */
+@media (max-width: 479px) {
+  .admin .container {
+    max-width: 100%;
+    padding: 0 15px;
+  }
+  
+  .admin .header .brand {
+    font-size: 16px;
+  }
+
+  .admin .header .nav {
+    gap: 15px;
+  }
+}
+
+/* ===== ADMIN SECTIONS ===== */
+
+/* Admin view card wrapper */
+.admin .admin-view { margin: 8px 0 16px 0; }
+.admin .admin-view-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; }
+
+/* List toolbar: search left, pager right */
+.admin .list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0 10px 0; }
+.admin .list-toolbar .search-box { display: flex; align-items: center; gap: 8px; }
+.admin .list-toolbar .search-box input { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 12px; border-radius: 8px; min-width: 220px; }
+.admin .list-toolbar .search-box input::placeholder { color: rgba(255,255,255,0.6); }
+.admin .list-toolbar .search-box input:focus { outline: none; border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.15); }
+.admin .list-toolbar .pager { display: flex; align-items: center; gap: 8px; }
+.admin .list-toolbar .pager .page-info { color: rgba(255,255,255,0.75); font-size: 13px; }
+.admin .list-toolbar .btn { background: #3b82f6; border: 1px solid #2563eb; color: #fff; padding: 8px 14px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all .2s ease; }
+.admin .list-toolbar .btn:hover { background: #2563eb; border-color: #1d4ed8; }
+.admin .list-toolbar .page-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); min-width: 80px; }
+.admin .list-toolbar .page-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* Stats Section */
+.admin .stats-section { width: 100%; margin: 10px 0 16px 0; position: relative; z-index: 10; }
+
+.admin .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; }
+
+.admin .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s ease; }
+
+.admin .stat-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.admin .stat-card h3 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.admin .stat-value { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #fff; font-size: 1.8rem; font-weight: 700; margin: 0; background: linear-gradient(45deg, #ffffff, #87ceeb, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shimmer 3s ease-in-out infinite; }
+
+/* Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Tabs Section */
+.admin .tabs-section { margin: 12px 0 20px 0; position: relative; z-index: 10; }
+
+.admin .tab-buttons {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.admin .tab-btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.admin .tab-btn.active {
+  background: #4d8dff;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(77, 141, 255, 0.25);
+}
+.admin .tab-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(77,141,255,.25); }
+
+.admin .tab-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+/* Tab Content */
+.admin .tab-content {
+  display: none;
+  position: relative;
+  z-index: 10;
+}
+
+.admin .tab-content.active {
+  display: block;
+}
+
+/* Section Header */
+.admin .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.admin .section-header h2 {
+  font-family: 'Cinzel Decorative', Inter, system-ui, serif;
+  font-size: clamp(22px, 3.6vw, 30px);
+  font-weight: 700;
+  letter-spacing: .4px;
+  background: linear-gradient(90deg, #ffffff, #ffe08a 55%, #c7e7ff 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.admin .search-box {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin .search-box input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  min-width: 200px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.admin .search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.admin .search-box input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Table Container */
+.admin .table-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+/* Admin Table */
+.admin .admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+}
+
+.admin .admin-table th {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin .admin-table th:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin .sort-arrow {
+  margin-left: 8px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  font-size: 14px;
+}
+
+.admin .admin-table th:hover .sort-arrow {
+  opacity: 1;
+}
+
+.admin .admin-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.admin .admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin .loading {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  padding: 40px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Action Buttons */
+.admin .history-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin .btn-refund, 
+.admin .btn-delete, 
+.admin .btn-edit, 
+.admin .btn-restore {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.admin .btn-refund:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  color: #22c55e;
+  transform: translateY(-1px);
+}
+
+.admin .btn-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #ef4444;
+  transform: translateY(-1px);
+}
+
+.admin .btn-edit:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+.admin .btn-restore:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  color: #22c55e;
+  transform: translateY(-1px);
+}
+
+/* Status Styles */
+.admin .status-completed {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.admin .status-pending {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.admin .status-refunded {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Valid Until Colors */
+.admin .valid {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.admin .expired {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Button Styles */
+.admin .btn-primary {
+  background: #3b82f6;
+  color: white;
+  border: 1px solid #2563eb;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.admin .btn-primary:hover {
+  background: #2563eb;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Modal Styles */
+.admin .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.admin .edit-user-modal {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+}
+
+.admin .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin .modal-header h3 {
+  margin: 0;
+  color: #f8d26a;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.admin .modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.admin .modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.admin .modal-body {
+  padding: 20px 24px;
+}
+
+.admin .form-group {
+  margin-bottom: 20px;
+}
+
+.admin .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.admin .form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: all 0.2s ease;
+}
+
+.admin .form-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.admin .form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.admin .error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.admin .modal-footer {
+  padding: 16px 24px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== FOOTER SECTION ===== */
+.admin .site-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0b1020;
+  padding: 32px 0 28px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  margin-top: 0;
+}
+
+.admin .footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.admin .footer-brand {
+  display: flex;
+  justify-content: center;
+}
+
+.admin .footer-brand .logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 6px rgba(248, 210, 106, 0.25));
+}
+
+.admin .footer-copy {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* 平板屏幕 (768px - 899px) */
+@media (max-width: 768px) {
+  .admin .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+  }
+  
+  .admin .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .admin .search-box {
+    width: 100%;
+  }
+  
+  .admin .search-box input {
+    min-width: 0;
+    flex: 1;
+  }
+  
+  .admin .admin-table {
+    font-size: 12px;
+  }
+  
+  .admin .admin-table th,
+  .admin .admin-table td {
+    padding: 12px 8px;
+  }
+  
+  .admin .tab-buttons {
+    flex-direction: column;
+  }
+  
+  .admin .tab-btn {
+    text-align: center;
+  }
+}
+
+/* 手机屏幕 (480px - 767px) */
+@media (max-width: 480px) {
+  .admin .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .admin .stat-card {
+    padding: 16px;
+  }
+  
+  .admin .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .admin .admin-table th,
+  .admin .admin-table td {
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+  
+  .admin .history-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .admin .btn-refund, 
+  .admin .btn-delete, 
+  .admin .btn-edit, 
+  .admin .btn-restore {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
+
+/* 小屏手机 (360px) */
+@media (max-width: 360px) {
+  .admin .stat-card {
+    padding: 12px;
+  }
+  
+  .admin .stat-value {
+    font-size: 1.25rem;
+  }
+  
+  .admin .admin-table th,
+  .admin .admin-table td {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
+  
+  .admin .footer-brand .logo { 
+    width: 72px; 
+    height: 72px; 
+  }
+}
+/* Hero Section */
+.admin .hero-section { margin-top: 8px; }
+.admin .hero { position: relative; min-height: 44px; display: flex; align-items: center; justify-content: flex-end; }
+.admin .hero-title { position: absolute; left: 50%; transform: translateX(-50%); font-family: 'Cinzel Decorative', serif; font-weight: 700; letter-spacing: .3px; font-size: clamp(22px, 3.6vw, 30px); background: linear-gradient(90deg, #ffffff, #ffe08a 55%, #c7e7ff 90%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0; }
+.admin .hero-actions .btn-logout { background: #ef4444; color: #fff; border: 1px solid #dc2626; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all .2s ease; font-size: 14px; }
+.admin .hero-actions .btn-logout:hover { background: #dc2626; border-color: #b91c1c; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); transform: translateY(-1px); }

@@ -18,11 +18,11 @@
   <header class="header">
     <div class="container">
       <div class="brand">
-        <img src="logo.png" alt="Logo" class="logo">
+        <img src="../logo.png" alt="Logo" class="logo">
         <span class="name">MythicalHelper</span>
       </div>
       <nav class="nav">
-        <a href="index.html">Home</a>
+        <a href="../index.html">Home</a>
         <a href="#" id="navMember" class="active">Member</a>
         <div class="lang-selector">
           <select>
@@ -78,7 +78,6 @@
         <div class="change-card" id="emailChangeCard" style="display:none;">
           <div class="change-header">
             <h2>Change Email</h2>
-            <button class="btn" id="btnCancelEmailChange" type="button">Cancel</button>
           </div>
 
           <div class="change-content">
@@ -108,6 +107,7 @@
             <div class="error" id="errPortalEmail"></div>
             <div class="actions">
               <button class="btn primary" id="btnSendEmailCode" type="button">Send Code</button>
+              <button class="btn cancel" id="btnCancelEmailChange" type="button">Cancel</button>
             </div>
           </div>
         </div>
@@ -116,7 +116,6 @@
         <div class="change-card" id="phoneChangeCard" style="display:none;">
           <div class="change-header">
             <h2>Change Phone</h2>
-            <button class="btn" id="btnCancelPhoneChange" type="button">Cancel</button>
           </div>
 
           <div class="change-content">
@@ -146,6 +145,7 @@
             <div class="error" id="errPortalPhone"></div>
             <div class="actions">
               <button class="btn primary" id="btnSendPhoneCode" type="button">Send Code</button>
+              <button class="btn cancel" id="btnCancelPhoneChange" type="button">Cancel</button>
             </div>
           </div>
         </div>
@@ -234,9 +234,6 @@
           </div>
         </div>
         
-        <!-- 分割线 -->
-        <div class="renewal-divider"></div>
-        
         <!-- 历史记录部分 -->
         <div class="history-content">
           <div class="history-list" id="historyList">
@@ -280,55 +277,12 @@
     </div>
   </div>
 
-  <!-- Edit User Modal -->
-  <div class="modal-overlay" id="editUserModal" style="display: none;">
-    <div class="modal-content edit-user-modal">
-      <div class="modal-header">
-        <h3>Edit User</h3>
-        <button class="modal-close" type="button">&times;</button>
-      </div>
-      
-      <form id="editUserForm">
-        <div class="modal-body">
-          <div class="error-message" id="editGeneralError" style="display: none;"></div>
-          
-          <div class="form-group">
-            <label for="editUsername">Username</label>
-            <input type="text" id="editUsername" name="username" placeholder="Enter username">
-            <div class="error-message" id="editUsernameError"></div>
-          </div>
-          
-          <div class="form-group">
-            <label for="editEmail">Email</label>
-            <input type="email" id="editEmail" name="email" placeholder="Enter email">
-            <div class="error-message" id="editEmailError"></div>
-          </div>
-          
-          <div class="form-group">
-            <label for="editPhone">Phone</label>
-            <input type="tel" id="editPhone" name="phone" placeholder="Enter phone number">
-            <div class="error-message" id="editPhoneError"></div>
-          </div>
-          
-          <div class="form-group">
-            <label for="editValidUntil">Valid Until</label>
-            <input type="datetime-local" id="editValidUntil" name="valid_until">
-            <div class="error-message" id="editValidUntilError"></div>
-          </div>
-        </div>
-        
-        <div class="modal-footer">
-          <button type="button" class="btn primary" id="btnSaveUser">Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- Footer -->
   <footer class="site-footer">
     <div class="container footer-inner">
       <div class="footer-brand">
-        <img src="logo.png" alt="Logo" class="logo">
+        <img src="../logo.png" alt="Logo" class="logo">
       </div>
       <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>
     </div>

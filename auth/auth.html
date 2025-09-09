@@ -19,11 +19,11 @@
   <header class="site-header header">
     <div class="container">
       <div class="brand">
-        <img src="logo.png" alt="Logo" class="logo">
+        <img src="../logo.png" alt="Logo" class="logo">
         <span class="name">MythicalHelper</span>
       </div>
       <nav class="nav">
-        <a href="index.html">Home</a>
+        <a href="../index.html">Home</a>
         <a href="#" id="navMember" class="active">Member</a>
         <div class="lang-selector">
           <select>
@@ -46,27 +46,7 @@
     <section class="process">
       <div class="auth-card">
         <div class="content">
-          <!-- 模式选择界面 -->
-          <div class="auth-mode-selector" id="modeSelector">
-            <h2 class="mode-title">Welcome to the Guild</h2>
-            <p class="mode-subtitle">Choose your path to join the Mythical Helper community</p>
-            
-            <div class="mode-options">
-              <div class="mode-option" data-mode="signup">
-                <div class="mode-icon">🛡️</div>
-                <h3 class="mode-option-title">New Member</h3>
-                <p class="mode-option-desc">Take the oath and receive your Helper badge</p>
-                <button class="btn btn-primary mode-btn" data-mode="signup">Accept the Mission</button>
-              </div>
-              
-              <div class="mode-option" data-mode="login">
-                <div class="mode-icon">🔑</div>
-                <h3 class="mode-option-title">Returning Member</h3>
-                <p class="mode-option-desc">Sign in to access your Helper portal</p>
-                <button class="btn btn-outline mode-btn" data-mode="login">Sign In</button>
-              </div>
-            </div>
-          </div>
+          <!-- 模式选择界面已移除：统一由URL参数或默认登录控制 -->
 
           <!-- 注册流程 -->
           <div class="auth-flow" id="signupFlow" hidden>
@@ -378,7 +358,7 @@
 
   <footer class="site-footer footer">
     <div class="container footer-inner">
-      <div class="footer-brand"><img src="logo.png" alt="Logo" class="logo"></div>
+      <div class="footer-brand"><img src="../logo.png" alt="Logo" class="logo"></div>
       <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>
     </div>
   </footer>

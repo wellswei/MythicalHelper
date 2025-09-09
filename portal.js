@@ -207,9 +207,21 @@ async function portalApiFetch(path, options = {}) {
         errorMessage = String(j);
       }
       
-      // 特殊处理：如果错误信息是"Failed to update user"，显示更友好的错误信息
-      if (errorMessage === 'Failed to update user') {
-        errorMessage = 'Update failed. Please check the server logs for details.';
+      // 特殊处理：显示更详细的错误信息
+      if (errorMessage === 'Failed to update user' && j && j.detail && typeof j.detail === 'object') {
+        const detail = j.detail;
+        // 构建详细的错误信息
+        let detailedMessage = 'Update failed';
+        if (detail.title) {
+          detailedMessage += `: ${detail.title}`;
+        }
+        if (detail.status) {
+          detailedMessage += ` (Status: ${detail.status})`;
+        }
+        if (detail.detail && detail.detail !== 'Failed to update user') {
+          detailedMessage += ` - ${detail.detail}`;
+        }
+        errorMessage = detailedMessage;
       }
       
       // 确保errorMessage是字符串

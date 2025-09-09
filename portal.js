@@ -494,14 +494,6 @@ function formatDate(dateString) {
   });
 }
 
-function formatDateShort(dateString) {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 function formatDateTime(dateString) {
   if (!dateString) return 'N/A';
@@ -765,7 +757,7 @@ function updateUserInfo() {
     'userPhone': formatPhoneNumber(currentUser.phone) || 'Not provided',
     'userRole': currentUser.role || 'user',
     'userCreatedAt': formatDate(currentUser.created_at),
-    'userValidUntil': formatDateShort(currentUser.valid_until)
+    'userValidUntil': formatAdminDate(currentUser.valid_until)
   };
 
 
@@ -2315,7 +2307,7 @@ function getEnchantedUntil(validUntil) {
   // 返回今天和valid_until中较早的日期
   const earlierDate = today < validDate ? today : validDate;
   
-  return formatDateShort(earlierDate);
+  return formatAdminDate(earlierDate);
 }
 
 // ===== Valid Until 颜色工具函数 =====
@@ -2327,7 +2319,7 @@ function getValidUntilWithColor(validUntil) {
   today.setHours(0, 0, 0, 0);
   validDate.setHours(0, 0, 0, 0);
   
-  const formattedDate = formatDateShort(validDate);
+  const formattedDate = formatAdminDate(validDate);
   
   if (validDate >= today) {
     return `<span class="valid">${formattedDate}</span>`;
@@ -2406,7 +2398,7 @@ function updateRenewalInfo() {
   const statusElement = $('#renewalStatus');
 
   if (validUntilElement) {
-    validUntilElement.textContent = formatDateShort(currentUser.valid_until) || 'Not specified';
+    validUntilElement.textContent = formatAdminDate(currentUser.valid_until) || 'Not specified';
   }
 
   if (statusElement) {
@@ -2759,6 +2751,16 @@ async function handlePaymentResult() {
 }
 
 // ===== 管理员界面 =====
+// Admin专用的日期格式函数
+function formatAdminDate(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function showAdminInterface() {
   
   // 隐藏普通用户界面 - 隐藏所有section

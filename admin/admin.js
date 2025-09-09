@@ -20,19 +20,23 @@ function $(id) {
 // ===== 时间处理函数 =====
 // 服务器时间都是UTC，前端显示和输入都是本地时间
 
+// 调试函数：测试时间转换
+function testTimeConversion() {
+    console.log('=== 时间转换测试 ===');
+    const testUTC = '2025-09-09T23:41:03.123456'; // 示例UTC时间
+    console.log('UTC时间:', testUTC);
+    console.log('本地时间:', formatAdminDateTime(testUTC));
+    console.log('本地日期:', formatAdminDate(testUTC));
+    console.log('当前本地时间:', new Date().toLocaleString());
+    console.log('==================');
+}
+
 // 解析服务器返回时间：
-// - 若为 YYYY-MM-DD（无时区），按 UTC 午夜 00:00 解析
-// - 否则走原生 Date 解析（支持完整 ISO 字符串）
+// 服务器现在返回ISO格式的UTC时间戳，直接使用原生Date解析
 function parseServerDateToDate(serverDateString) {
     if (!serverDateString) return null;
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(serverDateString);
-    if (m) {
-        const y = Number(m[1]);
-        const mo = Number(m[2]);
-        const d = Number(m[3]);
-        // 构造该日期在 UTC 的 00:00 时刻
-        return new Date(Date.UTC(y, mo - 1, d, 0, 0, 0, 0));
-    }
+    
+    // 直接解析ISO格式的时间戳
     const dt = new Date(serverDateString);
     if (isNaN(dt.getTime())) return null;
     return dt;
@@ -90,9 +94,9 @@ function getValidUntilWithColor(validUntil) {
     const validDate = parseServerDateToDate(validUntil);
     if (!validDate) return '<span class="expired">N/A</span>';
     if (validDate >= now) {
-        return `<span class="valid">${formatAdminDate(validUntil)}</span>`;
+        return `<span class="valid">${formatAdminDateTime(validUntil)}</span>`;
     } else {
-        return `<span class="expired">${formatAdminDate(validUntil)}</span>`;
+        return `<span class="expired">${formatAdminDateTime(validUntil)}</span>`;
     }
 }
 
@@ -677,6 +681,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载初始数据
     loadAdminStats();
     loadAdminUsers();
+
+    // 测试时间转换
+    testTimeConversion();
 
     // Render Admin badge next to brand (for consistent UI across pages)
     addAdminBadge();

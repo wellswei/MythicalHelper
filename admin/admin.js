@@ -25,9 +25,17 @@ function testTimeConversion() {
     console.log('=== 时间转换测试 ===');
     const testUTC = '2025-09-09T23:41:03.123456'; // 示例UTC时间
     console.log('UTC时间:', testUTC);
-    console.log('本地时间:', formatAdminDateTime(testUTC));
-    console.log('本地日期:', formatAdminDate(testUTC));
+    
+    const parsedDate = parseServerDateToDate(testUTC);
+    console.log('解析后的Date对象:', parsedDate);
+    console.log('UTC时间戳:', parsedDate.getTime());
+    console.log('本地时间戳:', new Date().getTime());
+    console.log('时区偏移(分钟):', parsedDate.getTimezoneOffset());
+    
+    console.log('formatAdminDateTime结果:', formatAdminDateTime(testUTC));
+    console.log('formatAdminDate结果:', formatAdminDate(testUTC));
     console.log('当前本地时间:', new Date().toLocaleString());
+    console.log('当前UTC时间:', new Date().toISOString());
     console.log('==================');
 }
 
@@ -212,6 +220,15 @@ function displayAdminUsers(users) {
     if (!users || users.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found</td></tr>';
         return;
+    }
+    
+    // 调试：显示第一个用户的时间数据
+    if (users.length > 0) {
+        console.log('=== 服务器返回的时间数据 ===');
+        console.log('第一个用户的created_at:', users[0].created_at);
+        console.log('第一个用户的valid_until:', users[0].valid_until);
+        console.log('created_at类型:', typeof users[0].created_at);
+        console.log('==========================');
     }
     
     const tableHTML = users.map(user => `

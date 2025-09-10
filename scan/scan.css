@@ -860,6 +860,7 @@ html { scrollbar-gutter: stable; }
     height: 28px;
   }
   
+  
   /* Badge Section 小屏幕响应式 */
   .scan-badges-section {
     padding: 15px 0;

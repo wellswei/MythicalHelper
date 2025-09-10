@@ -16,6 +16,58 @@ html, body {
   color: #fff;
   position: relative;
   z-index: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* 全站星空背景（与首页一致的风格） */
+/* 1) 星云层：柔和的彩色光带 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -10% -10% 0 -10%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 40% at 20% 10%, rgba(129,206,255,.22), transparent 60%),
+    radial-gradient(45% 35% at 80% 0%, rgba(255,224,138,.18), transparent 65%),
+    radial-gradient(35% 30% at 10% 85%, rgba(175,140,255,.12), transparent 70%);
+  filter: blur(18px) saturate(115%);
+  opacity: .9;
+}
+
+/* 2) 星点层：稀疏的点光，带轻微闪烁 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.85);
+  box-shadow:
+    2vw 8vh 0 rgba(255,255,255,.85),
+    12vw 24vh 0 rgba(255,255,255,.6),
+    22vw 10vh 0 rgba(255,255,255,.75),
+    34vw 18vh 0 rgba(255,255,255,.5),
+    46vw 6vh 0 rgba(255,255,255,.7),
+    58vw 22vh 0 rgba(255,255,255,.55),
+    70vw 12vh 0 rgba(255,255,255,.8),
+    82vw 26vh 0 rgba(255,255,255,.5),
+    10vw 32vh 0 rgba(255,255,255,.65),
+    28vw 38vh 0 rgba(255,255,255,.6),
+    44vw 34vh 0 rgba(255,255,255,.7),
+    62vw 36vh 0 rgba(255,255,255,.5),
+    78vw 40vh 0 rgba(255,255,255,.6),
+    90vw 28vh 0 rgba(255,255,255,.55);
+  animation: starTwinkle 3s ease-in-out infinite alternate;
+  opacity: .7;
+}
+
+@keyframes starTwinkle {
+  from { opacity: .45; transform: translateZ(0); }
+  to { opacity: .9; }
 }
 
 /* Keep layout width stable across pages with/without scrollbar */
@@ -29,6 +81,20 @@ html { scrollbar-gutter: stable; }
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+/* 顶部刷新区（按钮居中，调整边距） */
+.page-scan .scan-toolbar-section {
+  margin: 10px 0 5px;
+  padding: 15px 0;
+}
+
+.page-scan .scan-toolbar-section .scan-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 /* 头部导航 */
@@ -563,29 +629,37 @@ html { scrollbar-gutter: stable; }
   margin: 0;
 }
 
-/* 流星动画 */
+/* 流星动画（与首页一致） */
 .meteor {
   position: fixed;
-  top: -50px;
-  width: 2px;
-  height: 80px;
-  background: linear-gradient(to bottom, transparent, #fff, transparent);
-  border-radius: 50px;
-  opacity: 0;
-  animation: meteor 8s linear infinite;
   z-index: 1;
+  pointer-events: none;
+  width: 140px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.9));
+  filter: drop-shadow(0 0 6px #fff);
+  transform: rotate(18deg);
+  animation: shooting 30s linear infinite;
+  animation-delay: 0s;
 }
 
-@keyframes meteor {
-  0% { transform: translateY(-100vh) translateX(0); opacity: 0; }
+.meteor:nth-child(2) {
+  animation-delay: 10s;
+  top: 25vh;
+  left: -15vw;
+}
+
+.meteor:nth-child(3) {
+  animation-delay: 20s;
+  top: 8vh;
+  left: -25vw;
+}
+
+@keyframes shooting {
+  0% { transform: translate(0,0) rotate(18deg); opacity: 0; }
   10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(100vh) translateX(-200px); opacity: 0; }
+  100% { transform: translate(140vw,45vh) rotate(18deg); opacity: 0; }
 }
-
-.meteor:nth-child(1) { left: 20%; animation-delay: 0s; }
-.meteor:nth-child(2) { left: 60%; animation-delay: 3s; }
-.meteor:nth-child(3) { left: 80%; animation-delay: 6s; }
 
 /* 响应式设计 */
 @media (max-width: 768px) {

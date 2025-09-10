@@ -1141,6 +1141,14 @@ function cancelEdit() {
 }
 
 // ===== QR码功能 =====
+function getScanPageUrl(userId) {
+  const origin = (typeof window !== 'undefined' && (window.PUBLIC_SITE_ORIGIN || (window.location && window.location.origin)))
+    ? (window.PUBLIC_SITE_ORIGIN || window.location.origin)
+    : '';
+  const scanPath = '/scan/scan.html'; // 确保指向实际文件路径
+  return `${origin}${scanPath}?id=${userId}`;
+}
+
 function generateQRCode(userId) {
   console.log('Generating QR code for user:', userId);
   
@@ -1151,8 +1159,7 @@ function generateQRCode(userId) {
   }
 
   // Point QR to the public scan page instead of raw API JSON
-  const origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
-  const qrUrl = `${origin}/scan.html?id=${userId}`;
+  const qrUrl = getScanPageUrl(userId);
   console.log('QR URL:', qrUrl);
   
   // 使用 qrcode.js 库生成真正的 QR 码

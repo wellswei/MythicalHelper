@@ -94,7 +94,7 @@ html { scrollbar-gutter: stable; }
   align-items: center;
   justify-content: center;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 /* 头部导航 */

@@ -523,21 +523,6 @@ html { scrollbar-gutter: stable; }
 }
 
 
-/* 角落logo */
-.cert-corner-logo {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  z-index: 3;
-}
-
-.cert-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  opacity: 0.8;
-}
 
 /* 签名区域 */
 .mh-cert-signatures {
@@ -814,14 +799,6 @@ html { scrollbar-gutter: stable; }
     min-width: 80px;
   }
   
-  .cert-corner-logo {
-    position: static;
-    grid-column: 1;
-    grid-row: 1;
-    order: 1;
-    text-align: center;
-    margin-bottom: 20px;
-  }
   
   .guild-seal-section {
     grid-column: 1;
@@ -841,10 +818,6 @@ html { scrollbar-gutter: stable; }
     gap: 20px;
   }
   
-  .cert-logo {
-    width: 48px;
-    height: 48px;
-  }
   
   .mh-certificate {
     max-width: 95vw;
@@ -948,10 +921,6 @@ html { scrollbar-gutter: stable; }
     padding: 16px 16px 20px 16px;
   }
   
-  .cert-logo {
-    width: 45px;
-    height: 45px;
-  }
   
   .seal-svg {
     width: 60px;

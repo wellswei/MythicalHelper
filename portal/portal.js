@@ -1421,7 +1421,29 @@ function setupEventListeners() {
   const renewMembershipBtn = $('#btnRenewMembership');
   if (renewMembershipBtn) {
     console.log('Renewal button found, adding event listener');
-    renewMembershipBtn.addEventListener('click', showRenewalModal);
+    renewMembershipBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // 立即设置加载状态 - 在函数调用前就提供视觉反馈
+      if (renewMembershipBtn) {
+        renewMembershipBtn.disabled = true;
+        renewMembershipBtn.classList.add('processing');
+        
+        // 创建loading动画
+        const originalText = renewMembershipBtn.textContent;
+        renewMembershipBtn.innerHTML = `
+          <span class="loading-spinner"></span>
+          <span class="loading-text">Creating Payment Session...</span>
+        `;
+        
+        // 存储原始文本以便恢复
+        renewMembershipBtn.dataset.originalText = originalText;
+      }
+      
+      // 然后调用续费函数
+      showRenewalModal();
+    });
   } else {
     console.error('Renewal button not found!');
   }
@@ -1560,6 +1582,23 @@ function setupEventListeners() {
         console.log('Renewal button clicked via delegation');
         e.preventDefault();
         e.stopPropagation();
+        
+        // 立即设置加载状态
+        if (renewalBtn) {
+          renewalBtn.disabled = true;
+          renewalBtn.classList.add('processing');
+          
+          // 创建loading动画
+          const originalText = renewalBtn.textContent;
+          renewalBtn.innerHTML = `
+            <span class="loading-spinner"></span>
+            <span class="loading-text">Creating Payment Session...</span>
+          `;
+          
+          // 存储原始文本以便恢复
+          renewalBtn.dataset.originalText = originalText;
+        }
+        
         showRenewalModal();
         return false;
       }
@@ -2334,6 +2373,24 @@ window.addEventListener('load', function() {
     renewalBtn.addEventListener('click', function(e) {
       console.log('Renewal button clicked via window load event');
       e.preventDefault();
+      e.stopPropagation();
+      
+      // 立即设置加载状态
+      if (renewalBtn) {
+        renewalBtn.disabled = true;
+        renewalBtn.classList.add('processing');
+        
+        // 创建loading动画
+        const originalText = renewalBtn.textContent;
+        renewalBtn.innerHTML = `
+          <span class="loading-spinner"></span>
+          <span class="loading-text">Creating Payment Session...</span>
+        `;
+        
+        // 存储原始文本以便恢复
+        renewalBtn.dataset.originalText = originalText;
+      }
+      
       showRenewalModal();
     });
   } else {
@@ -2599,22 +2656,6 @@ async function showRenewalModal() {
   const renewBtn = document.getElementById('btnRenewMembership');
   
   try {
-    // 设置加载状态 - 立即提供视觉反馈
-    if (renewBtn) {
-      renewBtn.disabled = true;
-      renewBtn.classList.add('processing');
-      
-      // 创建loading动画
-      const originalText = renewBtn.textContent;
-      renewBtn.innerHTML = `
-        <span class="loading-spinner"></span>
-        <span class="loading-text">Creating Payment Session...</span>
-      `;
-      
-      // 存储原始文本以便恢复
-      renewBtn.dataset.originalText = originalText;
-    }
-    
     console.log('Calling /api/payment/renewal...');
     
     // 创建带超时的请求

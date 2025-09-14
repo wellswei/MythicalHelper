@@ -2598,28 +2598,28 @@ async function showRenewalModal() {
   
   const renewBtn = document.getElementById('btnRenewMembership');
   
-  // 立即设置加载状态 - 不等待任何异步操作
-  if (renewBtn) {
-    renewBtn.disabled = true;
-    renewBtn.classList.add('processing');
-    
-    // 创建loading动画
-    const originalText = renewBtn.textContent;
-    renewBtn.innerHTML = `
-      <span class="loading-spinner"></span>
-      <span class="loading-text">Creating Payment Session...</span>
-    `;
-    
-    // 存储原始文本以便恢复
-    renewBtn.dataset.originalText = originalText;
-  }
-  
   try {
+    // 设置加载状态 - 立即提供视觉反馈
+    if (renewBtn) {
+      renewBtn.disabled = true;
+      renewBtn.classList.add('processing');
+      
+      // 创建loading动画
+      const originalText = renewBtn.textContent;
+      renewBtn.innerHTML = `
+        <span class="loading-spinner"></span>
+        <span class="loading-text">Creating Payment Session...</span>
+      `;
+      
+      // 存储原始文本以便恢复
+      renewBtn.dataset.originalText = originalText;
+    }
+    
     console.log('Calling /api/payment/renewal...');
     
-    // 创建带超时的请求 - 减少超时时间
+    // 创建带超时的请求
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
     
     const data = await portalApiFetch('/api/payment/renewal', {
       method: 'POST',
@@ -2641,8 +2641,10 @@ async function showRenewalModal() {
         `;
       }
       
-      // 立即跳转，减少延迟
-      window.location.href = data.checkout_url;
+      // 短暂延迟让用户看到状态变化
+      setTimeout(() => {
+        window.location.href = data.checkout_url;
+      }, 500);
     } else {
       throw new Error('Invalid response from payment service');
     }
@@ -2739,14 +2741,8 @@ function showDonationModal() {
       return;
     }
     
-    // 立即显示加载状态
-    confirmBtn.disabled = true;
-    confirmBtn.innerHTML = `
-      <span class="loading-spinner"></span>
-      <span class="loading-text">Creating Payment Session...</span>
-    `;
-    
     try {
+      showLoading('Creating donation session...');
       document.body.removeChild(modal);
       
       const data = await portalApiFetch('/api/payment/donation', {

@@ -1417,33 +1417,35 @@ function setupEventListeners() {
   const cancelEditBtn = $('#btnCancelEdit');
   if (cancelEditBtn) cancelEditBtn.addEventListener('click', cancelEdit);
 
-  // 续费相关按钮
+  // 续费相关按钮 - 使用立即执行的函数确保最快响应
   const renewMembershipBtn = $('#btnRenewMembership');
   if (renewMembershipBtn) {
     console.log('Renewal button found, adding event listener');
-    renewMembershipBtn.addEventListener('click', function(e) {
+    
+    // 立即设置点击处理函数
+    renewMembershipBtn.onclick = function(e) {
       e.preventDefault();
       e.stopPropagation();
       
-      // 立即设置加载状态 - 在函数调用前就提供视觉反馈
-      if (renewMembershipBtn) {
-        renewMembershipBtn.disabled = true;
-        renewMembershipBtn.classList.add('processing');
-        
-        // 创建loading动画
-        const originalText = renewMembershipBtn.textContent;
-        renewMembershipBtn.innerHTML = `
-          <span class="loading-spinner"></span>
-          <span class="loading-text">Creating Payment Session...</span>
-        `;
-        
-        // 存储原始文本以便恢复
-        renewMembershipBtn.dataset.originalText = originalText;
-      }
+      // 立即设置加载状态 - 使用同步操作确保最快响应
+      this.disabled = true;
+      this.classList.add('processing');
       
-      // 然后调用续费函数
-      showRenewalModal();
-    });
+      // 创建loading动画
+      const originalText = this.textContent;
+      this.innerHTML = `
+        <span class="loading-spinner"></span>
+        <span class="loading-text">Creating Payment Session...</span>
+      `;
+      
+      // 存储原始文本以便恢复
+      this.dataset.originalText = originalText;
+      
+      // 使用 setTimeout 确保 DOM 更新后再执行异步操作
+      setTimeout(() => {
+        showRenewalModal();
+      }, 0);
+    };
   } else {
     console.error('Renewal button not found!');
   }
@@ -1576,32 +1578,7 @@ function setupEventListeners() {
         return false;
       }
 
-      // Renewal 按钮事件委托
-      const renewalBtn = e.target && (e.target.closest ? e.target.closest('#btnRenewMembership') : null);
-      if (renewalBtn) {
-        console.log('Renewal button clicked via delegation');
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // 立即设置加载状态
-        if (renewalBtn) {
-          renewalBtn.disabled = true;
-          renewalBtn.classList.add('processing');
-          
-          // 创建loading动画
-          const originalText = renewalBtn.textContent;
-          renewalBtn.innerHTML = `
-            <span class="loading-spinner"></span>
-            <span class="loading-text">Creating Payment Session...</span>
-          `;
-          
-          // 存储原始文本以便恢复
-          renewalBtn.dataset.originalText = originalText;
-        }
-        
-        showRenewalModal();
-        return false;
-      }
+      // Renewal 按钮事件委托 - 已移除，使用主要的 onclick 处理
     }, { capture: true });
   } catch {}
 
@@ -2365,38 +2342,7 @@ async function initializePortal() {
 // ===== 页面加载完成后初始化 =====
 document.addEventListener('DOMContentLoaded', initializePortal);
 
-// 额外的兜底事件绑定 - 确保续费按钮能工作
-window.addEventListener('load', function() {
-  const renewalBtn = document.getElementById('btnRenewMembership');
-  if (renewalBtn) {
-    console.log('Renewal button found on window load, adding event listener');
-    renewalBtn.addEventListener('click', function(e) {
-      console.log('Renewal button clicked via window load event');
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // 立即设置加载状态
-      if (renewalBtn) {
-        renewalBtn.disabled = true;
-        renewalBtn.classList.add('processing');
-        
-        // 创建loading动画
-        const originalText = renewalBtn.textContent;
-        renewalBtn.innerHTML = `
-          <span class="loading-spinner"></span>
-          <span class="loading-text">Creating Payment Session...</span>
-        `;
-        
-        // 存储原始文本以便恢复
-        renewalBtn.dataset.originalText = originalText;
-      }
-      
-      showRenewalModal();
-    });
-  } else {
-    console.error('Renewal button not found on window load!');
-  }
-});
+// 额外的兜底事件绑定 - 已移除，使用主要的 onclick 处理
 
 // Add small red Admin badge next to brand when role is admin
 function maybeShowAdminBadge() {

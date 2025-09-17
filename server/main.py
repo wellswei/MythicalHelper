@@ -20,19 +20,15 @@ import stripe
 
 from models import create_database, Purchase, User
 from database import DatabaseService, get_db
+from config import get_config
 
 UTC = timezone.utc
 
-# Stripe configuration
-# Stripe 配置
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "sk_test_51S4XMwArEWZmSCjIIer2BJld1LCOgBChTEArYVFRSB0ipcNMdy8t6nUdpS13usrh1nIs9XlNnhJ07xcJ2kpqMdd900GMFxfive")
-stripe.api_key = STRIPE_SECRET_KEY
-STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "pk_test_51S4XMwArEWZmSCjIvRXSikHETRrfWw6URqH6cIKTMqsDEUfhSZJWAGFde1YLTbE5paltdUQR7Bi9Zy5taJZLJLRS00dJ9Hhdfu")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_Jjnz17IhJYwbOSMqeat8USOG02I2mLJz")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://mythicalhelper.org")
+# 加载配置
+config = get_config()
 
-# 管理员账号
-ADMIN_PHONE = "+12032248879"  # 硬编码管理员电话（带区号）
+# Stripe 配置
+stripe.api_key = config.STRIPE_SECRET_KEY
 
 # Stripe 价格配置
 RENEWAL_PRICE_ID = os.getenv("RENEWAL_PRICE_ID", None)  # 如果设置了价格ID，使用固定价格；否则使用动态价格
@@ -422,11 +418,30 @@ async def create_ticket(inb: TicketCreateIn, request: Request = None, authorizat
             subject_id=inb.subject_id
         )
         
-        # 模拟发送验证码
+        # 发送验证码
         if inb.channel == "email":
-            print(f"[TICKETS] send code={code} to email:{dest} purpose={inb.purpose} subject_id={inb.subject_id} ticket={ticket_id}")
+            print(f"[TICKETS] Sending email verification code to: {dest}")
+            # 异步发送邮件，避免阻塞
+            import threading
+            
+            def send_email_async():
+                # 使用 Zoho 发送邮件
+                from zoho_mail_sender import send_verification_email
+                email_sent = send_verification_email(dest, code)
+                
+                if not email_sent:
+                    print(f"[TICKETS] WARNING: Failed to send email to {dest}")
+                else:
+                    print(f"[TICKETS] Email sent successfully to: {dest}")
+            
+            # 在后台线程中发送邮件
+            email_thread = threading.Thread(target=send_email_async)
+            email_thread.daemon = True
+            email_thread.start()
         else:
-            print(f"[TICKETS] send code={code} to sms:{dest} purpose={inb.purpose} subject_id={inb.subject_id} ticket={ticket_id}")
+            print(f"[TICKETS] Sending SMS verification code to: {dest}")
+            # SMS 暂时保持模拟发送，后续可以集成其他服务
+            print(f"[TICKETS] SMS code={code} to sms:{dest} purpose={inb.purpose} subject_id={inb.subject_id} ticket={ticket_id}")
         
         return TicketCreateOut(
             ticket_id=ticket_id,
@@ -998,6 +1013,53 @@ app.include_router(public)
 def root():
     return {"ok": True, "service": "Mythical Helper API (SQLAlchemy)"}
 
+@app.get("/api/test/email")
+async def test_email_service():
+    """测试邮件服务连接"""
+    # 测试 Zoho 邮件服务
+    from zoho_mail_sender import test_connection
+    results = test_connection()
+    results['service'] = 'Zoho'
+    
+    return results
+
+@app.post("/api/init-zoho-token")
+async def init_zoho_token(authorization_code: str):
+    """初始化 Zoho 令牌（使用授权码）"""
+    from zoho_mail_sender import get_access_token_from_code, set_refresh_token, test_connection
+    
+    try:
+        print(f"[API] 初始化 Zoho 令牌，授权码: {authorization_code[:20]}...")
+        
+        # 获取访问令牌和刷新令牌
+        access_token, refresh_token = get_access_token_from_code(authorization_code)
+        
+        # 保存刷新令牌
+        set_refresh_token(refresh_token)
+        
+        # 测试连接
+        status = test_connection()
+        
+        return {
+            "success": True,
+            "message": "Zoho token initialized successfully",
+            "status": status,
+            "has_refresh_token": bool(refresh_token)
+        }
+    except Exception as e:
+        print(f"[API] 初始化 Zoho 令牌失败: {e}")
+        return {
+            "success": False,
+            "message": "Failed to initialize Zoho token",
+            "error": str(e)
+        }
+
+@app.get("/api/zoho-token-status")
+async def get_zoho_token_status():
+    """获取 Zoho 令牌状态"""
+    from zoho_mail_sender import test_connection
+    return test_connection()
+
 @app.get("/health")
 def health():
     return {"ok": True, "database": "SQLAlchemy"}
@@ -1051,7 +1113,7 @@ def create_renewal_session(
             
             print(f"[PAYMENT] Creating Stripe checkout session...")
             print(f"[PAYMENT] Stripe API key: {stripe.api_key[:10]}...")
-            print(f"[PAYMENT] Frontend URL: {FRONTEND_URL}")
+            print(f"[PAYMENT] Frontend URL: {config.FRONTEND_URL}")
             print(f"[PAYMENT] Using price ID: {RENEWAL_PRICE_ID if RENEWAL_PRICE_ID else 'dynamic pricing'}")
             
             # 创建Stripe Checkout会话
@@ -1098,8 +1160,8 @@ def create_renewal_session(
                     "line_items[0][price_data][unit_amount]": str(RENEWAL_AMOUNT_CENTS),
                     "line_items[0][quantity]": "1",
                     "mode": "payment",
-                    "success_url": f"{FRONTEND_URL}/portal/portal.html?renewal=success",
-                    "cancel_url": f"{FRONTEND_URL}/portal/portal.html?renewal=cancelled",
+                    "success_url": f"{config.FRONTEND_URL}/portal/portal.html?renewal=success",
+                    "cancel_url": f"{config.FRONTEND_URL}/portal/portal.html?renewal=cancelled",
                     "metadata[user_id]": user.user_id,
                     "metadata[type]": "renewal",
                     "metadata[new_valid_until]": new_valid_until.isoformat(),
@@ -1172,8 +1234,8 @@ def create_donation_session(
             "line_items[0][price_data][unit_amount]": str(request.amount),
             "line_items[0][quantity]": "1",
             "mode": "payment",
-            "success_url": f"{FRONTEND_URL}/portal/portal.html?donation=success",
-            "cancel_url": f"{FRONTEND_URL}/portal/portal.html?donation=cancelled",
+            "success_url": f"{config.FRONTEND_URL}/portal/portal.html?donation=success",
+            "cancel_url": f"{config.FRONTEND_URL}/portal/portal.html?donation=cancelled",
             "metadata[user_id]": user.user_id,
             "metadata[type]": "donation",
             "metadata[amount]": str(request.amount)
@@ -1385,7 +1447,7 @@ def ensure_admin_user():
                 id=admin_id,
                 username="Admin",
                 email="admin@mythicalhelper.org",
-                phone=ADMIN_PHONE,
+                phone=config.ADMIN_PHONE,
                 phone_verified_at=now,
                 role="admin",
                 status="active",
@@ -1400,7 +1462,7 @@ def ensure_admin_user():
             print(f"[ADMIN] ✅ 默认管理员账户创建成功!")
             print(f"[ADMIN]   用户ID: {admin_id}")
             print(f"[ADMIN]   用户名: Admin")
-            print(f"[ADMIN]   电话: {ADMIN_PHONE}")
+            print(f"[ADMIN]   电话: {config.ADMIN_PHONE}")
             print(f"[ADMIN]   角色: admin")
             print(f"[ADMIN]   环境检查: 数据库连接正常")
             

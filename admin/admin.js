@@ -305,6 +305,7 @@ async function deleteUser(userId, username) {
         
         alert('User deleted successfully');
         loadAdminUsers();
+        loadAdminStats(); // 刷新统计信息
     } catch (error) {
         console.error('Failed to delete user:', error);
         alert('Failed to delete user: ' + error.message);
@@ -430,7 +431,7 @@ function displayAdminPurchases(purchases) {
   if (!tableBody) return;
   
   if (!purchases || purchases.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" class="loading">No purchases found</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" class="loading">No purchases found</td></tr>';
         return;
     }
     
@@ -490,6 +491,7 @@ async function refundPurchase(purchaseId) {
         
         alert('Refund processed successfully');
         loadAdminPurchases();
+        loadAdminStats(); // 刷新统计信息
     } catch (error) {
         console.error('Failed to refund purchase:', error);
         alert('Failed to process refund: ' + error.message);
@@ -508,6 +510,7 @@ async function deletePurchase(purchaseId) {
         
         alert('Purchase deleted successfully');
         loadAdminPurchases();
+        loadAdminStats(); // 刷新统计信息
     } catch (error) {
         console.error('Failed to delete purchase:', error);
         alert('Failed to delete purchase: ' + error.message);
@@ -627,6 +630,7 @@ async function saveUserChanges() {
         alert('User updated successfully');
         closeEditUserModal();
         loadAdminUsers();
+        loadAdminStats(); // 刷新统计信息
     } catch (error) {
         console.error('Failed to save user changes:', error);
         

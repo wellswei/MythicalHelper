@@ -16,6 +16,7 @@ class Config:
         # ========= 安全密钥 =========
         self.JWT_SECRET_KEY = "mythical-helper-jwt-secret-key-2024-production"
         self.ENCRYPTION_KEY = "mythical-helper-encryption-key-2024-production"
+        self.TURNSTILE_SECRET = "0x4AAAAAAByLcFYku1vsnQnk1rYF_o1Q91A"  # Cloudflare Turnstile secret key
         
         # ========= Stripe 配置 =========
         self.STRIPE_SECRET_KEY = "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"

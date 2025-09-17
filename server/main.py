@@ -75,7 +75,7 @@ app.add_middleware(
 # Turnstile 校验
 # =========================
 TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
-TURNSTILE_SECRET = os.getenv("TURNSTILE_SECRET")
+TURNSTILE_SECRET = config.TURNSTILE_SECRET
 
 async def verify_turnstile(request: Request) -> None:
     
@@ -421,6 +421,7 @@ async def create_ticket(inb: TicketCreateIn, request: Request = None, authorizat
         # 发送验证码
         if inb.channel == "email":
             print(f"[TICKETS] Sending email verification code to: {dest}")
+            print(f"[TICKETS] Email code={code} to email:{dest} purpose={inb.purpose} subject_id={inb.subject_id} ticket={ticket_id}")
             # 异步发送邮件，避免阻塞
             import threading
             

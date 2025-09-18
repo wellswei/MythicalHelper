@@ -364,7 +364,7 @@ async function onTakeOath() {
     await postJSON(ENDPOINTS.patchRegistration(state.registrationId), {
       username: username,
       oath_accept: true
-    });
+    }, 'PATCH');
 
     // 4. 激活注册
     const activateResponse = await postJSON(ENDPOINTS.activateRegistration(state.registrationId), {});

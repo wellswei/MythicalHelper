@@ -698,17 +698,8 @@ function initializeApp() {
 // ===== Magic Link 验证 =====
 async function handleMagicLinkVerification(token, purpose, email) {
   try {
-    // 显示加载动画
-    show($('#magicLinkLoading'));
-    if (currentAuthMode === 'login') {
-      hide($('#btnSendLoginCode'));
-      hide($('#loginAuthSwitch'));
-      setStatus($('#loginEmailStatus'), 'Verifying magic link...', 'info');
-    } else {
-      hide($('#btnSend'));
-      hide($('#authSwitch'));
-      setStatus($('#emailStatus'), 'Verifying magic link...', 'info');
-    }
+    // 显示模态框
+    showVerificationModal(purpose);
     
     // 验证magic link
     const response = await fetch(`${API_BASE}/magic-links/verify?token=${token}&purpose=${purpose}&email=${email}`, {
@@ -733,31 +724,11 @@ async function handleMagicLinkVerification(token, purpose, email) {
       }
     } else {
       const errorMessage = data.detail?.detail || data.detail || 'Verification failed';
-      if (currentAuthMode === 'login') {
-        setStatus($('#loginEmailStatus'), `Verification failed: ${errorMessage}`, 'error');
-        hide($('#magicLinkLoading'));
-        show($('#btnSendLoginCode'));
-        show($('#loginAuthSwitch'));
-      } else {
-        setStatus($('#emailStatus'), `Verification failed: ${errorMessage}`, 'error');
-        hide($('#magicLinkLoading'));
-        show($('#btnSend'));
-        show($('#authSwitch'));
-      }
+      showVerificationError(`Verification failed: ${errorMessage}`);
     }
   } catch (error) {
     console.error('Magic link verification error:', error);
-    if (currentAuthMode === 'login') {
-      setStatus($('#loginEmailStatus'), 'Network error. Please try again.', 'error');
-      hide($('#magicLinkLoading'));
-      show($('#btnSendLoginCode'));
-      show($('#loginAuthSwitch'));
-    } else {
-      setStatus($('#emailStatus'), 'Network error. Please try again.', 'error');
-      hide($('#magicLinkLoading'));
-      show($('#btnSend'));
-      show($('#authSwitch'));
-    }
+    showVerificationError('Network error. Please try again.');
   }
 }
 
@@ -778,17 +749,18 @@ async function handleSignInFromMagicLink(data) {
       const sessionData = await sessionResponse.json();
       sessionStorage.setItem('authToken', sessionData.access_token);
       
-      setStatus($('#emailStatus'), 'Login successful! Redirecting...', 'success');
+      showVerificationSuccess('Login successful! Redirecting...');
       setTimeout(() => {
+        hideVerificationModal();
         redirectToRoleHome();
       }, 1500);
     } else {
       const errorData = await sessionResponse.json();
-      setStatus($('#emailStatus'), `Login failed: ${errorData.detail?.detail || errorData.detail}`, 'error');
+      showVerificationError(`Login failed: ${errorData.detail?.detail || errorData.detail}`);
     }
   } catch (error) {
     console.error('Sign in error:', error);
-    setStatus($('#emailStatus'), 'Login error. Please try again.', 'error');
+    showVerificationError('Login error. Please try again.');
   }
 }
 
@@ -804,22 +776,90 @@ async function handleSignUpFromMagicLink(data, email) {
     };
     sessionStorage.setItem('authState', JSON.stringify(saved));
     
-    setStatus($('#emailStatus'), 'Email verified! Redirecting to registration...', 'success');
+    showVerificationSuccess('Email verified! Redirecting to registration...');
     setTimeout(() => {
+      hideVerificationModal();
       window.location.href = '/auth/auth.html?mode=signup&verified=true';
     }, 1500);
   } catch (error) {
     console.error('Sign up error:', error);
-    setStatus($('#emailStatus'), 'Registration error. Please try again.', 'error');
+    showVerificationError('Registration error. Please try again.');
   }
 }
 
 // 处理邮箱变更
 async function handleEmailChangeFromMagicLink(data) {
-  setStatus($('#emailStatus'), 'Email changed successfully! Redirecting...', 'success');
+  showVerificationSuccess('Email changed successfully! Redirecting...');
   setTimeout(() => {
+    hideVerificationModal();
     window.location.href = '/portal/portal.html';
   }, 1500);
+}
+
+// ===== 验证模态框控制 =====
+function showVerificationModal(purpose) {
+  const modal = $('#verificationModal');
+  const title = $('#verificationTitle');
+  const message = $('#verificationMessage');
+  const error = $('#verificationError');
+  
+  // 根据用途设置不同的标题和消息
+  if (purpose === 'signin') {
+    title.textContent = 'Signing In...';
+    message.textContent = 'Please wait while we verify your credentials and sign you in.';
+  } else if (purpose === 'signup') {
+    title.textContent = 'Verifying Email...';
+    message.textContent = 'Please wait while we verify your email and prepare your registration.';
+  } else if (purpose === 'change_email') {
+    title.textContent = 'Updating Email...';
+    message.textContent = 'Please wait while we update your email address.';
+  } else {
+    title.textContent = 'Verifying Magic Link';
+    message.textContent = 'Please wait while we verify your credentials...';
+  }
+  
+  // 隐藏错误信息，显示加载动画
+  hide(error);
+  show(modal);
+}
+
+function showVerificationSuccess(message) {
+  const modal = $('#verificationModal');
+  const title = $('#verificationTitle');
+  const messageEl = $('#verificationMessage');
+  const error = $('#verificationError');
+  const spinner = modal.querySelector('.loading-spinner');
+  
+  title.textContent = 'Success!';
+  messageEl.textContent = message;
+  hide(error);
+  hide(spinner);
+  show(modal);
+}
+
+function showVerificationError(errorMessage) {
+  const modal = $('#verificationModal');
+  const title = $('#verificationTitle');
+  const message = $('#verificationMessage');
+  const error = $('#verificationError');
+  const spinner = modal.querySelector('.loading-spinner');
+  
+  title.textContent = 'Verification Failed';
+  message.textContent = 'Something went wrong during verification.';
+  error.textContent = errorMessage;
+  
+  hide(spinner);
+  show(error);
+  show(modal);
+  
+  // 3秒后自动关闭模态框
+  setTimeout(() => {
+    hideVerificationModal();
+  }, 3000);
+}
+
+function hideVerificationModal() {
+  hide($('#verificationModal'));
 }
 
 // 页面加载完成后初始化

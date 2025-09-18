@@ -265,6 +265,18 @@
 
 
 
+  <!-- 验证模态框 -->
+  <div id="verificationModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="verification-container">
+        <div class="loading-spinner"></div>
+        <h3 id="verificationTitle">Verifying Magic Link</h3>
+        <p id="verificationMessage">Please wait while we verify your credentials...</p>
+        <div id="verificationError" class="error-message" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- 认证逻辑 -->
   <script src="auth.js" defer></script>
 </body>

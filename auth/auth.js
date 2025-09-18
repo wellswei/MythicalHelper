@@ -109,7 +109,13 @@ function setStatus(element, message, type = 'info') {
 }
 
 function show(element) {
-  if (element) element.style.display = 'block';
+  if (element) {
+    if (element.id === 'verificationModal') {
+      element.style.display = 'flex';
+    } else {
+      element.style.display = 'block';
+    }
+  }
 }
 
 function hide(element) {

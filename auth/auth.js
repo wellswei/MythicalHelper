@@ -143,6 +143,35 @@ function startEmailResend() {
   }, 1000);
 }
 
+// ===== Login Resend cooldown =====
+function startLoginEmailResend() {
+  if (state.emailResendTimer) {
+    clearInterval(state.emailResendTimer);
+  }
+  
+  state.emailResendLeft = RESEND_COOLDOWN;
+  const btn = $('#btnSendLoginCode');
+  
+  // 按钮状态已经在调用前设置，这里只需要启动倒计时
+  state.emailResendTimer = setInterval(() => {
+    state.emailResendLeft--;
+    if (btn) {
+      btn.textContent = `Resend in ${state.emailResendLeft}s`;
+    }
+    
+    if (state.emailResendLeft <= 0) {
+      clearInterval(state.emailResendTimer);
+      state.emailResendTimer = null;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Send Magic Link';
+      }
+      // 重新显示切换选项
+      show($('#loginAuthSwitch'));
+    }
+  }, 1000);
+}
+
 // ===== Post-login redirect helper (route admins to admin portal) =====
 async function redirectToRoleHome() {
   try {
@@ -484,16 +513,15 @@ async function onSendLoginCode() {
       purpose: 'signin'
     });
 
-    // 更新步骤显示（装饰性）
-    $('#loginStep1tag')?.classList.remove('active');
-    $('#loginStep2tag')?.classList.add('active');
+    // 保持在第1步，显示简化状态
+    setStatus($('#loginEmailStatus'), 'Magic link sent! Check your inbox and click the link to sign in.', 'success');
     
-    // 显示魔法链接已发送
-    show($('#loginEmailSentSection'));
-    $('#loginEmailDisplay').textContent = email;
-    setStatus($('#loginEmailStatus'), 'Magic link sent! Check your inbox.', 'success');
-    hide($('#btnSendLoginCode'));
-    hide($('#loginAuthSwitch'));
+    // 开始重发倒计时（按钮会变成Resend）
+    startLoginEmailResend();
+    
+    // 确保第1步保持激活状态
+    $('#loginStep1tag')?.classList.add('active');
+    $('#loginStep2tag')?.classList.remove('active');
     
   } catch (error) {
     console.error('Send login magic link error:', error);
@@ -504,14 +532,26 @@ async function onSendLoginCode() {
 }
 
 function onBackToLoginEmail() {
-  // 重置步骤显示（装饰性）
-  $('#loginStep1tag')?.classList.add('active');
-  $('#loginStep2tag')?.classList.remove('active');
+  // 清除重发倒计时
+  if (state.emailResendTimer) {
+    clearInterval(state.emailResendTimer);
+    state.emailResendTimer = null;
+  }
   
-  hide($('#loginEmailSentSection'));
-  show($('#btnSendLoginCode'));
+  // 重置倒计时状态
+  state.emailResendLeft = 0;
+  
+  // 重置按钮状态
+  const btn = $('#btnSendLoginCode');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Send Magic Link';
+  }
+  
+  // 显示切换选项
   show($('#loginAuthSwitch'));
   setStatus($('#loginEmailStatus'), 'We\'ll send a magic link to your email.', 'info');
+  $('#loginEmailInput').value = state.email || '';
 }
 
 // ===== 步骤更新 =====
@@ -660,9 +700,15 @@ async function handleMagicLinkVerification(token, purpose, email) {
   try {
     // 显示加载动画
     show($('#magicLinkLoading'));
-    hide($('#btnSend'));
-    hide($('#authSwitch'));
-    setStatus($('#emailStatus'), 'Verifying magic link...', 'info');
+    if (currentAuthMode === 'login') {
+      hide($('#btnSendLoginCode'));
+      hide($('#loginAuthSwitch'));
+      setStatus($('#loginEmailStatus'), 'Verifying magic link...', 'info');
+    } else {
+      hide($('#btnSend'));
+      hide($('#authSwitch'));
+      setStatus($('#emailStatus'), 'Verifying magic link...', 'info');
+    }
     
     // 验证magic link
     const response = await fetch(`${API_BASE}/magic-links/verify?token=${token}&purpose=${purpose}&email=${email}`, {
@@ -687,17 +733,31 @@ async function handleMagicLinkVerification(token, purpose, email) {
       }
     } else {
       const errorMessage = data.detail?.detail || data.detail || 'Verification failed';
-      setStatus($('#emailStatus'), `Verification failed: ${errorMessage}`, 'error');
+      if (currentAuthMode === 'login') {
+        setStatus($('#loginEmailStatus'), `Verification failed: ${errorMessage}`, 'error');
+        hide($('#magicLinkLoading'));
+        show($('#btnSendLoginCode'));
+        show($('#loginAuthSwitch'));
+      } else {
+        setStatus($('#emailStatus'), `Verification failed: ${errorMessage}`, 'error');
+        hide($('#magicLinkLoading'));
+        show($('#btnSend'));
+        show($('#authSwitch'));
+      }
+    }
+  } catch (error) {
+    console.error('Magic link verification error:', error);
+    if (currentAuthMode === 'login') {
+      setStatus($('#loginEmailStatus'), 'Network error. Please try again.', 'error');
+      hide($('#magicLinkLoading'));
+      show($('#btnSendLoginCode'));
+      show($('#loginAuthSwitch'));
+    } else {
+      setStatus($('#emailStatus'), 'Network error. Please try again.', 'error');
       hide($('#magicLinkLoading'));
       show($('#btnSend'));
       show($('#authSwitch'));
     }
-  } catch (error) {
-    console.error('Magic link verification error:', error);
-    setStatus($('#emailStatus'), 'Network error. Please try again.', 'error');
-    hide($('#magicLinkLoading'));
-    show($('#btnSend'));
-    show($('#authSwitch'));
   }
 }
 

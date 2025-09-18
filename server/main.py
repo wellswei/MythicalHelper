@@ -270,7 +270,8 @@ async def create_magic_link(inb: MagicLinkCreateIn, request: Request = None, aut
             elif inb.purpose == "signup":
                 if user and user.deleted_at:
                     problem(403, "blocked", "This email is blocked and cannot be used to register")
-                if user and not user.deleted_at:
+                if user and not user.deleted_at and user.oath_accepted_at:
+                    # 只有完成了宣誓的用户才被认为是"已注册"
                     problem(409, "conflict", "Email already registered")
             elif inb.purpose == "change_email":
                 # 对于邮箱变更，检查新邮箱是否已被其他用户使用

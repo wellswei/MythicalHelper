@@ -251,7 +251,7 @@ async function onSendEmail() {
     // 保持在第1步，但显示"已发送魔法链接"状态
     
     // 立即更新UI状态，避免卡顿
-    setStatus($('#emailStatus'), 'Magic link sent! Check your inbox.', 'success');
+    setStatus($('#emailStatus'), 'Magic link sent! Check your inbox and click the link to continue.', 'success');
     // 保持显示切换选项，让用户可以随时切换
     
     // 确保第1步保持激活状态
@@ -658,7 +658,10 @@ function initializeApp() {
 // ===== Magic Link 验证 =====
 async function handleMagicLinkVerification(token, purpose, email) {
   try {
-    // 显示验证状态
+    // 显示加载动画
+    show($('#magicLinkLoading'));
+    hide($('#btnSend'));
+    hide($('#authSwitch'));
     setStatus($('#emailStatus'), 'Verifying magic link...', 'info');
     
     // 验证magic link
@@ -685,10 +688,16 @@ async function handleMagicLinkVerification(token, purpose, email) {
     } else {
       const errorMessage = data.detail?.detail || data.detail || 'Verification failed';
       setStatus($('#emailStatus'), `Verification failed: ${errorMessage}`, 'error');
+      hide($('#magicLinkLoading'));
+      show($('#btnSend'));
+      show($('#authSwitch'));
     }
   } catch (error) {
     console.error('Magic link verification error:', error);
     setStatus($('#emailStatus'), 'Network error. Please try again.', 'error');
+    hide($('#magicLinkLoading'));
+    show($('#btnSend'));
+    show($('#authSwitch'));
   }
 }
 

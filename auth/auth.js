@@ -530,6 +530,18 @@ function updateStep(step = null) {
     }
   });
   
+  // 确保当前步骤的指示器是激活的
+  for (let i = 1; i <= 3; i++) {
+    const stepTag = $(`#step${i}tag`);
+    if (stepTag) {
+      if (i <= state.currentStep) {
+        stepTag.classList.add('active');
+      } else {
+        stepTag.classList.remove('active');
+      }
+    }
+  }
+  
   // 显示/隐藏相应的步骤内容
   if (currentAuthMode === 'signup') {
     // 注册流程：3个步骤

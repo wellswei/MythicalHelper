@@ -1,0 +1,105 @@
+INFO:     Will watch for changes in these directories: ['/Users/wei/GitHub/MythicalHelper/server']
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [35672] using WatchFiles
+INFO:     Started server process [35718]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+[STARTUP] 正在启动 MythicalHelper 服务器...
+[ADMIN] 正在删除所有现有管理员账户...
+[ADMIN] ✅ 默认管理员账户创建成功!
+[ADMIN]   用户ID: admin
+[ADMIN]   用户名: Admin
+[ADMIN]   邮箱: wellswei88@qq.com
+[ADMIN]   角色: admin
+[ADMIN]   环境检查: 数据库连接正常
+[STARTUP] 服务器启动完成!
+INFO:     127.0.0.1:62556 - "GET /health HTTP/1.1" 200 OK
+[MAGIC_LINK] TEST MODE: Magic link for test@example.com
+[MAGIC_LINK] Token: mlk_111izq86uoOdBBawbL9nzAS6NZgA5CbpEDiXdVE0
+[MAGIC_LINK] Verify URL: https://mythicalhelper.org/verify/verify.html?token=mlk_111izq86uoOdBBawbL9nzAS6NZgA5CbpEDiXdVE0&purpose=signup&email=test@example.com
+INFO:     127.0.0.1:62564 - "POST /magic-links HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62573 - "GET /magic-links/verify?token=mlk_111izq86uoOdBBawbL9nzAS6NZgA5CbpEDiXdVE0&purpose=signup&email=test@example.com HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35718]
+INFO:     Started server process [36298]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+[STARTUP] 正在启动 MythicalHelper 服务器...
+[ADMIN] 正在删除所有现有管理员账户...
+[ADMIN] ✅ 默认管理员账户创建成功!
+[ADMIN]   用户ID: admin
+[ADMIN]   用户名: Admin
+[ADMIN]   邮箱: wellswei88@qq.com
+[ADMIN]   角色: admin
+[ADMIN]   环境检查: 数据库连接正常
+[STARTUP] 服务器启动完成!
+[MAGIC_LINK] TEST MODE: Magic link for test2@example.com
+[MAGIC_LINK] Token: mlk_4fyURip44iaASYbXsqbZG06nNgPwCpQ7bGArD7hT
+[MAGIC_LINK] Verify URL: http://localhost:5500/verify/verify.html?token=mlk_4fyURip44iaASYbXsqbZG06nNgPwCpQ7bGArD7hT&purpose=signup&email=test2@example.com
+INFO:     127.0.0.1:62593 - "POST /magic-links HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [36298]
+INFO:     Started server process [36565]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [36565]
+INFO:     Started server process [36587]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [36587]
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x00000002076a60c0 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x00000002076a60c0 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x00000002076a60c0 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x00000002076a60c0 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x00000002076a60c0 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x00000002076a60c0 (most recent call first):
+  <no Python frame>
+INFO:     Stopping reloader process [35672]

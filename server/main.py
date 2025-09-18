@@ -65,6 +65,10 @@ app.add_middleware(
         "https://mythicalhelper.pages.dev", 
         "http://127.0.0.1:5500", 
         "http://localhost:5500",
+        "http://127.0.0.1:3000",
+        "http://localhost:3000",
+        "http://127.0.0.1:8080",
+        "http://localhost:8080",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -72,50 +76,7 @@ app.add_middleware(
 )
 
 # =========================
-# Turnstile 校验
-# =========================
-TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
-TURNSTILE_SECRET = config.TURNSTILE_SECRET
-
-async def verify_turnstile(request: Request) -> None:
-    
-    if not TURNSTILE_SECRET:
-        print("[TURNSTILE] ERROR: TURNSTILE_SECRET not set")
-        raise HTTPException(500, "Server missing TURNSTILE_SECRET")
-
-    # 只从请求头获取 token，避免读取请求体
-    token = request.headers.get("cf-turnstile-response")
-    print(f"[TURNSTILE] Token received: {'YES' if token else 'NO'}, length: {len(token) if token else 0}")
-    
-    if not token:
-        print("[TURNSTILE] ERROR: Missing Turnstile token in headers")
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Missing Turnstile token")
-
-    payload = {"secret": TURNSTILE_SECRET, "response": token, "remoteip": request.client.host}
-    print(f"[TURNSTILE] Verifying token with Cloudflare...")
-    
-    async with httpx.AsyncClient(timeout=5) as c:
-        r = await c.post(TURNSTILE_VERIFY_URL, json=payload)
-    data = r.json()
-    
-    print(f"[TURNSTILE] Cloudflare response: {data}")
-
-    if not data.get("success"):
-        print(f"[TURNSTILE] ERROR: Verification failed: {data.get('error-codes')}")
-        raise HTTPException(status.HTTP_403_FORBIDDEN, {"turnstile":"verification_failed","errors":data.get("error-codes")})
-    
-    print("[TURNSTILE] SUCCESS: Token verified")
-
-# 条件性Turnstile验证 - 只对特定purpose要求Turnstile
-async def verify_turnstile_conditional(request: Request, purpose: str = None) -> None:
-    # 需要Turnstile的purpose：signup, change_email, change_phone
-    turnstile_required_purposes = {"signup", "change_email", "change_phone"}
-    
-    if purpose in turnstile_required_purposes:
-        print(f"[TURNSTILE] Purpose '{purpose}' requires Turnstile verification")
-        await verify_turnstile(request)
-    else:
-        print(f"[TURNSTILE] Purpose '{purpose}' does not require Turnstile verification")
+# Turnstile 验证已移除 - 魔法链接本身提供足够的安全保护
 
 # =========================
 # 工具函数
@@ -134,40 +95,15 @@ def mask_email(e: str) -> str:
         mu = u[0] + "*" * max(1, len(u) - 2) + u[-1]
     return f"{mu}@{d}"
 
-def mask_phone(p: str) -> str:
-    digits = re.sub(r"\D", "", p)
-    if len(digits) <= 4:
-        return "***"
-    return digits[:2] + "*" * max(1, len(digits) - 6) + digits[-4:]
 
 def is_email(v: str) -> bool:
     return bool(re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", v.strip(), re.I))
 
-def is_e164(v: str) -> bool:
-    return bool(re.match(r"^\+[1-9]\d{6,14}$", v.strip()))
 
 def normalize_email(v: str) -> str:
     return v.strip().lower()
 
-def normalize_phone(v: str) -> str:
-    # 统一使用E164格式：+[国家代码][号码]
-    # 移除所有空格
-    cleaned = re.sub(r"\s+", "", v.strip())
     
-    # 如果已经是E164格式，直接返回
-    if cleaned.startswith('+'):
-        return cleaned
-    
-    # 如果不是E164格式，添加+号
-    # 如果以1开头且长度为11位，添加+号
-    if len(cleaned) == 11 and cleaned[0] == '1':
-        return '+' + cleaned
-    # 如果长度为10位，添加+1前缀
-    elif len(cleaned) == 10:
-        return '+1' + cleaned
-    # 其他情况，直接添加+号
-    else:
-        return '+' + cleaned
 
 def problem(status: int, title: str, detail: str, type_uri: str = "about:blank", extra: dict | None = None):
     payload = {"type": type_uri, "title": title, "status": status, "detail": detail}
@@ -199,7 +135,6 @@ def user_payload(user) -> Dict[str, Any]:
         "user_id": user.id,
         "username": user.username,
         "email": user.email,
-        "phone": user.phone,
         "role": user.role,
         "status": user.status,
         "created_at": user.created_at,
@@ -211,29 +146,24 @@ def user_payload(user) -> Dict[str, Any]:
 # =========================
 # Pydantic 模型
 # =========================
-class TicketCreateIn(BaseModel):
-    channel: str = Field(pattern="^(email|sms)$")
-    destination: str
-    purpose: str = Field(pattern="^(signin|signup|change_email|change_phone)$")
+class MagicLinkCreateIn(BaseModel):
+    email: str
+    purpose: str = Field(pattern="^(signin|signup|change_email)$")
     subject_id: Optional[str] = None
 
-class TicketCreateOut(BaseModel):
-    ticket_id: str
+class MagicLinkCreateOut(BaseModel):
+    magic_link_id: str
     purpose: str
-    channel: str
-    masked_destination: str
+    email: str
+    masked_email: str
     ttl_sec: int
     cooldown_sec: int
     next_allowed_at: datetime
 
-class TicketConfirmIn(BaseModel):
-    code: str = Field(min_length=6, max_length=6, pattern="^[0-9]{6}$")
-
-class TicketConfirmOut(BaseModel):
+class MagicLinkVerifyOut(BaseModel):
     verified: bool
     purpose: str
-    channel: str
-    masked_destination: str
+    email: str
     proof_token: str
     subject_id: Optional[str] = None
 
@@ -314,56 +244,45 @@ def require_admin(su: SessionUser = Depends(get_session_user)) -> SessionUser:
     return su
 
 # =========================
-# Tickets 路由
+# Magic Links 路由
 # =========================
-tickets = APIRouter(prefix="/tickets", tags=["Tickets"])
+magic_links = APIRouter(prefix="/magic-links", tags=["Magic Links"])
 
-@tickets.post("", response_model=TicketCreateOut)
-async def create_ticket(inb: TicketCreateIn, request: Request = None, authorization: str | None = Header(default=None)):
-    # 条件性Turnstile验证
-    await verify_turnstile_conditional(request, inb.purpose)
+@magic_links.post("", response_model=MagicLinkCreateOut)
+async def create_magic_link(inb: MagicLinkCreateIn, request: Request = None, authorization: str | None = Header(default=None)):
+    # 魔法链接不需要Turnstile验证，因为魔法链接本身就是安全机制
+    # 用户必须访问邮箱才能获取链接，这已经提供了足够的安全保护
     
     with get_db() as db:
-        # 验证输入
-        if inb.channel == "email":
-            if not is_email(inb.destination):
-                problem(422, "invalid_email", "Invalid email format")
-            dest = normalize_email(inb.destination)
-        else:
-            if not is_e164(inb.destination):
-                problem(422, "invalid_phone", "Invalid phone format (E.164)")
-            dest = normalize_phone(inb.destination)
+        # 验证邮箱格式
+        if not is_email(inb.email):
+            problem(422, "invalid_email", "Invalid email format")
+        email = normalize_email(inb.email)
 
         # 业务前置校验：根据用途拒绝已删除账户或重复注册
-        # 注：你提到愿意在此阶段直接告知被阻止/已存在，所以这里直接返回明确错误
-        if inb.purpose in ("signin", "signup", "change_email", "change_phone"):
-            user = db.get_user_by_email(dest) if inb.channel == "email" else db.get_user_by_phone(dest)
+        if inb.purpose in ("signin", "signup", "change_email"):
+            user = db.get_user_by_email(email)
             if inb.purpose == "signin":
                 if not user:
-                    problem(404, "user_not_found", "No user bound to this destination")
+                    problem(404, "user_not_found", "No user bound to this email")
                 if user.deleted_at:
                     problem(403, "blocked", "This account has been deleted and is blocked")
             elif inb.purpose == "signup":
                 if user and user.deleted_at:
-                    problem(403, "blocked", "This contact is blocked and cannot be used to register")
+                    problem(403, "blocked", "This email is blocked and cannot be used to register")
                 if user and not user.deleted_at:
-                    # 已存在的活跃账号不允许重复注册
-                    if inb.channel == "email":
-                        problem(409, "conflict", "Email already registered")
-                    else:
-                        problem(409, "conflict", "Phone already registered")
-            elif inb.purpose in ("change_email", "change_phone"):
-                # 对于contact change，检查新邮箱/电话是否已被其他用户使用
-                print(f"[DUPLICATE_CHECK] Checking {inb.purpose} for destination: {dest}")
+                    problem(409, "conflict", "Email already registered")
+            elif inb.purpose == "change_email":
+                # 对于邮箱变更，检查新邮箱是否已被其他用户使用
+                print(f"[DUPLICATE_CHECK] Checking {inb.purpose} for email: {email}")
                 print(f"[DUPLICATE_CHECK] Subject ID: {inb.subject_id}")
                 
                 # 邮箱blacklist检查
-                if inb.channel == "email":
-                    email_blacklist = {"official", "admin", "support", "help", "system", "root", "guild", "mythical", "helper"}
-                    email_local_part = dest.split('@')[0].lower()
-                    if email_local_part in email_blacklist:
-                        print(f"[DUPLICATE_CHECK] BLACKLIST: {dest} is in email blacklist")
-                        problem(409, "conflict", "Email address not allowed")
+                email_blacklist = {"official", "admin", "support", "help", "system", "root", "guild", "mythical", "helper"}
+                email_local_part = email.split('@')[0].lower()
+                if email_local_part in email_blacklist:
+                    print(f"[DUPLICATE_CHECK] BLACKLIST: {email} is in email blacklist")
+                    problem(409, "conflict", "Email address not allowed")
                 
                 if user and not user.deleted_at:
                     print(f"[DUPLICATE_CHECK] Found existing user: {user.id}, deleted: {user.deleted_at}")
@@ -371,23 +290,20 @@ async def create_ticket(inb: TicketCreateIn, request: Request = None, authorizat
                     current_user_id = inb.subject_id
                     if not current_user_id:
                         print(f"[DUPLICATE_CHECK] ERROR: Missing subject_id")
-                        problem(400, "missing_subject", "Subject ID required for contact change")
+                        problem(400, "missing_subject", "Subject ID required for email change")
                     
                     print(f"[DUPLICATE_CHECK] Comparing user.id={user.id} with current_user_id={current_user_id}")
                     if user.id != current_user_id:
-                        # 新邮箱/电话已被其他用户使用
-                        print(f"[DUPLICATE_CHECK] CONFLICT: {dest} already used by user {user.id}")
-                        if inb.channel == "email":
-                            problem(409, "conflict", "Email already in use")
-                        else:
-                            problem(409, "conflict", "Phone already in use")
+                        # 新邮箱已被其他用户使用
+                        print(f"[DUPLICATE_CHECK] CONFLICT: {email} already used by user {user.id}")
+                        problem(409, "conflict", "Email already in use")
                     else:
-                        print(f"[DUPLICATE_CHECK] OK: {dest} belongs to current user")
+                        print(f"[DUPLICATE_CHECK] OK: {email} belongs to current user")
                 else:
-                    print(f"[DUPLICATE_CHECK] OK: {dest} is available")
+                    print(f"[DUPLICATE_CHECK] OK: {email} is available")
         
         # 速率限制检查
-        rate_key = f"ticket:{inb.channel}:{dest}"
+        rate_key = f"magic_link:email:{email}"
         window_start = now().replace(second=0, microsecond=0)
         rate_limit = db.get_rate_limit(rate_key)
         
@@ -400,74 +316,67 @@ async def create_ticket(inb: TicketCreateIn, request: Request = None, authorizat
             rate_limit.count += 1
             rate_limit.updated_at = now()
         else:
-            db.create_or_update_rate_limit(rate_key, window_start, 1, 5)
+            db.create_or_update_rate_limit(rate_key, window_start, 1, 2)  # 每分钟2次
         
-        # 创建ticket
-        ticket_id = f"tk_{uuid4().hex[:10]}"
-        code = random_code_6()
-        code_hash = sha256(code)
-        expires_at = now() + timedelta(minutes=5)
+        # 创建魔法链接
+        magic_link_id = f"ml_{uuid4().hex[:10]}"
+        token = random_token("mlk")
+        expires_at = now() + timedelta(minutes=15)  # 15分钟有效期
         
-        db.create_ticket(
-            ticket_id=ticket_id,
-            channel=inb.channel,
-            destination=dest,
+        # 异步发送魔法链接邮件
+        import threading
+        
+        def send_magic_link_async():
+            from zoho_sender import send_magic_link_email
+            
+            email_sent = send_magic_link_email(email, token, inb.purpose)
+            if not email_sent:
+                print(f"[MAGIC_LINK] WARNING: Failed to send magic link to {email}")
+            else:
+                print(f"[MAGIC_LINK] Magic link sent successfully to: {email}")
+        
+        # 在后台线程中发送邮件
+        email_thread = threading.Thread(target=send_magic_link_async)
+        email_thread.daemon = True
+        email_thread.start()
+        
+        # 创建魔法链接记录
+        db.create_magic_link(
+            token=token,
+            email=email,
             purpose=inb.purpose,
-            code_hash=code_hash,
             expires_at=expires_at,
             subject_id=inb.subject_id
         )
         
-        # 发送验证码
-        if inb.channel == "email":
-            print(f"[TICKETS] Sending email verification code to: {dest}")
-            print(f"[TICKETS] Email code={code} to email:{dest} purpose={inb.purpose} subject_id={inb.subject_id} ticket={ticket_id}")
-            # 异步发送邮件，避免阻塞
-            import threading
-            
-            def send_email_async():
-                # 使用 Zoho 发送邮件
-                from zoho_mail_sender import send_verification_email
-                email_sent = send_verification_email(dest, code)
-                
-                if not email_sent:
-                    print(f"[TICKETS] WARNING: Failed to send email to {dest}")
-                else:
-                    print(f"[TICKETS] Email sent successfully to: {dest}")
-            
-            # 在后台线程中发送邮件
-            email_thread = threading.Thread(target=send_email_async)
-            email_thread.daemon = True
-            email_thread.start()
-        else:
-            print(f"[TICKETS] Sending SMS verification code to: {dest}")
-            # SMS 暂时保持模拟发送，后续可以集成其他服务
-            print(f"[TICKETS] SMS code={code} to sms:{dest} purpose={inb.purpose} subject_id={inb.subject_id} ticket={ticket_id}")
-        
-        return TicketCreateOut(
-            ticket_id=ticket_id,
+        return MagicLinkCreateOut(
+            magic_link_id=magic_link_id,
             purpose=inb.purpose,
-            channel=inb.channel,
-            masked_destination=mask_email(dest) if inb.channel == "email" else mask_phone(dest),
-            ttl_sec=300,
-            cooldown_sec=60,
-            next_allowed_at=now() + timedelta(seconds=60)
+            email=email,
+            masked_email=mask_email(email),
+            ttl_sec=900,  # 15分钟
+            cooldown_sec=120,  # 2分钟冷却
+            next_allowed_at=now() + timedelta(seconds=120)
         )
 
-@tickets.post("/{ticket_id}/confirm", response_model=TicketConfirmOut)
-def confirm_ticket(ticket_id: str, inb: TicketConfirmIn):
-    # 验证码确认不需要 Turnstile 验证，验证码本身就是安全机制
+@magic_links.get("/verify", response_model=MagicLinkVerifyOut)
+def verify_magic_link(token: str, purpose: str, email: str):
+    # 魔法链接验证不需要 Turnstile 验证，魔法链接本身就是安全机制
     with get_db() as db:
-        ticket = db.get_ticket_by_id(ticket_id)
-        if not ticket:
-            problem(404, "not_found", "Ticket not found")
-        if ticket.expires_at < now():
-            problem(410, "expired", "Ticket expired")
+        magic_link = db.get_magic_link_by_token(token)
+        if not magic_link:
+            problem(404, "not_found", "Magic link not found")
+        if magic_link.expires_at < now():
+            problem(410, "expired", "Magic link expired")
+        if magic_link.used_at:
+            problem(410, "used", "Magic link already used")
+        if magic_link.email != email:
+            problem(400, "invalid_email", "Email mismatch")
+        if magic_link.purpose != purpose:
+            problem(400, "invalid_purpose", "Purpose mismatch")
         
-        # 验证验证码
-        code_hash = sha256(inb.code)
-        if code_hash != ticket.code_hash:
-            problem(422, "invalid_code", "Invalid verification code")
+        # 标记魔法链接为已使用
+        db.mark_magic_link_used(token)
         
         # 创建proof token
         proof_token = random_token("prf")
@@ -475,23 +384,22 @@ def confirm_ticket(ticket_id: str, inb: TicketConfirmIn):
         
         db.create_proof(
             token=proof_token,
-            channel=ticket.channel,
-            destination=ticket.destination,
-            purpose=ticket.purpose,
+            channel="email",
+            destination=magic_link.email,
+            purpose=magic_link.purpose,
             expires_at=expires_at,
-            subject_id=ticket.subject_id
+            subject_id=magic_link.subject_id
         )
         
-        # 删除ticket
-        db.delete_ticket(ticket_id)
+        # 删除魔法链接
+        db.delete_magic_link(token)
         
-        return TicketConfirmOut(
+        return MagicLinkVerifyOut(
             verified=True,
-            purpose=ticket.purpose,
-            channel=ticket.channel,
-            masked_destination=mask_email(ticket.destination) if ticket.channel == "email" else mask_phone(ticket.destination),
+            purpose=magic_link.purpose,
+            email=magic_link.email,
             proof_token=proof_token,
-            subject_id=ticket.subject_id
+            subject_id=magic_link.subject_id
         )
 
 # =========================
@@ -529,16 +437,13 @@ def exchange_session(inb: SessionsExchangeIn, request: Request = None):
             if proof.purpose != "signin":
                 problem(400, "invalid_flow", "Proof purpose is not signin")
             
-            # 找到对应用户
-            if proof.channel == "email":
-                user = db.get_user_by_email(proof.destination)
-            else:
-                # 对于SMS登录，统一使用E164格式
-                phone_destination = normalize_phone(proof.destination)
-                user = db.get_user_by_phone(phone_destination)
+            # 只支持邮箱登录
+            if proof.channel != "email":
+                problem(400, "invalid_channel", "Only email login is supported")
             
+            user = db.get_user_by_email(proof.destination)
             if not user or user.deleted_at:
-                problem(404, "user_not_found", "No user bound to this destination")
+                problem(404, "user_not_found", "No user bound to this email")
             
             # 消费proof
             db.delete_proof(inb.proof_token)
@@ -637,43 +542,35 @@ def attach_contact(registration_id: str, inb: RegistrationAttachIn):
         if proof.purpose != "signup" or proof.subject_id not in (registration_id, None):
             problem(400, "invalid_flow", "Proof purpose/subject mismatch")
         
-        if proof.channel == "email":
-            # 邮箱blacklist检查
-            email_blacklist = {"official", "admin", "support", "help", "system", "root", "guild", "mythical", "helper"}
-            email_local_part = proof.destination.split('@')[0].lower()
-            if email_local_part in email_blacklist:
-                problem(409, "conflict", "Email address not allowed")
-            
-            # 唯一性检查
-            existing_user = db.get_user_by_email(proof.destination)
-            if existing_user and existing_user.id != user.id and existing_user.email_verified_at:
-                problem(409, "conflict", "Email already in use")
-            user.email = proof.destination
-            user.email_verified_at = now()
-            reg.email_verified = True
-        else:
-            # 唯一性检查
-            existing_user = db.get_user_by_phone(proof.destination)
-            if existing_user and existing_user.id != user.id and existing_user.phone_verified_at:
-                problem(409, "conflict", "Phone already in use")
-            user.phone = proof.destination
-            user.phone_verified_at = now()
-            reg.phone_verified = True
+        # 只支持邮箱验证
+        if proof.channel != "email":
+            problem(400, "invalid_channel", "Only email verification is supported")
+        
+        # 邮箱blacklist检查
+        email_blacklist = {"official", "admin", "support", "help", "system", "root", "guild", "mythical", "helper"}
+        email_local_part = proof.destination.split('@')[0].lower()
+        if email_local_part in email_blacklist:
+            problem(409, "conflict", "Email address not allowed")
+        
+        # 唯一性检查
+        existing_user = db.get_user_by_email(proof.destination)
+        if existing_user and existing_user.id != user.id and existing_user.email_verified_at:
+            problem(409, "conflict", "Email already in use")
+        user.email = proof.destination
+        user.email_verified_at = now()
+        reg.email_verified = True
         
         user.updated_at = now()
         reg.updated_at = now()
         
         db.update_user(user.id, **{
             'email': user.email,
-            'phone': user.phone,
             'email_verified_at': user.email_verified_at,
-            'phone_verified_at': user.phone_verified_at,
             'updated_at': user.updated_at
         })
         
         db.update_registration(reg.id, **{
             'email_verified': reg.email_verified,
-            'phone_verified': reg.phone_verified,
             'updated_at': reg.updated_at
         })
         
@@ -682,8 +579,7 @@ def attach_contact(registration_id: str, inb: RegistrationAttachIn):
         return {
             "ok": True,
             "user_id": user.id,
-            "email_verified": reg.email_verified,
-            "phone_verified": reg.phone_verified
+            "email_verified": reg.email_verified
         }
 
 @registrations.patch("/{registration_id}")
@@ -757,8 +653,8 @@ def activate_registration(registration_id: str):
         if not user:
             problem(404, "not_found", "User not found")
         
-        if not (reg.email_verified and reg.phone_verified and reg.username_set and reg.oath_accepted):
-            problem(400, "invalid_state", "Complete email/phone verification and oath before activation")
+        if not (reg.email_verified and reg.username_set and reg.oath_accepted):
+            problem(400, "invalid_state", "Complete email verification and oath before activation")
         
         # 试用期90天
         trial_end = now() + timedelta(days=90)
@@ -784,7 +680,7 @@ def activate_registration(registration_id: str):
 # =========================
 # 路由挂载
 # =========================
-app.include_router(tickets)
+app.include_router(magic_links)
 app.include_router(sessions)
 app.include_router(registrations)
 
@@ -832,7 +728,6 @@ class AdminUsersPatchIn(BaseModel):
     username: Optional[str] = None
     role: Optional[str] = None
     email: Optional[str] = None
-    phone: Optional[str] = None
     valid_until: Optional[datetime] = None
     badges: Optional[Dict[str, Any]] = None
 
@@ -885,16 +780,7 @@ def admin_patch_user(user_id: str, inb: AdminUsersPatchIn, su: SessionUser = Dep
             updates['email'] = new_email
             updates['email_verified_at'] = now()
 
-        # phone
-        if inb.phone is not None:
-            if not is_e164(inb.phone):
-                problem(422, "invalid_phone", "Invalid phone format (E.164)")
-            new_phone = normalize_phone(inb.phone)
-            existing = db.get_user_by_phone(new_phone)
-            if existing and existing.id != user.id:
-                problem(409, "conflict", "Phone already in use")
-            updates['phone'] = new_phone
-            updates['phone_verified_at'] = now()
+        # phone support removed
 
         # valid_until
         if inb.valid_until is not None:
@@ -928,28 +814,7 @@ def _consume_proof(db: DatabaseService, token: str):
         problem(401, "unauthorized", "Proof expired")
     return proof
 
-@contacts.patch("/phone")
-def change_phone(inb: ContactsPatchIn, su: SessionUser = Depends(get_session_user)):
-    with get_db() as db:
-        proof = _consume_proof(db, inb.proof_token)
-        if proof.purpose != "change_phone":
-            problem(400, "invalid_flow", "Proof purpose is not change_phone")
-        if proof.subject_id and proof.subject_id != su.user_id:
-            problem(403, "forbidden", "Subject mismatch")
-        if not is_e164(proof.destination):
-            problem(422, "invalid_phone", "Invalid phone format (E.164)")
-        new_phone = normalize_phone(proof.destination)
-        existing = db.get_user_by_phone(new_phone)
-        if existing and existing.id != su.user_id:
-            problem(409, "conflict", "Phone already in use")
-        user = db.get_user_by_id(su.user_id)
-        if not user or user.deleted_at:
-            problem(404, "not_found", "User not found")
-        db.update_user(user.id, phone=new_phone, phone_verified_at=now())
-        
-        db.delete_proof(inb.proof_token)
-        user = db.get_user_by_id(user.id)
-        return user_payload(user)
+# 手机号变更功能已移除，只支持邮箱变更
 
 @contacts.patch("/email")
 def change_email(inb: ContactsPatchIn, su: SessionUser = Depends(get_session_user)):
@@ -1005,7 +870,6 @@ def scan_user(user_id: str):
             problem(404, "not_found", "User not found")
         payload = user_payload(user)
         payload.pop("email", None)
-        payload.pop("phone", None)
         return payload
 
 app.include_router(public)
@@ -1018,7 +882,7 @@ def root():
 async def test_email_service():
     """测试邮件服务连接"""
     # 测试 Zoho 邮件服务
-    from zoho_mail_sender import test_connection
+    from zoho_sender import test_connection
     results = test_connection()
     results['service'] = 'Zoho'
     
@@ -1027,7 +891,7 @@ async def test_email_service():
 @app.post("/api/init-zoho-token")
 async def init_zoho_token(authorization_code: str):
     """初始化 Zoho 令牌（使用授权码）"""
-    from zoho_mail_sender import get_access_token_from_code, set_refresh_token, test_connection
+    from zoho_sender import get_access_token_from_code, set_refresh_token, test_connection
     
     try:
         print(f"[API] 初始化 Zoho 令牌，授权码: {authorization_code[:20]}...")
@@ -1058,7 +922,13 @@ async def init_zoho_token(authorization_code: str):
 @app.get("/api/zoho-token-status")
 async def get_zoho_token_status():
     """获取 Zoho 令牌状态"""
-    from zoho_mail_sender import test_connection
+    from zoho_sender import test_connection
+    return test_connection()
+
+@app.get("/api/magic-link-status")
+def get_magic_link_status():
+    """获取魔法链接邮件服务状态（Zoho邮件通道）"""
+    from zoho_sender import test_connection
     return test_connection()
 
 @app.get("/health")
@@ -1447,9 +1317,7 @@ def ensure_admin_user():
             admin_user = User(
                 id=admin_id,
                 username="Admin",
-                email="admin@mythicalhelper.org",
-                phone=config.ADMIN_PHONE,
-                phone_verified_at=now,
+                email="wellswei88@qq.com",
                 role="admin",
                 status="active",
                 badges="{}",
@@ -1463,7 +1331,7 @@ def ensure_admin_user():
             print(f"[ADMIN] ✅ 默认管理员账户创建成功!")
             print(f"[ADMIN]   用户ID: {admin_id}")
             print(f"[ADMIN]   用户名: Admin")
-            print(f"[ADMIN]   电话: {config.ADMIN_PHONE}")
+            print(f"[ADMIN]   邮箱: {admin_user.email}")
             print(f"[ADMIN]   角色: admin")
             print(f"[ADMIN]   环境检查: 数据库连接正常")
             
@@ -1500,8 +1368,7 @@ def admin_get_users(
                 search_term = f"%{search}%"
                 query = query.filter(
                     (User.username.ilike(search_term)) |
-                    (User.email.ilike(search_term)) |
-                    (User.phone.ilike(search_term))
+                    (User.email.ilike(search_term))
                 )
             
             # 分页
@@ -1516,7 +1383,6 @@ def admin_get_users(
                     "id": user.id,
                     "username": user.username,
                     "email": user.email,
-                    "phone": user.phone,
                     "role": user.role,
                     "status": user.status,
                     "created_at": user.created_at.isoformat(),
@@ -1652,7 +1518,6 @@ def admin_get_user(
                 "id": user.id,
                 "username": user.username,
                 "email": user.email,
-                "phone": user.phone,
                 "valid_until": user.valid_until.isoformat() if user.valid_until else None,
                 "role": user.role,
                 "status": user.status,
@@ -1669,7 +1534,6 @@ class UserUpdateRequest(BaseModel):
     """用户更新请求"""
     username: Optional[str] = None
     email: Optional[str] = None
-    phone: Optional[str] = None
     valid_until: Optional[str] = None
 
 @admin.put("/users/{user_id}")
@@ -1693,11 +1557,6 @@ def admin_update_user(
                 if existing_user and existing_user.id != user_id:
                     problem(400, "email_exists", "Email already exists")
             
-            # 检查phone是否重复
-            if user_data.phone:
-                existing_user = db.get_user_by_phone(user_data.phone)
-                if existing_user and existing_user.id != user_id:
-                    problem(400, "phone_exists", "Phone number already exists")
             
             # username不需要验证唯一性
             
@@ -1706,8 +1565,6 @@ def admin_update_user(
                 user.username = user_data.username
             if user_data.email is not None:
                 user.email = user_data.email
-            if user_data.phone is not None:
-                user.phone = user_data.phone
             if user_data.valid_until is not None:
                 if user_data.valid_until:
                     user.valid_until = datetime.fromisoformat(user_data.valid_until.replace('Z', '+00:00'))
@@ -1754,7 +1611,6 @@ def admin_get_purchases(
                 user = db.get_user_by_id(purchase.user_id)
                 username = user.username if user else "Unknown"
                 email = user.email if user else None
-                phone = user.phone if user else None
                 
                 # 确定支付类型
                 if purchase.valid_until_after_purchase:
@@ -1780,7 +1636,6 @@ def admin_get_purchases(
                     "user_id": purchase.user_id,
                     "username": username,
                     "email": email,
-                    "phone": phone,
                     "amount": amount_str,
                     "currency": purchase.currency,
                     "type": payment_type,

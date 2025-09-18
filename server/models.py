@@ -19,9 +19,7 @@ class User(Base):
     id = Column(String(50), primary_key=True)
     username = Column(String(50), unique=True, nullable=True)
     email = Column(String(255), unique=True, nullable=True)
-    phone = Column(String(20), unique=True, nullable=True)
     email_verified_at = Column(DateTime, nullable=True)
-    phone_verified_at = Column(DateTime, nullable=True)
     role = Column(String(20), default="user")
     status = Column(String(20), default="active")
     valid_until = Column(DateTime, nullable=True)
@@ -35,7 +33,6 @@ class User(Base):
     # Indexes
     __table_args__ = (
         Index('idx_users_email', 'email'),
-        Index('idx_users_phone', 'phone'),
         Index('idx_users_username', 'username'),
     )
 
@@ -45,7 +42,6 @@ class Registration(Base):
     id = Column(String(50), primary_key=True)
     user_id = Column(String(50), ForeignKey("users.id"), nullable=False)
     email_verified = Column(Boolean, default=False)
-    phone_verified = Column(Boolean, default=False)
     username_set = Column(Boolean, default=False)
     oath_accepted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -54,22 +50,22 @@ class Registration(Base):
     # Relationship
     user = relationship("User", backref="registrations")
 
-class Ticket(Base):
-    __tablename__ = "tickets"
+class MagicLink(Base):
+    __tablename__ = "magic_links"
     
-    id = Column(String(50), primary_key=True)
-    channel = Column(String(10), nullable=False)  # email or sms
-    destination = Column(String(255), nullable=False)
-    purpose = Column(String(20), nullable=False)  # signin, signup, change_email, change_phone
+    token = Column(String(100), primary_key=True)
+    email = Column(String(255), nullable=False)
+    purpose = Column(String(20), nullable=False)  # signin, signup, change_email
     subject_id = Column(String(50), nullable=True)
-    code_hash = Column(String(64), nullable=False)
     expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Indexes
     __table_args__ = (
-        Index('idx_tickets_destination', 'destination'),
-        Index('idx_tickets_expires_at', 'expires_at'),
+        Index('idx_magic_links_email', 'email'),
+        Index('idx_magic_links_expires_at', 'expires_at'),
+        Index('idx_magic_links_used_at', 'used_at'),
     )
 
 class Proof(Base):
@@ -178,8 +174,13 @@ def get_database_url():
     return os.getenv("DATABASE_URL", "sqlite:///./mythicalhelper.db")
 
 def create_database():
-    """Create database and tables"""
+    """Create database and tables (recreate schema for latest models)"""
     engine = create_engine(get_database_url())
+    # Recreate schema to reflect model changes
+    try:
+        Base.metadata.drop_all(engine)
+    except Exception:
+        pass
     Base.metadata.create_all(engine)
     return engine
 

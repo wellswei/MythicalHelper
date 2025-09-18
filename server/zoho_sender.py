@@ -221,6 +221,65 @@ def get_account_id_via_api() -> str:
     print(f"[ZOHO] 使用第一个账户: {account_id}")
     return account_id
 
+def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
+    """发送魔法链接邮件（signin/signup/change_email）"""
+    try:
+        frontend_url = config.FRONTEND_URL.rstrip('/')
+        if purpose == "signup":
+            redirect_path = f"/auth/auth.html?mode=signup&token={token}&purpose={purpose}&email={to_email}"
+            subject = "[MythicalHelper] Your Magic Link to Join the Guild"
+            body_html = f"""
+            <!DOCTYPE html>
+            <html><head><meta charset=\"UTF-8\"><title>Join the Guild</title>
+            <style>body{{font-family:Arial,sans-serif;line-height:1.6;color:#333}}.container{{max-width:600px;margin:0 auto;padding:20px}}.header{{text-align:center;margin-bottom:30px}}.logo{{font-size:24px;font-weight:bold;color:#4a90e2}}.content{{background:#f9f9f9;padding:30px;border-radius:10px}}.button{{display:inline-block;background:#4a90e2;color:#fff;padding:15px 30px;text-decoration:none;border-radius:5px;margin:20px 0}}</style>
+            </head><body><div class=container><div class=header><div class=logo>MythicalHelper</div></div><div class=content>
+            <h2>Welcome to the Guild!</h2><p>Click the link below to continue your registration:</p>
+            <p style=\"text-align:center;\"><a class=button href=\"{frontend_url}{redirect_path}\">Join the Guild with this Magic Link</a></p>
+            <p>This link will expire in 15 minutes.</p></div><div class=footer style=\"text-align:center;margin-top:30px;font-size:12px;color:#666;\">© 2025 MythicalHelper Guild</div></div></body></html>
+            """
+        elif purpose == "signin":
+            redirect_path = f"/auth/auth.html?mode=login&token={token}&purpose={purpose}&email={to_email}"
+            subject = "[MythicalHelper] Your Magic Link to Sign In"
+            body_html = f"""
+            <!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Sign In</title>
+            <style>body{{font-family:Arial,sans-serif;line-height:1.6;color:#333}}.container{{max-width:600px;margin:0 auto;padding:20px}}.header{{text-align:center;margin-bottom:30px}}.logo{{font-size:24px;font-weight:bold;color:#4a90e2}}.content{{background:#f9f9f9;padding:30px;border-radius:10px}}.button{{display:inline-block;background:#4a90e2;color:#fff;padding:15px 30px;text-decoration:none;border-radius:5px;margin:20px 0}}</style>
+            </head><body><div class=container><div class=header><div class=logo>MythicalHelper</div></div><div class=content>
+            <h2>Welcome Back!</h2><p>Click the link below to access your account:</p>
+            <p style=\"text-align:center;\"><a class=button href=\"{frontend_url}{redirect_path}\">Sign In with this Magic Link</a></p>
+            <p>This link will expire in 15 minutes.</p></div><div class=footer style=\"text-align:center;margin-top:30px;font-size:12px;color:#666;\">© 2025 MythicalHelper Guild</div></div></body></html>
+            """
+        elif purpose == "change_email":
+            redirect_path = f"/auth/auth.html?mode=login&token={token}&purpose={purpose}&email={to_email}"
+            subject = "[MythicalHelper] Confirm Your New Email Address"
+            body_html = f"""
+            <!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Verify Email Change</title>
+            <style>body{{font-family:Arial,sans-serif;line-height:1.6;color:#333}}.container{{max-width:600px;margin:0 auto;padding:20px}}.header{{text-align:center;margin-bottom:30px}}.logo{{font-size:24px;font-weight:bold;color:#4a90e2}}.content{{background:#f9f9f9;padding:30px;border-radius:10px}}.button{{display:inline-block;background:#4a90e2;color:#fff;padding:15px 30px;text-decoration:none;border-radius:5px;margin:20px 0}}</style>
+            </head><body><div class=container><div class=header><div class=logo>MythicalHelper</div></div><div class=content>
+            <h2>Verify Your Email Change</h2><p>Click the link below to confirm your new email:</p>
+            <p style=\"text-align:center;\"><a class=button href=\"{frontend_url}{redirect_path}\">Confirm New Email with this Magic Link</a></p>
+            <p>This link will expire in 15 minutes.</p></div><div class=footer style=\"text-align:center;margin-top:30px;font-size:12px;color:#666;\">© 2025 MythicalHelper Guild</div></div></body></html>
+            """
+        else:
+            print(f"[ZOHO] ERROR: Unknown magic link purpose: {purpose}")
+            return False
+
+        account_id = get_account_id_via_api()
+        path = f"/accounts/{account_id}/messages"
+        data = {
+            "fromAddress": f"MythicalHelper <{FROM_ADDRESS}>",
+            "toAddress": to_email,
+            "subject": subject,
+            "content": body_html,
+            "mailFormat": "html",
+        }
+        resp = api_request("POST", path, json_data=json.dumps(data))
+        _ = resp.json()
+        print("[ZOHO] Magic link email sent")
+        return True
+    except Exception as e:
+        print(f"[ZOHO] Magic link send failed: {e}")
+        return False
+
 def send_verification_email(to_email: str, verification_code: str) -> bool:
     """
     发送验证邮件

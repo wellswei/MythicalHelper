@@ -1,12 +1,12 @@
-// auth.js — Mythical Helper (clean)
-// Flow: Email → Email Code → Phone → Phone Code (done)
+// auth.js — Mythical Helper (Magic Link Version - No Turnstile)
+// Flow: Email → Magic Link → Take Oath → Get Badge
 
 // ===== Config =====
 const API_BASE = "https://api.mythicalhelper.org";
 const ENDPOINTS = {
-  // 新的Ticket-based API
-  createTicket: "/tickets",
-  confirmTicket: (ticketId) => `/tickets/${ticketId}/confirm`,
+  // Magic Link API
+  createMagicLink: "/magic-links",
+  verifyMagicLink: "/magic-links/verify",
   exchangeSession: "/sessions",
   createRegistration: "/registrations",
   attachRegistration: (regId) => `/registrations/${regId}/contacts/attach`,
@@ -18,22 +18,14 @@ const RESEND_COOLDOWN = 60; // seconds
 // ===== State =====
 const state = {
   email: "",
-  phone: "",
-  emailTicketId: "",
-  phoneTicketId: "",
   emailProofToken: "",
-  phoneProofToken: "",
   registrationId: "",
   userId: "",
   username: "",
-  resendLeft: 0,
-  resendTimer: null,
   emailResendLeft: 0,
   emailResendTimer: null,
-  iti: null, // intl-tel-input instance
   currentStep: 1, // 当前步骤
-  turnstileToken: null, // Cloudflare Turnstile token
-  signupSessionToken: "", // 注册会话token，用于第四步自动登录
+  signupSessionToken: "", // 注册会话token，用于第三步自动登录
 };
 
 // Track current auth mode to avoid cross-flow interference
@@ -43,16 +35,11 @@ let currentAuthMode = 'login';
 function saveState() {
   const stateToSave = {
     email: state.email,
-    phone: state.phone,
-    emailTicketId: state.emailTicketId,
-    phoneTicketId: state.phoneTicketId,
     emailProofToken: state.emailProofToken,
-    phoneProofToken: state.phoneProofToken,
     registrationId: state.registrationId,
     userId: state.userId,
     username: state.username,
     currentStep: state.currentStep,
-    resendLeft: state.resendLeft,
     emailResendLeft: state.emailResendLeft,
     signupSessionToken: state.signupSessionToken
   };
@@ -68,16 +55,11 @@ function loadState() {
     if (saved) {
       const parsed = JSON.parse(saved);
       state.email = parsed.email || "";
-      state.phone = parsed.phone || "";
-      state.emailTicketId = parsed.emailTicketId || "";
-      state.phoneTicketId = parsed.phoneTicketId || "";
       state.emailProofToken = parsed.emailProofToken || "";
-      state.phoneProofToken = parsed.phoneProofToken || "";
       state.registrationId = parsed.registrationId || "";
       state.userId = parsed.userId || "";
       state.username = parsed.username || "";
       state.currentStep = parsed.currentStep || 1;
-      state.resendLeft = parsed.resendLeft || 0;
       state.emailResendLeft = parsed.emailResendLeft || 0;
       state.signupSessionToken = parsed.signupSessionToken || "";
       return true;
@@ -91,154 +73,20 @@ function loadState() {
 function clearState() {
   sessionStorage.removeItem('authState');
   state.email = "";
-  state.phone = "";
-  state.emailTicketId = "";
-  state.phoneTicketId = "";
   state.emailProofToken = "";
-  state.phoneProofToken = "";
   state.registrationId = "";
   state.userId = "";
   state.username = "";
   state.currentStep = 1;
-  state.resendLeft = 0;
   state.signupSessionToken = "";
-  if (state.resendTimer) {
-    clearInterval(state.resendTimer);
-    state.resendTimer = null;
+  state.emailResendLeft = 0;
+  if (state.emailResendTimer) {
+    clearInterval(state.emailResendTimer);
+    state.emailResendTimer = null;
   }
 }
 
-// ===== 登录方式（Email / SMS）切换与 SMS 登录实现 =====
-function switchLoginMode(mode) {
-  document.querySelectorAll('.login-mode-tabs .login-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll(`.login-mode-tabs .login-tab[data-login-mode="${mode}"]`).forEach(t => t.classList.add('active'));
-  const loginFlow = $('#loginFlow');
-  const loginSmsFlow = $('#loginSmsFlow');
-  if (mode === 'email') {
-    if (loginFlow) loginFlow.hidden = false;
-    if (loginSmsFlow) loginSmsFlow.hidden = true;
-  } else {
-    if (loginFlow) loginFlow.hidden = true;
-    if (loginSmsFlow) loginSmsFlow.hidden = false;
-    initLoginPhoneInput();
-  }
-}
-
-function initLoginPhoneInput() {
-  const el = $('#loginPhoneInput');
-  if (!el || el.dataset.itiReady) return;
-  if (!window.intlTelInput) return;
-  try {
-    const iti = window.intlTelInput(el, {
-      initialCountry: 'us', preferredCountries: ['us','cn','gb','ca','au'],
-      separateDialCode: true, nationalMode: true,
-      autoPlaceholder: 'aggressive', formatOnDisplay: true,
-      utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js'
-    });
-    el.dataset.itiReady = '1';
-    el._iti = iti;
-  } catch (e) { console.warn('initLoginPhoneInput failed', e); }
-}
-
-function getLoginE164() {
-  const el = $('#loginPhoneInput');
-  if (!el || !el._iti) return null;
-  try {
-    if (window.intlTelInputUtils && window.intlTelInputUtils.numberFormat) {
-      return el._iti.getNumber(window.intlTelInputUtils.numberFormat.E164);
-    }
-    return el._iti.getNumber();
-  } catch { return null; }
-}
-
-async function onSendLoginSms() {
-  const phone = getLoginE164();
-  const btn = $('#btnSendLoginSms');
-  const status = $('#loginPhoneStatus');
-  const err = $('#errLoginSms');
-  if (!phone) { showError(err, 'Please enter a valid phone number'); return; }
-  lockButton(btn, 'Sending...'); hideError(err);
-  try {
-    // 创建手机号登录ticket（无需Turnstile，因为服务器已验证用户存在性）
-    const data = await postJSON(ENDPOINTS.createTicket, {
-      channel: "sms",
-      destination: phone,
-      purpose: "signin"
-    });
-    
-    loginState.phone = phone; 
-    loginState.ticketId = data.ticket_id; 
-    loginState.resendLeft = data.cooldown_sec || 0; 
-    loginState.mode = 'sms';
-    loginState.resendExpiry = loginState.resendLeft > 0 ? Date.now() + loginState.resendLeft * 1000 : 0;
-    saveLoginState(); 
-    ensureLoginModeInUrl();
-    
-    // 切到验证码
-    hide($('#loginSmsStep1')); 
-    show($('#loginSmsStep2'));
-    
-    // 显示手机号
-    const phoneDisplay = $('#loginPhoneDisplay');
-    if (phoneDisplay) {
-      phoneDisplay.textContent = phone;
-    }
-    
-    setStatus($('#loginPhoneStatusDisplay'), 'Code sent! Check your phone.', 'success');
-    show($('#loginSmsStep2'));
-    setupCodeInputs($('#loginSmsStep2'));
-    // 自动聚焦到第一个验证码输入框
-    setTimeout(() => {
-      const firstInput = $('#loginSmsStep2').querySelector('.login-sms-code-input');
-      if (firstInput) firstInput.focus();
-    }, 100);
-    // 启动SMS发送冷却（如果返回了cooldown）
-    if (loginState.resendLeft > 0) startLoginSmsResend();
-  } catch (e) {
-    console.error('Send login SMS error:', e);
-    console.log('SMS Error message:', e.message);
-    console.log('SMS Error element:', err);
-    // 在状态栏显示错误，而不是错误元素
-    setStatus(status, e.message || 'Failed to send code', 'error');
-  } finally { unlockButton(btn, 'Get Phone Code'); }
-}
-
-async function onVerifyLoginSms() {
-  const code = Array.from(document.querySelectorAll('.login-sms-code-input')).map(i=>i.value).join('');
-  const btn = $('#btnVerifyLoginSms'); const err = $('#errLoginSms');
-  if (code.length !== 6) { showError(err,'Please enter the complete 6-digit code'); return; }
-  lockButton(btn, 'Verifying...'); hideError(err);
-  try {
-    // 确认ticket并获取proof token
-    const resp = await postJSON(ENDPOINTS.confirmTicket(loginState.ticketId), {
-      code: code
-    });
-    
-    if (!resp.verified || !resp.proof_token) {
-      throw new Error('Verification failed');
-    }
-    
-    // 交换会话令牌
-    const sessionResponse = await postJSON(ENDPOINTS.exchangeSession, {
-      proof_token: resp.proof_token
-    });
-    
-    // 保存token到sessionStorage
-    sessionStorage.setItem('authToken', sessionResponse.access_token);
-    // 验证token是否成功写入
-    const savedToken = sessionStorage.getItem('authToken');
-    if (!savedToken) {
-      console.error('Failed to save auth token to sessionStorage');
-      showError(err, 'Failed to save authentication token. Please try again.');
-      return;
-    }
-    clearLoginState();
-    clearState(); // 清理注册状态
-    // 添加小延迟确保sessionStorage写入完成，然后按角色跳转
-    setTimeout(() => { redirectToRoleHome(); }, 100);
-  } catch (e) { showError(err, e.message || 'Invalid code'); }
-  finally { unlockButton(btn, 'Verify Code'); }
-}
+// ===== 登录功能（只支持邮箱） =====
 // ===== Utils =====
 const $  = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -253,319 +101,66 @@ function hideError(element) {
   if (!element) return;
   element.style.display = 'none';
 }
-const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-// 用户名验证（与服务器端保持一致）
-const USERNAME_BLACKLIST = ['official', 'admin', 'support', 'help', 'system', 'root', 'guild', 'mythical', 'helper'];
-const isValidUsername = (username) => {
-  if (!username || username.length < 2 || username.length > 20) return false;
-  // Allow letters, numbers, underscore, and spaces
-  if (!/^[A-Za-z0-9_ ]+$/.test(username)) return false;
-  if (!/[A-Za-z]/.test(username)) return false; // 必须包含至少一个字母
-  const lowerUsername = username.toLowerCase();
-  return !USERNAME_BLACKLIST.some(blacklisted => lowerUsername.includes(blacklisted));
-};
-
-const show = (el) => { if (el) { el.style.display = "block"; el.classList.remove("hidden"); } };
-const hide = (el) => { if (el) { el.style.display = "none";  el.classList.add("hidden"); } };
-
-const showErr = (el, msg) => { if (el) { el.textContent = msg; el.style.display = "block"; } };
-const hideErr = (el) => { if (el) { el.style.display = "none"; } };
-const showOk  = (el, msg) => { 
-  if (el) { 
-    el.textContent = msg; 
-    el.style.display = "block"; 
-
-  } 
-};
-const hideOk  = (el) => { 
-  if (el) { 
-    el.style.display = "none"; 
-
-  } 
-};
-
-// 统一状态栏管理
-const setStatus = (element, message, type = 'default') => {
+function setStatus(element, message, type = 'info') {
   if (!element) return;
-  
   element.textContent = message;
-  
-  // 保持原有的类名，只添加状态相关的类
-  element.classList.remove('success', 'error');
-  element.style.display = 'block';
-  
-  if (type === 'success') {
-    element.classList.add('success');
-  } else if (type === 'error') {
-    element.classList.add('error');
-  }
-};
-
-function updateStep(n) {
-  // Only apply step UI updates when in signup flow
-  if (currentAuthMode !== 'signup') return;
-  $$('.step').forEach(x => x.classList.remove('active'));
-  $$('section[id^="step"]').forEach(hide);
-  $(`#step${n}tag`)?.classList.add('active');
-  show($(`#step${n}`));
-  state.currentStep = n;
-  saveState();
-  
-  // 重置Turnstile当切换到需要验证的步骤时（1: email, 2: phone）
-  if (n === 1 || n === 2) {
-    // 显示Turnstile并重置
-    showTurnstile();
-    resetTurnstile();
-  } else if (n === 3) {
-    // 在验证码步骤时隐藏Turnstile
-    hideTurnstile();
-  }
+  element.className = `hint ${type}`;
 }
 
-function setupCodeInputs(container) {
-  if (!container) return;
-  const inputs = container.querySelectorAll('.email-code-input, .phone-code-input, .login-code-input, .login-sms-code-input');
-  inputs.forEach((ipt, idx) => {
-    ipt.addEventListener('input', () => {
-      ipt.value = ipt.value.replace(/\D/g, '').slice(-1);
-      if (ipt.value && idx < inputs.length - 1) inputs[idx + 1].focus();
-    });
-    ipt.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !ipt.value && idx > 0) inputs[idx - 1].focus();
-      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
-    });
-    ipt.addEventListener('paste', (e) => {
-      const t = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
-      if (!t) return;
-      e.preventDefault();
-      inputs.forEach((x, i) => x.value = t[i] || '');
-      (inputs[Math.min(t.length - 1, inputs.length - 1)] || inputs[0]).focus();
-    });
-  });
-}
-const getCode = (container) => {
-  if (!container) return '';
-  return Array.from(
-    container.querySelectorAll('.email-code-input, .phone-code-input, .login-code-input, .login-sms-code-input')
-  ).map(i => i.value).join('');
-};
-
-// ===== Phone (intl-tel-input) =====
-function initPhoneInput() {
-  const el = $('#phoneInput');
-  if (!el || state.iti) return;
-  if (!window.intlTelInput) { 
-    console.error('intl-tel-input library not loaded'); 
-    return; 
-  }
-
-  try {
-    state.iti = window.intlTelInput(el, {
-      initialCountry: "us",
-      preferredCountries: ["us", "cn", "gb", "ca", "au", "de", "fr", "jp", "kr"],
-      separateDialCode: true,
-      nationalMode: true,
-      autoPlaceholder: "aggressive",
-      formatOnDisplay: true,
-      utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
-    });
-
-    // 添加输入事件监听器来实现实时格式化
-    el.addEventListener('input', function() {
-      if (state.iti && window.intlTelInputUtils) {
-        const number = el.value;
-        if (number.length > 0) {
-          try {
-            // 获取当前国家代码
-            const countryData = state.iti.getSelectedCountryData();
-            if (countryData && countryData.dialCode) {
-              // 格式化显示
-              const formatted = window.intlTelInputUtils.formatNumber(number, countryData.iso2, window.intlTelInputUtils.numberFormat.NATIONAL);
-              if (formatted && formatted !== number) {
-                el.value = formatted;
-              }
-            }
-          } catch (e) {
-            // 格式化失败时忽略错误
-          }
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error initializing intl-tel-input:', error);
-  }
-
-  const validate = () => {
-    const ok = state.iti.isValidNumber();
-    if (el.value.trim() === '') { el.classList.remove('tel-invalid'); hideErr($('#err2')); return; }
-    if (ok) { el.classList.remove('tel-invalid'); hideErr($('#err2')); }
-    else    { el.classList.add('tel-invalid'); showErr($('#err2'), 'Please enter a valid phone number'); }
-  };
-  el.addEventListener('input', validate);
-  el.addEventListener('blur', validate);
-  el.addEventListener('countrychange', validate);
+function show(element) {
+  if (element) element.style.display = 'block';
 }
 
-function getE164() {
-  if (!state.iti) return null;
-  try {
-    const isValid = state.iti.isValidNumber();
-    if (isValid) {
-      // 获取 E164 格式
-      if (window.intlTelInputUtils && window.intlTelInputUtils.numberFormat) {
-        return state.iti.getNumber(window.intlTelInputUtils.numberFormat.E164);
-      } else {
-        // 如果没有 utils 库，使用默认的 getNumber() 方法
-        let number = state.iti.getNumber();
-        
-        // 手动转换为 E164 格式（简单处理）
-        if (number && !number.startsWith('+')) {
-          const countryData = state.iti.getSelectedCountryData();
-          if (countryData && countryData.dialCode) {
-            number = '+' + countryData.dialCode + number;
-          }
-        }
-        return number;
-      }
-    }
-  } catch (e) {
-    console.error('getE164: error =', e);
-  }
-  return null;
-}
-
-// 获取本地格式的手机号（用于显示）
-function getLocalFormat() {
-  if (!state.iti) return null;
-  try {
-    const isValid = state.iti.isValidNumber();
-    if (isValid) {
-      if (window.intlTelInputUtils && window.intlTelInputUtils.numberFormat) {
-        return state.iti.getNumber(window.intlTelInputUtils.numberFormat.NATIONAL);
-      } else {
-        return state.iti.getNumber();
-      }
-    }
-  } catch (e) {
-    console.error('getLocalFormat: error =', e);
-  }
-  return null;
+function hide(element) {
+  if (element) element.style.display = 'none';
 }
 
 // ===== Resend cooldown =====
-function startResend() {
-  if (state.resendTimer) { clearInterval(state.resendTimer); state.resendTimer = null; }
-  // 使用state中的值，如果没有则使用默认值
-  if (state.resendLeft <= 0) state.resendLeft = RESEND_COOLDOWN;
-  const btn = $('#btnBackToPhone');
-  if (!btn) return;
-
-  const tick = () => {
-    if (state.resendLeft > 0) {
-      btn.textContent = `Change Phone (${state.resendLeft}s)`;
-      btn.disabled = true;
-      state.resendLeft--;
-    } else {
-      clearInterval(state.resendTimer); 
-      state.resendTimer = null;
-      btn.textContent = 'Change Phone';
-      btn.disabled = false;
-    }
-  };
-  tick();
-  state.resendTimer = setInterval(tick, 1000);
-}
-
 function startEmailResend() {
-  if (state.emailResendTimer) { clearInterval(state.emailResendTimer); state.emailResendTimer = null; }
-  // 使用state中的值，如果没有则使用默认值
-  if (state.emailResendLeft <= 0) state.emailResendLeft = RESEND_COOLDOWN;
-  const btn = $('#btnBackToEmailInput');
-  if (!btn) return;
-
-  const tick = () => {
-    if (state.emailResendLeft > 0) {
-      btn.textContent = `Change Email (${state.emailResendLeft}s)`;
-      btn.disabled = true;
-      state.emailResendLeft--;
-    } else {
-      clearInterval(state.emailResendTimer); 
-      state.emailResendTimer = null;
-      btn.textContent = 'Change Email';
-      btn.disabled = false;
+  if (state.emailResendTimer) {
+    clearInterval(state.emailResendTimer);
+  }
+  
+  state.emailResendLeft = RESEND_COOLDOWN;
+  const btn = $('#btnSend');
+  
+  // 按钮状态已经在调用前设置，这里只需要启动倒计时
+  state.emailResendTimer = setInterval(() => {
+    state.emailResendLeft--;
+    if (btn) {
+      btn.textContent = `Resend in ${state.emailResendLeft}s`;
     }
-  };
-  tick();
-  state.emailResendTimer = setInterval(tick, 1000);
-}
-
-// ===== Cloudflare Turnstile =====
-function onTurnstileSuccess(token) {
-  state.turnstileToken = token;
-  console.log('Turnstile success, token received, length:', token.length);
-  
-  // 隐藏Turnstile状态提示（不再显示"Security verified"文本）
-  hideTurnstileStatus();
-  
-  // 启用当前步骤的发送按钮
-  if (state.currentStep === 1) {
-    $('#btnSend').disabled = false;
-  } else if (state.currentStep === 2) {
-    $('#btnSendPhone').disabled = false;
-  } else if (state.currentStep === 3) {
-    $('#btnSubmitOath').disabled = false;
-  }
-  
-  // 登录流程不需要Turnstile验证
-}
-
-function onTurnstileExpired() {
-  console.log('Turnstile token expired, clearing token...');
-  state.turnstileToken = null;
-  
-  // 隐藏状态提示（不再显示过期文本）
-  hideTurnstileStatus();
-  
-  // 禁用当前步骤的发送按钮
-  if (state.currentStep === 1) {
-    $('#btnSend').disabled = true;
-  } else if (state.currentStep === 2) {
-    $('#btnSendPhone').disabled = true;
-  } else if (state.currentStep === 3) {
-    $('#btnSubmitOath').disabled = true;
-  }
-  
-  // 登录流程不需要Turnstile验证
-}
-
-function onTurnstileError(error) {
-  state.turnstileToken = null;
-  
-  // 隐藏状态提示（不再显示错误文本）
-  hideTurnstileStatus();
-  
-  // 禁用当前步骤的发送按钮
-  if (state.currentStep === 1) {
-    $('#btnSend').disabled = true;
-  } else if (state.currentStep === 2) {
-    $('#btnSendPhone').disabled = true;
-  } else if (state.currentStep === 3) {
-    $('#btnSubmitOath').disabled = true;
-  }
-  
-  // 登录流程不需要Turnstile验证
+    
+    if (state.emailResendLeft <= 0) {
+      clearInterval(state.emailResendTimer);
+      state.emailResendTimer = null;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Send Magic Link';
+      }
+    }
+  }, 1000);
 }
 
 // ===== Post-login redirect helper (route admins to admin portal) =====
 async function redirectToRoleHome() {
   try {
     const token = sessionStorage.getItem('authToken');
-    if (!token) { window.location.href = '/portal/portal.html'; return; }
+    if (!token) { 
+      window.location.href = '/portal/portal.html'; 
+      return; 
+    }
+    
     const res = await fetch(`${API_BASE}/users/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok) { window.location.href = '/portal/portal.html'; return; }
+    
+    if (!res.ok) { 
+      window.location.href = '/portal/portal.html'; 
+      return; 
+    }
+    
     const me = await res.json();
     if (me && (me.role === 'admin' || me.role === 'administrator')) {
       window.location.href = '/admin/admin.html';
@@ -577,1421 +172,574 @@ async function redirectToRoleHome() {
   }
 }
 
-// 更新Turnstile状态消息的辅助函数
-function updateTurnstileMessage(text, color) {
-  const statusElements = [
-    'turnstileStatus',
-    'turnstileStatusPhone', 
-    'turnstileStatusOath'
-  ];
-  
-  statusElements.forEach(statusId => {
-    const statusEl = document.getElementById(statusId);
-    if (statusEl) {
-      const textEl = statusEl.querySelector('span');
-      
-      if (textEl) textEl.textContent = text;
-      
-      // 根据颜色确定状态类
-      let statusClass = 'default';
-      
-      if (color === '#10b981') {
-        statusClass = 'success';
-      } else if (color === '#3b82f6') {
-        statusClass = 'verifying';
-      } else if (color === '#f59e0b') {
-        statusClass = 'warning';
-      } else if (color === '#ef4444') {
-        statusClass = 'error';
-      }
-      
-      // 更新状态类
-      statusEl.className = `turnstile-status ${statusClass}`;
-    }
-  });
-}
-
-// 隐藏Turnstile状态提示的辅助函数
-function hideTurnstileStatus() {
-  const statusElements = [
-    'turnstileStatus',
-    'turnstileStatusPhone', 
-    'turnstileStatusOath'
-  ];
-  
-  statusElements.forEach(statusId => {
-    const statusEl = document.getElementById(statusId);
-    if (statusEl) {
-      statusEl.style.display = 'none';
-    }
-  });
-}
-
-// 重置Turnstile
-function resetTurnstile() {
-  console.log('Resetting Turnstile...');
-  
-  // 清除当前token
-  state.turnstileToken = null;
-  console.log('Turnstile token cleared');
-  
-  // 重置Turnstile组件
-  if (window.turnstile) {
-    const turnstileElements = document.querySelectorAll('.cf-turnstile');
-    turnstileElements.forEach(element => {
-      try {
-        window.turnstile.reset(element);
-        console.log('Turnstile element reset successfully');
-      } catch (e) {
-        console.warn('Failed to reset Turnstile element:', e);
-      }
-    });
-  }
-  
-  // 隐藏状态提示（不再显示任何文本）
-  hideTurnstileStatus();
-  
-  // 禁用当前步骤的发送按钮，直到新的token生成
-  if (state.currentStep === 1) {
-    $('#btnSend').disabled = true;
-  } else if (state.currentStep === 2) {
-    $('#btnSendPhone').disabled = true;
-  } else if (state.currentStep === 3) {
-    $('#btnSubmitOath').disabled = true;
-  }
-  
-  // 登录流程不需要Turnstile验证
-}
-
-// 隐藏Turnstile
-function hideTurnstile() {
-  console.log('Hiding Turnstile...');
-  
-  // 隐藏所有Turnstile容器
-  const turnstileContainers = document.querySelectorAll('.turnstile-container');
-  turnstileContainers.forEach(container => {
-    container.style.display = 'none';
-  });
-  
-  // 清除token（因为不再需要）
-  state.turnstileToken = null;
-  console.log('Turnstile hidden and token cleared');
-}
-
-// 显示Turnstile
-function showTurnstile() {
-  console.log('Showing Turnstile...');
-  
-  // 显示所有Turnstile容器
-  const turnstileContainers = document.querySelectorAll('.turnstile-container');
-  turnstileContainers.forEach(container => {
-    container.style.display = 'flex';
-  });
-  
-  console.log('Turnstile shown');
-}
-
-// 等待Turnstile token就绪
-async function waitForTurnstileToken(timeoutMs = 10000) {
-  console.log('Waiting for Turnstile token...');
-  return new Promise((resolve, reject) => {
-    const start = Date.now();
-    let lastTokenLength = 0;
-    let lastTokenValue = '';
-    
-    (function poll() {
-      if (state.turnstileToken && state.turnstileToken.length > 0) {
-        // 确保这是一个新的token（长度不同或内容不同）
-        if (state.turnstileToken.length !== lastTokenLength || state.turnstileToken !== lastTokenValue) {
-          console.log('New Turnstile token received, length:', state.turnstileToken.length);
-          console.log('Token preview:', state.turnstileToken.substring(0, 20) + '...');
-          return resolve(state.turnstileToken);
-        }
-      }
-      
-      if (Date.now() - start > timeoutMs) {
-        console.log('Turnstile token timeout after', timeoutMs, 'ms');
-        return reject(new Error("Turnstile token timeout"));
-      }
-      
-      setTimeout(poll, 100);
-    })();
-  });
-}
-
-// 导出Turnstile回调到window
-window.onTurnstileSuccess = onTurnstileSuccess;
-window.onTurnstileExpired = onTurnstileExpired;
-window.onTurnstileError = onTurnstileError;
-
 // ===== API (no credentials by default; enable if your backend needs cookies) =====
 async function postJSON(path, body, method = 'POST') {
   const headers = { 'Content-Type': 'application/json' };
-  const hadTurnstileToken = !!state.turnstileToken;
-  if (state.turnstileToken) {
-    headers['cf-turnstile-response'] = state.turnstileToken;
-    console.log('Sending request with Turnstile token:', path, 'Token length:', state.turnstileToken.length);
-  } else {
-    console.log('Sending request WITHOUT Turnstile token:', path);
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: method,
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({ detail: 'Request failed' }));
+    console.error('Request failed:', path, res.status, j);
+    const errorMessage = typeof j.detail === 'string' ? j.detail :
+                        (j.detail && j.detail.detail) ? j.detail.detail :
+                        'Request failed';
+    throw new Error(errorMessage);
   }
-  
-  try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      method: method,
-      headers,
-      // credentials: 'include',
-      body: JSON.stringify(body),
-    });
-    
-    // 无论请求成功还是失败，只要使用了Turnstile token就清除它
-    if (hadTurnstileToken) {
-      console.log('Request completed, clearing Turnstile token to prevent reuse');
-      state.turnstileToken = null;
-      // 重置Turnstile组件以获取新token
-      resetTurnstile();
-    }
-    
-    if (!res.ok) {
-      const j = await res.json().catch(() => ({ detail: 'Request failed' }));
-      console.error('Request failed:', path, res.status, j);
-      const errorMessage = typeof j.detail === 'string' ? j.detail : 
-                          (j.detail && j.detail.detail) ? j.detail.detail : 
-                          'Request failed';
-      throw new Error(errorMessage);
-    }
-    
-    return res.json();
-  } catch (error) {
-    // 即使发生网络错误，也要清除Turnstile token
-    if (hadTurnstileToken) {
-      console.log('Request failed, clearing Turnstile token to prevent reuse');
-      state.turnstileToken = null;
-      resetTurnstile();
-    }
-    throw error;
+  return res.json();
+}
+
+async function getJSON(path) {
+  const res = await fetch(`${API_BASE}${path}`);
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({ detail: 'Request failed' }));
+    console.error('Request failed:', path, res.status, j);
+    const errorMessage = typeof j.detail === 'string' ? j.detail :
+                        (j.detail && j.detail.detail) ? j.detail.detail :
+                        'Request failed';
+    throw new Error(errorMessage);
   }
+  return res.json();
 }
 
 // ===== 按钮锁定工具函数 =====
-function lockButton(btn, text) {
-  if (!btn) return;
-  btn.dataset._oldText = btn.textContent;
-  btn.disabled = true;
-  if (text) btn.textContent = text;
+function lockButton(button, text = 'Processing...') {
+  if (!button) return;
+  button.disabled = true;
+  button.dataset.originalText = button.textContent;
+  button.textContent = text;
 }
 
-function unlockButton(btn, restoreText) {
-  if (!btn) return;
-  btn.disabled = false;
-  btn.textContent = restoreText ?? btn.dataset._oldText ?? btn.textContent;
+function unlockButton(button) {
+  if (!button) return;
+  button.disabled = false;
+  if (button.dataset.originalText) {
+    button.textContent = button.dataset.originalText;
+    delete button.dataset.originalText;
+  }
 }
 
 // ===== Handlers =====
-async function onSendEmail(e) {
-  e?.preventDefault(); e?.stopPropagation();
-
-  const emailInput = $('#emailInput');
-  const statusBar = $('#emailStatus'), btn = $('#btnSend');
-
-  const email = emailInput.value.trim();
-  
+async function onSendEmail() {
+  const email = $('#emailInput').value.trim();
   if (!email) {
-    setStatus(statusBar, 'Please enter your email address', 'error');
+    setStatus($('#emailStatus'), 'Please enter your email address', 'error');
     return;
   }
-  if (!isEmail(email)) { 
-    setStatus(statusBar, 'Please enter a valid email address', 'error');
-    return; 
+
+  // 检查是否在倒计时期间
+  if (state.emailResendLeft > 0) {
+    setStatus($('#emailStatus'), `Please wait ${state.emailResendLeft} seconds before resending`, 'error');
+    return;
   }
 
-  lockButton(btn, 'Sending…');
+  const btn = $('#btnSend');
+  lockButton(btn, 'Sending Magic Link...');
+
   try {
-    // 创建邮箱验证ticket
-    const data = await postJSON(ENDPOINTS.createTicket, { 
-      channel: "email",
-      destination: email,
-      purpose: "signup"
+    await postJSON(ENDPOINTS.createMagicLink, {
+      email: email,
+      purpose: 'signup'
     });
-    
+
+    // 只有在API调用成功后才更新状态
     state.email = email;
-    state.emailTicketId = data.ticket_id;
+    // proof_token 将在 /verify 页面验证后写入 sessionStorage
+    // 保持在第1步，但显示"已发送魔法链接"状态
+    
+    // 立即更新UI状态，避免卡顿
+    setStatus($('#emailStatus'), 'Magic link sent! Check your inbox.', 'success');
+    // 保持显示切换选项，让用户可以随时切换
+    
+    // 确保第1步保持激活状态
+    $('#step1tag')?.classList.add('active');
+    $('#step2tag')?.classList.remove('active');
+    $('#step3tag')?.classList.remove('active');
+    
+    // 立即更新按钮状态为Resend
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Resend in 60s';
+    }
+    
+    // 开始重发倒计时
+    startEmailResend();
+    
     saveState();
-
-    setStatus(statusBar, 'Code sent! Check your inbox.', 'success');
-    const sec = $('#emailCodeSection');
-    show(sec);
-    emailInput.disabled = true;
-    hide(btn);
-    // 隐藏“Already sworn the oath? Enter the Portal”
-    const signupSwitch = document.querySelector('#step1 .auth-switch');
-    if (signupSwitch) hide(signupSwitch);
-    setupCodeInputs(sec);
-    // 自动聚焦到第一个验证码输入框
-    setTimeout(() => {
-      const firstInput = sec.querySelector('input[inputmode="numeric"]');
-      if (firstInput) firstInput.focus();
-    }, 100);
+    // 不调用updateStep()，保持在第1步显示
     
-    // 启动email cooldown (只用于发送按钮，不影响修改邮箱)
-    state.emailResendLeft = data.cooldown_sec ?? RESEND_COOLDOWN;
-    
-    // 重置Turnstile
-    resetTurnstile();
-  } catch (ex) {
-    // 根据错误类型显示不同的消息
-    let errorMessage = ex.message || 'Failed to send';
-    if (errorMessage.includes('already registered') || errorMessage.includes('exists')) {
-      errorMessage = 'Email already registered. Please sign in instead.';
-    }
-    setStatus(statusBar, errorMessage, 'error');
-    // 发送失败时重新启用按钮
-    unlockButton(btn, 'Get Email Code');
+  } catch (error) {
+    console.error('Send magic link error:', error);
+    setStatus($('#emailStatus'), error.message || 'Failed to send magic link', 'error');
+    // 失败时不更新步骤，保持在当前步骤
+    unlockButton(btn);
+    return; // 提前返回，不执行finally块
   }
+  
+  // 成功时不需要unlockButton，因为startEmailResend已经处理了按钮状态
 }
 
-async function onVerifyEmail(e) {
-  e?.preventDefault();
-  const sec = $('#emailCodeSection'), err = $('#errEmailCode'), btn = $('#btnVerifyEmail');
-  hideErr(err);
-
-  const code = getCode(sec);
-  if (code.length !== 6) { showErr(err, 'Please enter the complete 6-digit code'); return; }
-
-  lockButton(btn, 'Verifying…');
-  try {
-    // 确认ticket并获取proof token
-    const resp = await postJSON(ENDPOINTS.confirmTicket(state.emailTicketId), {
-      code: code
-    });
-    
-    if (resp.verified && resp.proof_token) {
-      state.emailProofToken = resp.proof_token;
-      saveState();
-      updateStep(2); // 进入手机号验证步骤
-      initPhoneInput();
-      setTimeout(() => $('#phoneInput')?.focus(), 80);
-    } else {
-      throw new Error('Verification failed');
-    }
-  } catch (ex) {
-    showErr(err, ex.message || 'Verification failed');
-  } finally {
-    unlockButton(btn, 'Verify Email');
+function onBackToEmail() {
+  // 清除重发倒计时
+  if (state.emailResendTimer) {
+    clearInterval(state.emailResendTimer);
+    state.emailResendTimer = null;
   }
-}
-
-function onBackToEmail(e) {
-  e?.preventDefault();
-  $('#emailInput').disabled = false;
-  $('#emailInput').value = '';
-  hide($('#emailCodeSection'));
-  show($('#btnSend'));
-  setStatus($('#emailStatus'), 'We\'ll send a 6-digit code to your email.', 'default');
-  // 恢复显示“Already sworn the oath? Enter the Portal”
-  const signupSwitch = document.querySelector('#step1 .auth-switch');
-  if (signupSwitch) show(signupSwitch);
-  // 清除邮箱相关状态
+  
+  // 重置倒计时状态
   state.emailResendLeft = 0;
-  // reset persisted email ticket id correctly
-  state.email = state.emailTicketId = "";
-  saveState();
-  updateStep(1);
-  setTimeout(() => $('#emailInput')?.focus(), 50);
-}
-
-function onBackToEmailFromPhone(e) {
-  e?.preventDefault();
-  // 回到步骤1（Email）
-  updateStep(1);
-  // 清除手机相关状态
-  state.phone = '';
-  state.phoneTicketId = '';
-  saveState();
-}
-
-async function onSendPhone(e) {
-  e?.preventDefault();
-  const statusBar = $('#phoneStatus'), btn = $('#btnSendPhone');
-
-  const phoneInput = $('#phoneInput');
-  const phoneValue = phoneInput.value.trim();
   
-  if (!phoneValue) {
-    setStatus(statusBar, 'Please enter your phone number', 'error');
-    return;
+  // 重置按钮状态
+  const btn = $('#btnSend');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Send Magic Link';
   }
   
-  const phone = getE164();
-  if (!phone) { 
-    setStatus(statusBar, 'Please enter a valid phone number', 'error');
-    return; 
-  }
-
-  lockButton(btn, 'Sending…');
-  try {
-    // 创建手机号验证ticket
-    const data = await postJSON(ENDPOINTS.createTicket, { 
-      channel: "sms",
-      destination: phone,
-      purpose: "signup"
-    });
-    state.phone = phone; 
-    state.phoneTicketId = data.ticket_id;
-    saveState();
-    setStatus(statusBar, 'Code sent! Check your phone.', 'success');
-    // 启动phone cooldown (只用于发送按钮，不影响修改手机号)
-    state.resendLeft = data.cooldown_sec ?? RESEND_COOLDOWN;
-    // 显示验证码输入区域
-    const sec = $('#phoneCodeSection');
-    show(sec);
-    const box = $('#phoneCodeBox');
-    box.querySelectorAll('input').forEach(i => i.value = '');
-    setupCodeInputs(box.parentElement);
-    // 自动聚焦到第一个验证码输入框
-    setTimeout(() => {
-      const firstInput = box.querySelector('input');
-      if (firstInput) firstInput.focus();
-    }, 100);
-    
-    // 隐藏发送按钮和Back to Email按钮
-    hide(btn);
-    hide($('#btnBackToEmail'));
-    
-    // 重置Turnstile
-    resetTurnstile();
-  } catch (ex) {
-    // 根据错误类型显示不同的消息
-    let errorMessage = ex.message || 'Failed to send SMS code';
-    if (errorMessage.includes('already registered') || errorMessage.includes('exists')) {
-      errorMessage = 'Phone number already registered. Please sign in instead.';
-    }
-    setStatus(statusBar, errorMessage, 'error');
-    // 发送失败时重新启用按钮
-    unlockButton(btn, 'Send Phone Code');
-  }
+  // 显示切换选项
+  show($('#authSwitch'));
+  setStatus($('#emailStatus'), 'We\'ll send a magic link to your email.', 'info');
+  $('#emailInput').value = state.email;
 }
-
-async function onVerifyPhone(e) {
-  e?.preventDefault();
-  const err = $('#err3'); hideErr(err);
-  const code = getCode($('#phoneCodeBox').parentElement);
-  if (code.length !== 6) { showErr(err, 'Please enter the 6-digit code'); return; }
-
-  const btn = $('#btnVerifyPhone'); 
-  lockButton(btn, 'Verifying…');
-  try {
-    // 确认ticket并获取proof token
-    const resp = await postJSON(ENDPOINTS.confirmTicket(state.phoneTicketId), {
-      code: code
-    });
-    
-    if (resp.verified && resp.proof_token) {
-      state.phoneProofToken = resp.proof_token;
-      saveState();
-      
-      // 进入Take Oath步骤
-      updateStep(3);
-    } else {
-      throw new Error('Verification failed');
-    }
-  } catch (ex) {
-    showErr(err, ex.message || 'Verify failed');
-  } finally {
-    unlockButton(btn, 'Verify Phone');
-  }
-}
-
-function onBackToPhone(e) { 
-  e?.preventDefault(); 
-  
-  $('#phoneInput').disabled = false;
-  $('#phoneInput').value = '';
-  hide($('#phoneCodeSection'));
-  show($('#btnSendPhone')); // 重新显示发送按钮
-  show($('#btnBackToEmail')); // 重新显示Back to Email按钮
-  setStatus($('#phoneStatus'), 'We\'ll send a 6-digit code to your phone.', 'default');
-  
-  state.phone = state.phoneTicketId = "";
-  saveState();
-  updateStep(2); 
-  setTimeout(() => $('#phoneInput')?.focus(), 50); 
-}
-
 
 // ===== Take Oath =====
-
 function onUsernameInput() {
-  const input = $('#usernameInput');
-  const feedback = $('#errOath'); // 使用现有的错误显示元素
-  const checkbox = $('#chkOath');
-  const btn = $('#btnSubmitOath');
+  const username = $('#usernameInput').value.trim();
+  state.username = username;
   
-  if (!input || !feedback) return;
-  
-  const username = input.value.trim();
-  
-
-  
-  // 本地验证
-  if (!username) {
-    feedback.textContent = '';
-    feedback.style.display = 'none';
-    btn.disabled = true;
-    return;
+  // 更新徽章预览
+  const badgeName = $('#badgeName');
+  if (badgeName) {
+    badgeName.textContent = username || 'Your Name';
   }
   
-  // 1) 本地格式验证
-  if (username.length < 2 || username.length > 20) {
-    feedback.textContent = 'Use 2–20 letters/numbers/underscore/spaces and include at least one letter.';
-    feedback.style.display = 'block';
-    btn.disabled = true;
-    return;
-  }
-  
-  if (!/^[A-Za-z0-9_ ]+$/.test(username)) {
-    feedback.textContent = 'Use 2–20 letters/numbers/underscore/spaces and include at least one letter.';
-    feedback.style.display = 'block';
-    btn.disabled = true;
-    return;
-  }
-  
-  if (!/[A-Za-z]/.test(username)) {
-    feedback.textContent = 'Use 2–20 letters/numbers/underscore/spaces and include at least one letter.';
-    feedback.style.display = 'block';
-    btn.disabled = true;
-    return;
-  }
-  
-  // 2) 黑名单检查
-  const lowerUsername = username.toLowerCase();
-  if (USERNAME_BLACKLIST.some(blacklisted => lowerUsername.includes(blacklisted))) {
-    feedback.textContent = 'This name is reserved and cannot be used.';
-    feedback.style.display = 'block';
-    btn.disabled = true;
-    return;
-  }
-  
-  // 3) 本地验证通过，隐藏错误信息
-  feedback.style.display = 'none';
-  // 只有勾选了Oath才能启用按钮
-  btn.disabled = !checkbox.checked;
+  saveState();
 }
 
 function onOathCheckboxChange() {
   const checkbox = $('#chkOath');
   const btn = $('#btnSubmitOath');
-  const feedback = $('#errOath');
   
-  if (!checkbox || !btn) return;
-  
-  // 只有用户名可用且勾选了Oath才能启用按钮
-  const canEnable = checkbox.checked && feedback.style.display === 'none';
-  btn.disabled = !canEnable;
+  if (checkbox && btn) {
+    btn.disabled = !checkbox.checked;
+  }
 }
 
-async function onTakeOath(e) {
-  e?.preventDefault();
-  const username = $('#usernameInput')?.value.trim();
+async function onTakeOath() {
+  const username = $('#usernameInput').value.trim();
+  const checkbox = $('#chkOath');
+  
+  if (!username) {
+    showError($('#errOath'), 'Please enter your username');
+    return;
+  }
+  
+  if (!checkbox || !checkbox.checked) {
+    showError($('#errOath'), 'Please check the oath agreement');
+    return;
+  }
+
   const btn = $('#btnSubmitOath');
-  const err = $('#errOath');
+  lockButton(btn, 'Creating Account...');
   
-  if (!state.emailProofToken || !state.phoneProofToken) {
-    showErr(err, 'Please complete verification steps first');
-    return;
-  }
-  
-  if (!username || !isValidUsername(username)) {
-    showErr(err, 'Please enter a valid username');
-    return;
-  }
-  
-  lockButton(btn, 'Taking Oath…');
+  // 清除之前的错误信息
+  hideError($('#errOath'));
+
   try {
-    console.log('Starting registration process without Turnstile verification...');
-    
-    // 1. 创建注册记录（不需要Turnstile验证）
+    console.log('Starting registration process...');
+
+    // 1. 创建注册记录（无需传入 proof）
     const regResponse = await postJSON(ENDPOINTS.createRegistration, {});
     state.registrationId = regResponse.registration_id;
-    console.log('Registration created:', state.registrationId);
-    
-    // 2. 分别附加邮箱和手机号proof token（不需要Turnstile验证）
+
+    // 2. 附加邮箱 proof token（来自 /verify 页面写入的 sessionStorage）
     await postJSON(ENDPOINTS.attachRegistration(state.registrationId), {
       proof_token: state.emailProofToken
     });
-    console.log('Email proof attached');
-    
-    await postJSON(ENDPOINTS.attachRegistration(state.registrationId), {
-      proof_token: state.phoneProofToken
-    });
-    console.log('Phone proof attached');
-    
-    // 3. 更新注册信息（用户名和宣誓）（不需要Turnstile验证）
+
+    // 3. 更新注册信息（用户名 + 宣誓）
     await postJSON(ENDPOINTS.patchRegistration(state.registrationId), {
       username: username,
       oath_accept: true
-    }, 'PATCH');
-    console.log('Registration updated with username and oath');
-    
-    // 4. 激活注册（不需要Turnstile验证）
+    });
+
+    // 4. 激活注册
     const activateResponse = await postJSON(ENDPOINTS.activateRegistration(state.registrationId), {});
-    console.log('Registration activated:', activateResponse.user_id);
-    console.log('Signup session token received:', !!activateResponse.signup_session_token);
-    
-    // 保存到状态中
-    state.username = username;
     state.userId = activateResponse.user_id;
+    state.signupSessionToken = activateResponse.signup_session_token;
+
+    // 5. 自动登录（使用 signup_session_token）
+    const sessionResponse = await postJSON(ENDPOINTS.exchangeSession, {
+      signup_session_token: state.signupSessionToken
+    });
+    
+    sessionStorage.setItem('authToken', sessionResponse.access_token);
+    
+    // 跳转到徽章选择
+    state.currentStep = 3;
     saveState();
+    updateStep();
     
-    // === 注册完成，进入第四步 ===
-    console.log('=== REGISTRATION COMPLETED ===');
-    console.log('User ID:', activateResponse.user_id);
-    console.log('Role:', activateResponse.role);
-    console.log('Valid until:', activateResponse.valid_until);
-    console.log('Has signup session token:', !!activateResponse.signup_session_token);
-    console.log('Proceeding to Step 4...');
-    
-    // 进入Get Badge步骤
-    updateStep(4);
-    $('#badgeName').textContent = state.username;
-    
-    // 如果有signup_session_token，保存到state中，在第四步点击时使用
-    if (activateResponse.signup_session_token) {
-      console.log('=== SAVING SIGNUP SESSION TOKEN ===');
-      console.log('Token length:', activateResponse.signup_session_token.length);
-      console.log('Token preview:', activateResponse.signup_session_token.substring(0, 20) + '...');
-      state.signupSessionToken = activateResponse.signup_session_token;
-      saveState();
-      console.log('Signup session token saved to state');
-    } else {
-      console.log('=== NO SIGNUP SESSION TOKEN ===');
-      console.log('User will need to login manually in Step 4');
-    }
-  } catch (ex) {
-    showErr(err, ex.message || 'Failed to take oath');
+  } catch (error) {
+    console.error('Registration error:', error);
+    showError($('#errOath'), error.message || 'Registration failed');
   } finally {
-    unlockButton(btn, 'Confirm');
+    unlockButton(btn);
   }
 }
 
 // ===== Back to Home =====
-function onBackToHome(e) {
-  e?.preventDefault();
-  // 跳转到主页
-  window.location.href = '/index.html';
+function onGoToMember() {
+  window.location.href = '/portal/portal.html';
 }
 
 // ===== Get Badge =====
-async function onGoToMember() {
-  console.log('=== onGoToMember FUNCTION CALLED ===');
-  console.log('Current state:', {
-    currentStep: state.currentStep,
-    username: state.username,
-    userId: state.userId,
-    hasSignupSessionToken: !!state.signupSessionToken
-  });
-  
-  // 检查用户是否已经登录
-  const authToken = sessionStorage.getItem('authToken');
-  console.log('=== CHECKING AUTHENTICATION STATUS ===');
-  console.log('Auth token exists:', !!authToken);
-  console.log('Auth token length:', authToken ? authToken.length : 0);
-  console.log('Auth token preview:', authToken ? authToken.substring(0, 20) + '...' : 'null');
-  
-  if (authToken) {
-    // 用户已经登录，直接跳转到portal
-    console.log('=== USER ALREADY AUTHENTICATED ===');
-    console.log('Redirecting to portal...');
-    window.location.href = '/portal/portal.html';
+async function onGetBadge() {
+  const badge = $('#badgeSelect').value;
+  if (!badge) {
+    setStatus($('#badgeStatus'), 'Please select a badge', 'error');
     return;
   }
-  
-  // 如果没有authToken，检查是否有signupSessionToken
-  if (state.signupSessionToken) {
-    console.log('=== EXCHANGING SIGNUP SESSION TOKEN ===');
-    console.log('Signup session token length:', state.signupSessionToken.length);
-    console.log('Signup session token preview:', state.signupSessionToken.substring(0, 20) + '...');
+
+  const btn = $('#btnGetBadge');
+  lockButton(btn, 'Setting Badge...');
+
+  try {
+    // 这里可以添加设置徽章的API调用
+    // await postJSON(`/users/${state.userId}/badge`, { badge: badge });
     
-    try {
-      const sessionResp = await postJSON(ENDPOINTS.exchangeSession, {
-        signup_session_token: state.signupSessionToken
-      });
-      console.log('=== ACCESS TOKEN RECEIVED ===');
-      console.log('Access token received:', !!sessionResp.access_token);
-      console.log('Access token length:', sessionResp.access_token ? sessionResp.access_token.length : 0);
-      console.log('Access token preview:', sessionResp.access_token ? sessionResp.access_token.substring(0, 20) + '...' : 'null');
-      
-      // 保存access token到sessionStorage
-      sessionStorage.setItem('authToken', sessionResp.access_token);
-      console.log('Access token saved to sessionStorage');
-      
-      // 验证token是否成功写入
-      const savedToken = sessionStorage.getItem('authToken');
-      if (!savedToken) {
-        console.error('=== TOKEN SAVE FAILED ===');
-        console.error('Failed to save auth token to sessionStorage');
-        alert('Failed to save authentication token. Please try again.');
-        return;
-      }
-      
-      console.log('=== TOKEN SAVE VERIFIED ===');
-      console.log('Saved token length:', savedToken.length);
-      console.log('Saved token preview:', savedToken.substring(0, 20) + '...');
-      
-      // 清理signupSessionToken
-      state.signupSessionToken = "";
-      saveState();
-      console.log('Signup session token cleared from state');
-      
-      // 清理登录状态
-      clearLoginState();
-      console.log('Login state cleared');
-      
-      // 清理注册状态
-      clearState();
-      console.log('Signup state cleared');
-      
-      // 跳转到portal
-      console.log('=== AUTHENTICATION SUCCESSFUL ===');
-      console.log('Redirecting to portal in 100ms...');
-      setTimeout(() => {
-        console.log('Executing redirect to portal...');
-        window.location.href = '/portal/portal.html';
-      }, 100);
-      return;
-    } catch (error) {
-      console.error('=== TOKEN EXCHANGE FAILED ===');
-      console.error('Failed to exchange signup session token:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack
-      });
-      alert('Failed to complete authentication. Please try again.');
-      return;
-    }
+    // 跳转到用户门户
+    await redirectToRoleHome();
+    
+  } catch (error) {
+    console.error('Badge setting error:', error);
+    setStatus($('#badgeStatus'), error.message || 'Failed to set badge', 'error');
+  } finally {
+    unlockButton(btn);
   }
-  
-  // 既没有authToken也没有signupSessionToken
-  console.log('=== NO AUTHENTICATION TOKENS FOUND ===');
-  console.log('State signupSessionToken:', state.signupSessionToken);
-  console.log('SessionStorage authToken:', sessionStorage.getItem('authToken'));
-  alert('Authentication token not found. Please complete the registration process.');
 }
 
 // ===== 模式选择 =====
 function initializeMode() {
-  // 统一不再显示模式选择器；通过URL或默认登录决定
   const urlParams = new URLSearchParams(window.location.search);
-  const modeParam = urlParams.get('mode');
-  if (modeParam === 'login') {
-    currentAuthMode = 'login';
-    // 当用户明确选择登录时，不要被之前的注册状态强制回到注册
-    try { sessionStorage.removeItem('authState'); } catch {}
-  } else if (modeParam === 'signup') {
-    currentAuthMode = 'signup';
-  } else {
-    // 默认登录
-    currentAuthMode = 'login';
-  }
-
-  const modeSelector = $('#modeSelector');
-  const signupFlow = $('#signupFlow');
-  const loginFlow = $('#loginFlow');
-  const loginSmsFlow = $('#loginSmsFlow');
-  const setHero = (which) => {
-    const titleEl = document.getElementById('authHeroTitle');
-    const leadEl = document.getElementById('authHeroLead');
-    if (!titleEl || !leadEl) return;
-    if (which === 'login') {
-      titleEl.textContent = 'Welcome Back to the Guild';
-      leadEl.textContent = 'Securely access with your email or phone. No password needed.';
-      document.title = 'Mythical Helper – Sign In';
-    } else {
-      titleEl.textContent = 'Become a Mythical Helper';
-      leadEl.textContent = 'Bind your enchanted email scroll and crystal phone orb to enter.';
-      document.title = 'Mythical Helper – Auth';
-    }
-  };
+  const mode = urlParams.get('mode');
   
-  if (modeSelector) modeSelector.hidden = true;
-  if (currentAuthMode === 'signup') {
-    if (signupFlow) signupFlow.hidden = false;
-    if (loginFlow) loginFlow.hidden = true;
-    if (loginSmsFlow) loginSmsFlow.hidden = true;
-    setHero('signup');
+  if (mode === 'login') {
+    currentAuthMode = 'login';
+    showLoginFlow();
+  } else if (mode === 'signup') {
+    currentAuthMode = 'signup';
+    showSignupFlow();
   } else {
-    if (signupFlow) signupFlow.hidden = true;
-    if (loginFlow) loginFlow.hidden = false;
-    if (loginSmsFlow) loginSmsFlow.hidden = true;
-    setHero('login');
+    // 默认显示模式选择
+    showModeSelector();
   }
+}
+
+function showModeSelector() {
+  hide($('#signupFlow'));
+  hide($('#loginFlow'));
+  show($('#modeSelector'));
 }
 
 function showSignupFlow() {
-  currentAuthMode = 'signup';
-  const modeSelector = $('#modeSelector');
-  const signupFlow = $('#signupFlow');
-  const loginFlow = $('#loginFlow');
-  
-  if (modeSelector) modeSelector.hidden = true;
-  if (signupFlow) signupFlow.hidden = false;
-  if (loginFlow) loginFlow.hidden = true;
-  const titleEl = document.getElementById('authHeroTitle');
-  const leadEl = document.getElementById('authHeroLead');
-  if (titleEl && leadEl) {
-    titleEl.textContent = 'Become a Mythical Helper';
-    leadEl.textContent = 'Bind your enchanted email scroll and crystal phone orb to enter.';
-    document.title = 'Mythical Helper – Auth';
-  }
-  ensureSignupModeInUrl();
+  hide($('#modeSelector'));
+  hide($('#loginFlow'));
+  show($('#signupFlow'));
+  updateStep();
 }
 
 function showLoginFlow() {
-  currentAuthMode = 'login';
-  const modeSelector = $('#modeSelector');
-  const signupFlow = $('#signupFlow');
-  const loginFlow = $('#loginFlow');
-  const loginSmsFlow = $('#loginSmsFlow');
+  hide($('#modeSelector'));
+  hide($('#signupFlow'));
+  show($('#loginFlow'));
   
-  if (modeSelector) modeSelector.hidden = true;
-  if (signupFlow) signupFlow.hidden = true;
-  if (loginFlow) loginFlow.hidden = false;
-  if (loginSmsFlow) loginSmsFlow.hidden = true;
-  const titleEl = document.getElementById('authHeroTitle');
-  const leadEl = document.getElementById('authHeroLead');
-  if (titleEl && leadEl) {
-    titleEl.textContent = 'Welcome Back to the Guild';
-    leadEl.textContent = 'Securely access with your email or phone. No password needed.';
-    document.title = 'Mythical Helper – Sign In';
-  }
-  // 切换到登录时，清理注册的临时状态，避免再次被强制回到注册
-  try { sessionStorage.removeItem('authState'); } catch {}
-  // 同步URL
-  ensureLoginModeInUrl();
+  // 重置登录步骤显示（装饰性）
+  $('#loginStep1tag')?.classList.add('active');
+  $('#loginStep2tag')?.classList.remove('active');
 }
 
 function backToModeSelector() {
-  // Use URL param to decide, then delegate to flow helpers.
-  const urlParams = new URLSearchParams(window.location.search);
-  const mode = urlParams.get('mode') || 'login';
-  if (mode === 'signup') {
-    showSignupFlow();
-  } else {
-    showLoginFlow();
-  }
+  clearState();
+  showModeSelector();
 }
 
 // ===== 登录功能 =====
-let loginState = {
-  email: '',
-  phone: '',
-  ticketId: '',
-  resendLeft: 0,
-  resendExpiry: 0,
-  mode: '' // 'email' | 'sms'
-};
-
-// ===== Login state persistence (session) =====
-function saveLoginState() {
-  try {
-    const payload = {
-      email: loginState.email,
-      phone: loginState.phone,
-      ticketId: loginState.ticketId,
-      resendExpiry: loginState.resendExpiry || 0,
-      mode: loginState.mode || ''
-    };
-    sessionStorage.setItem('loginState', JSON.stringify(payload));
-  } catch {}
-}
-
-function loadLoginState() {
-  try {
-    const raw = sessionStorage.getItem('loginState');
-    if (!raw) return false;
-    const parsed = JSON.parse(raw);
-    loginState.email = parsed.email || '';
-    loginState.phone = parsed.phone || '';
-    loginState.ticketId = parsed.ticketId || '';
-    loginState.resendExpiry = parsed.resendExpiry || 0;
-    loginState.mode = parsed.mode || '';
-    if (loginState.resendExpiry) {
-      const left = Math.ceil((loginState.resendExpiry - Date.now()) / 1000);
-      loginState.resendLeft = Math.max(0, left);
-    }
-    if (loginState.mode === 'sms') {
-      return !!(loginState.phone && loginState.ticketId);
-    }
-    // default to email
-    return !!(loginState.email && loginState.ticketId);
-  } catch {
-    return false;
-  }
-}
-
-function clearLoginState() {
-  try { sessionStorage.removeItem('loginState'); } catch {}
-  loginState = { email: '', phone: '', ticketId: '', resendLeft: 0, resendExpiry: 0, mode: '' };
-}
-
-function ensureLoginModeInUrl() {
-  try {
-    const url = new URL(window.location.href);
-    if (url.searchParams.get('mode') !== 'login') {
-      url.searchParams.set('mode', 'login');
-      history.replaceState(null, '', url.toString());
-    }
-  } catch {}
-}
-
-function ensureSignupModeInUrl() {
-  try {
-    const url = new URL(window.location.href);
-    if (url.searchParams.get('mode') !== 'signup') {
-      url.searchParams.set('mode', 'signup');
-      history.replaceState(null, '', url.toString());
-    }
-  } catch {}
-}
-
 async function onSendLoginCode() {
-  const email = $('#loginEmailInput')?.value.trim();
-  const btn = $('#btnSendLoginCode');
-  const status = $('#loginEmailStatus');
-  const err = $('#errLoginCode');
-  
+  const email = $('#loginEmailInput').value.trim();
   if (!email) {
-    showError(err, 'Please enter your email address');
+    setStatus($('#loginEmailStatus'), 'Please enter your email address', 'error');
     return;
   }
-  
-  lockButton(btn, 'Sending...');
-  hideError(err);
-  
+
+  const btn = $('#btnSendLoginCode');
+  lockButton(btn, 'Sending Magic Link...');
+
   try {
-    // 创建邮箱登录ticket（无需Turnstile，因为服务器已验证用户存在性）
-    const data = await postJSON(ENDPOINTS.createTicket, {
-      channel: "email",
-      destination: email,
-      purpose: "signin"
+    const response = await postJSON(ENDPOINTS.createMagicLink, {
+      email: email,
+      purpose: 'signin'
     });
+
+    // 更新步骤显示（装饰性）
+    $('#loginStep1tag')?.classList.remove('active');
+    $('#loginStep2tag')?.classList.add('active');
     
-    // 保存登录状态
-    loginState.email = email;
-    loginState.ticketId = data.ticket_id;
-    loginState.mode = 'email';
-    loginState.resendLeft = data.cooldown_sec || 0;
-    loginState.resendExpiry = loginState.resendLeft > 0 ? Date.now() + loginState.resendLeft * 1000 : 0;
-    saveLoginState();
-    
-    // 显示验证码输入框
-    setStatus(status, 'Code sent! Check your inbox.', 'success');
-    show($('#loginEmailCodeSection'));
-    setupCodeInputs($('#loginEmailCodeSection'));
-    // 自动聚焦到第一个验证码输入框
-    setTimeout(() => {
-      const firstInput = $('#loginEmailCodeSection').querySelector('.login-code-input');
-      if (firstInput) firstInput.focus();
-    }, 100);
-    // 强制保持在登录流程
-    showLoginFlow();
-    // 隐藏发送按钮和注册提示
-    hide(btn);
-    const switchBlock = document.querySelector('#loginStep1 .auth-switch');
-    if (switchBlock) hide(switchBlock);
-    
-    // 启动重发倒计时
-    if (loginState.resendLeft > 0) {
-      startLoginResend();
-    }
+    // 显示魔法链接已发送
+    show($('#loginEmailSentSection'));
+    $('#loginEmailDisplay').textContent = email;
+    setStatus($('#loginEmailStatus'), 'Magic link sent! Check your inbox.', 'success');
+    hide($('#btnSendLoginCode'));
+    hide($('#loginAuthSwitch'));
     
   } catch (error) {
-    console.error('Send login code error:', error);
-    console.log('Error message:', error.message);
-    console.log('Error element:', err);
-    // 在状态栏显示错误，而不是错误元素
-    setStatus(status, error.message || 'Failed to send code', 'error');
+    console.error('Send login magic link error:', error);
+    setStatus($('#loginEmailStatus'), error.message || 'Failed to send magic link', 'error');
   } finally {
-    unlockButton(btn, 'Get Email Code');
+    unlockButton(btn);
   }
-}
-
-async function onVerifyLoginCode() {
-  const codeInputs = document.querySelectorAll('.login-code-input');
-  const code = Array.from(codeInputs).map(input => input.value).join('');
-  const btn = $('#btnVerifyLoginCode');
-  const err = $('#errLoginCode');
-  
-  if (code.length !== 6) {
-    showError(err, 'Please enter the complete 6-digit code');
-    return;
-  }
-  
-  lockButton(btn, 'Verifying...');
-  hideError(err);
-  
-  try {
-    // 确认ticket并获取proof token
-    const resp = await postJSON(ENDPOINTS.confirmTicket(loginState.ticketId), {
-      code: code
-    });
-    
-    if (!resp.verified || !resp.proof_token) {
-      throw new Error('Verification failed');
-    }
-    
-    // 交换会话令牌
-    const sessionResponse = await postJSON(ENDPOINTS.exchangeSession, {
-      proof_token: resp.proof_token
-    });
-    
-    // 保存token到sessionStorage
-    try { 
-      sessionStorage.setItem('authToken', sessionResponse.access_token);
-      // 验证token是否成功写入
-      const savedToken = sessionStorage.getItem('authToken');
-      if (!savedToken) {
-        throw new Error('Failed to save auth token');
-      }
-    } catch (error) {
-      console.error('Failed to save auth token:', error);
-      showError(err, 'Failed to save authentication token. Please try again.');
-      return;
-    }
-    // 清理登录临时状态
-    clearLoginState();
-    clearState(); // 清理注册状态
-    
-    // 添加小延迟确保sessionStorage写入完成，然后按角色跳转
-    setTimeout(() => { redirectToRoleHome(); }, 100);
-    
-  } catch (error) {
-    console.error('Verify login code error:', error);
-    let errorMessage = 'Invalid code';
-    if (error.message && error.message !== '[object Object]') {
-      errorMessage = error.message;
-    } else if (error.detail) {
-      errorMessage = typeof error.detail === 'string' ? error.detail : error.detail.detail || 'Invalid code';
-    }
-    showError(err, errorMessage);
-  } finally {
-    unlockButton(btn, 'Verify Code');
-  }
-}
-
-function updateLoginStep(step) {
-  // 更新步骤标签
-  document.querySelectorAll('#loginStep1tag, #loginStep2tag').forEach(tag => {
-    tag.classList.remove('active');
-  });
-  $(`#loginStep${step}tag`)?.classList.add('active');
-  
-  // 显示/隐藏步骤
-  document.querySelectorAll('#loginStep1, #loginStep2').forEach(section => {
-    section.hidden = true;
-  });
-  $(`#loginStep${step}`).hidden = false;
 }
 
 function onBackToLoginEmail() {
-  hide($('#loginEmailCodeSection'));
-  clearLoginState();
-  setStatus($('#loginEmailStatus'), "We'll send a 6-digit code to your email.", 'default');
-  const btn = $('#btnSendLoginCode');
-  if (btn) show(btn);
-  const switchBlock = document.querySelector('#loginStep1 .auth-switch');
-  if (switchBlock) show(switchBlock);
+  // 重置步骤显示（装饰性）
+  $('#loginStep1tag')?.classList.add('active');
+  $('#loginStep2tag')?.classList.remove('active');
+  
+  hide($('#loginEmailSentSection'));
+  show($('#btnSendLoginCode'));
+  show($('#loginAuthSwitch'));
+  setStatus($('#loginEmailStatus'), 'We\'ll send a magic link to your email.', 'info');
 }
 
-function startLoginResend() {
-  if (loginState.resendLeft <= 0) return;
-  
-  const btn = $('#btnSendLoginCode');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = `Resend in ${loginState.resendLeft}s`;
+// ===== 步骤更新 =====
+function updateStep(step = null) {
+  if (step !== null) {
+    state.currentStep = step;
   }
   
-  const timer = setInterval(() => {
-    loginState.resendLeft--;
-    if (btn) {
-      btn.textContent = `Resend in ${loginState.resendLeft}s`;
+  // 更新步骤指示器
+  const steps = $$('.step');
+  steps.forEach((stepEl, index) => {
+    if (index + 1 <= state.currentStep) {
+      stepEl.classList.add('active');
+    } else {
+      stepEl.classList.remove('active');
     }
-    
-    if (loginState.resendLeft <= 0) {
-      clearInterval(timer);
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Get Email Code';
+  });
+  
+  // 显示/隐藏相应的步骤内容
+  if (currentAuthMode === 'signup') {
+    // 注册流程：3个步骤
+    for (let i = 1; i <= 3; i++) {
+      const stepEl = $(`#step${i}`);
+      if (stepEl) {
+        if (i === state.currentStep) {
+          show(stepEl);
+        } else {
+          hide(stepEl);
+        }
       }
-      // 清理持久化的冷却时间
-      loginState.resendExpiry = 0;
-      saveLoginState();
     }
-  }, 1000);
-}
-
-function startLoginSmsResend() {
-  if (loginState.resendLeft <= 0) return;
-  const btn = $('#btnSendLoginSms');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = `Resend in ${loginState.resendLeft}s`;
+  } else if (currentAuthMode === 'login') {
+    // 登录流程：2个步骤
+    for (let i = 1; i <= 2; i++) {
+      const stepEl = $(`#loginStep${i}`);
+      if (stepEl) {
+        if (i === state.currentStep) {
+          show(stepEl);
+        } else {
+          hide(stepEl);
+        }
+      }
+    }
   }
-  const timer = setInterval(() => {
-    loginState.resendLeft--;
-    if (btn) btn.textContent = `Resend in ${loginState.resendLeft}s`;
-    if (loginState.resendLeft <= 0) {
-      clearInterval(timer);
-      if (btn) { btn.disabled = false; btn.textContent = 'Get Phone Code'; }
-      loginState.resendExpiry = 0;
-      saveLoginState();
-    }
-  }, 1000);
 }
 
-// ===== Init =====
+// ===== 初始化 =====
 function initializeApp() {
   // 初始化模式选择
   initializeMode();
   
-  // 加载保存的状态
-  const hasState = loadState();
-  const hasLogin = loadLoginState();
+  // 检查是否从magic link直接跳转过来
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const purpose = params.get('purpose');
+  const email = params.get('email');
+  const verifiedFlag = params.get('verified');
   
-  // 总是初始化手机输入框（如果存在）
-  initPhoneInput();
-  
-  // 如果存在登录流程状态，优先恢复登录视图
-  if (hasLogin) {
-    currentAuthMode = 'login';
-    ensureLoginModeInUrl();
-    if (loginState.mode === 'sms') {
-      switchLoginMode('sms');
-      initLoginPhoneInput();
-      if ($('#loginPhoneInput') && loginState.phone && $('#loginPhoneInput')._iti) {
-        try { $('#loginPhoneInput')._iti.setNumber(loginState.phone); } catch {}
-      }
-      hide($('#loginSmsStep1'));
-      show($('#loginSmsStep2'));
-      
-      // 显示手机号
-      const phoneDisplay = $('#loginPhoneDisplay');
-      if (phoneDisplay && loginState.phone) {
-        phoneDisplay.textContent = loginState.phone;
-      }
-      
-      setStatus($('#loginPhoneStatusDisplay'), 'Code sent! Check your phone.', 'success');
-      show($('#loginSmsStep2'));
-      setupCodeInputs($('#loginSmsStep2'));
-      // 自动聚焦到第一个验证码输入框
-      setTimeout(() => {
-        const firstInput = $('#loginSmsStep2').querySelector('.login-sms-code-input');
-        if (firstInput) firstInput.focus();
-      }, 100);
-      if (loginState.resendLeft > 0) startLoginSmsResend();
-    } else {
-      showLoginFlow();
-      if ($('#loginEmailInput')) {
-        $('#loginEmailInput').value = loginState.email;
-      }
-      setStatus($('#loginEmailStatus'), 'Code sent! Check your inbox.', 'success');
-      show($('#loginEmailCodeSection'));
-      setupCodeInputs($('#loginEmailCodeSection'));
-      // 自动聚焦到第一个验证码输入框
-      setTimeout(() => {
-        const firstInput = $('#loginEmailCodeSection').querySelector('.login-code-input');
-        if (firstInput) firstInput.focus();
-      }, 100);
-      // 与发送成功后的显示保持一致：隐藏发送按钮与注册提示
-      const btn = $('#btnSendLoginCode');
-      if (btn) hide(btn);
-      const switchBlock = document.querySelector('#loginStep1 .auth-switch');
-      if (switchBlock) hide(switchBlock);
-      if (loginState.resendLeft > 0) startLoginResend();
-    }
+  // 如果有magic link参数，先验证
+  if (token && purpose && email) {
+    handleMagicLinkVerification(token, purpose, email);
+    return; // 验证完成后会重新加载页面
   }
   
-  if (!hasLogin && hasState && currentAuthMode === 'signup') {
-    // 只有在明确指定注册模式且有注册状态时才恢复注册流程
+  // 若从 /verify 返回并带 verified=true，不要清空会话状态
+  if (verifiedFlag !== 'true') {
+    sessionStorage.removeItem('authState');
+    clearState();
+  }
+  
+  // 加载保存的状态
+  const hasState = loadState();
+  
+  if (hasState && currentAuthMode === 'signup') {
+    // 恢复注册流程
     showSignupFlow();
-    ensureSignupModeInUrl();
-    // 恢复保存的状态
-    if (state.email) {
+    
+    // 如果是从verify页面返回（verified=true），直接跳转到对应步骤
+    if (verifiedFlag === 'true') {
+      // 从verify页面返回，直接跳转到当前步骤
+      updateStep(state.currentStep);
+    } else if (state.email) {
+      // 普通恢复，显示第1步的"Magic Link Sent"状态
       $('#emailInput').value = state.email;
       $('#emailInput').disabled = true;
       hide($('#btnSend'));
-      show($('#emailCodeSection'));
-      setStatus($('#emailStatus'), 'Code sent! Check your inbox.', 'success');
-      setupCodeInputs($('#emailCodeSection'));
-      // 自动聚焦到第一个验证码输入框
-      setTimeout(() => {
-        const firstInput = $('#emailCodeSection').querySelector('input[inputmode="numeric"]');
-        if (firstInput) firstInput.focus();
-      }, 100);
-      const signupSwitch = document.querySelector('#step1 .auth-switch');
-      if (signupSwitch) hide(signupSwitch);
+      show($('#emailSentSection'));
+      $('#emailDisplay').textContent = state.email;
+      setStatus($('#emailStatus'), 'Magic link sent! Check your inbox.', 'success');
+      hide($('#authSwitch'));
+      updateStep(state.currentStep);
+    } else {
+      updateStep(state.currentStep);
     }
-    if (state.phone && state.iti) {
-      state.iti.setNumber(state.phone);
-    }
-    if (state.phoneTicketId && state.currentStep === 2) {
-      // 显示手机验证码区域
-      hide($('#btnSendPhone'));
-      hide($('#btnBackToEmail')); // 隐藏Back to Email按钮
-      show($('#phoneCodeSection'));
-      setStatus($('#phoneStatus'), 'Code sent! Check your phone.', 'success');
-      const phoneCodeBox = $('#phoneCodeBox');
-      if (phoneCodeBox) {
-        setupCodeInputs(phoneCodeBox.parentElement);
-        // 自动聚焦到第一个验证码输入框
-        setTimeout(() => {
-          const firstInput = phoneCodeBox.querySelector('input');
-          if (firstInput) firstInput.focus();
-        }, 100);
-      }
-      // 手机验证码已发送，但不需要倒计时限制修改手机号
-    }
+    
     if (state.username) {
       $('#usernameInput').value = state.username;
-      if (state.currentStep === 4) $('#badgeName').textContent = state.username;
+      if (state.currentStep === 3) {
+        $('#badgeName').textContent = state.username;
+      }
     }
-    updateStep(state.currentStep || 1);
   } else if (currentAuthMode === 'signup') {
     // 显式是注册模式但无保存状态
     updateStep(1);
   }
   
-  $('#btnSend')?.addEventListener('click', onSendEmail, true);
-  $('#btnVerifyEmail')?.addEventListener('click', onVerifyEmail);
+  // 绑定事件监听器
+  $('#btnSend')?.addEventListener('click', onSendEmail);
   $('#btnBackToEmailInput')?.addEventListener('click', onBackToEmail);
-
-  $('#btnSendPhone')?.addEventListener('click', onSendPhone);
-  $('#btnVerifyPhone')?.addEventListener('click', onVerifyPhone);
-  $('#btnBackToPhone')?.addEventListener('click', onBackToPhone);
-  $('#btnBackToEmail')?.addEventListener('click', onBackToEmailFromPhone);
-
-  // Take Oath 步骤的事件监听器
+  $('#btnSubmitOath')?.addEventListener('click', onTakeOath);
+  $('#btnGetBadge')?.addEventListener('click', onGetBadge);
+  $('#btnGoToMember')?.addEventListener('click', onGoToMember);
+  $('#btnSendLoginCode')?.addEventListener('click', onSendLoginCode);
+  $('#btnBackToLoginEmail')?.addEventListener('click', onBackToLoginEmail);
   $('#usernameInput')?.addEventListener('input', onUsernameInput);
   $('#chkOath')?.addEventListener('change', onOathCheckboxChange);
-  $('#btnSubmitOath')?.addEventListener('click', onTakeOath);
-  $('#btnBackToHome')?.addEventListener('click', onBackToHome);
-
-  // Get Badge 步骤的事件监听器
-  const btnGoToMember = $('#btnGoToMember');
-  console.log('Setting up btnGoToMember event listener, button found:', !!btnGoToMember);
-  if (btnGoToMember) {
-    console.log('Button element:', btnGoToMember);
-    console.log('Button onclick:', btnGoToMember.onclick);
-    console.log('Button type:', btnGoToMember.type);
-  }
-  btnGoToMember?.addEventListener('click', (e) => {
-    console.log('btnGoToMember clicked! Event:', e);
-    console.log('Event defaultPrevented:', e.defaultPrevented);
-    console.log('Event target:', e.target);
-    e.preventDefault();
-    e.stopPropagation();
-    onGoToMember();
-  });
-
-  // 模式选择事件监听器
-  document.querySelectorAll('.mode-btn[data-mode="signup"]').forEach(btn => {
-    btn.addEventListener('click', showSignupFlow);
-  });
   
-  document.querySelectorAll('.mode-btn[data-mode="login"]').forEach(btn => {
-    btn.addEventListener('click', showLoginFlow);
-  });
-
-  // 登录相关事件监听器
-  $('#btnSendLoginCode')?.addEventListener('click', onSendLoginCode);
-  $('#btnVerifyLoginCode')?.addEventListener('click', onVerifyLoginCode);
-  $('#btnBackToLoginEmail')?.addEventListener('click', onBackToLoginEmail);
-
-  // 登录方式切换与SMS登录
-  document.querySelectorAll('.login-tab[data-login-mode]').forEach(btn => {
-    btn.addEventListener('click', () => switchLoginMode(btn.dataset.loginMode));
-  });
-  $('#btnSendLoginSms')?.addEventListener('click', onSendLoginSms);
-  $('#btnVerifyLoginSms')?.addEventListener('click', onVerifyLoginSms);
-  
-  // 认证模式切换链接
+  // 模式切换
   $('#switchToLogin')?.addEventListener('click', (e) => {
     e.preventDefault();
+    currentAuthMode = 'login';
     showLoginFlow();
   });
+  
   $('#switchToSignup')?.addEventListener('click', (e) => {
     e.preventDefault();
+    currentAuthMode = 'signup';
     showSignupFlow();
   });
-  $('#switchToSignupFromSms')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    showSignupFlow();
-  });
-  $('#btnBackToLoginPhone')?.addEventListener('click', () => {
-    show($('#loginSmsStep1')); 
-    hide($('#loginSmsStep2'));
-    clearLoginState();
-    setStatus($('#loginPhoneStatus'), "We'll send a 6-digit code to your phone.", 'default');
-  });
-
-  // Header Member 跳转：已登录去 portal，未登录去 login
-  const navMember = document.getElementById('navMember');
-  if (navMember) {
-    navMember.addEventListener('click', (e) => {
-      e.preventDefault();
-      const authToken = sessionStorage.getItem('authToken');
-      if (!authToken) { window.location.href = '/auth/auth.html?mode=login'; return; }
-      // 已登录：按角色跳转
-      redirectToRoleHome();
-    });
-  }
-
-  setTimeout(() => {
-    if (state.currentStep === 1) {
-      $('#emailInput')?.focus();
-    } else if (state.currentStep === 2) {
-      $('#phoneInput')?.focus();
-    } else if (state.currentStep === 3) {
-      $('#usernameInput')?.focus();
-    }
-  }, 80);
-  
-  // 确保登录SMS输入框初始化
-  initLoginPhoneInput();
-  // 如果是管理员，在品牌旁显示小徽章
-  (async () => {
-    try {
-      const token = sessionStorage.getItem('authToken');
-      if (!token) return;
-      const res = await fetch(`${API_BASE}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-      if (!res.ok) return;
-      const me = await res.json();
-      if (me && (me.role === 'admin' || me.role === 'administrator')) {
-        const brand = document.querySelector('.header .brand');
-        if (brand) {
-          const badge = document.createElement('span');
-          badge.textContent = 'Admin';
-          badge.setAttribute('aria-label', 'Administrator');
-          Object.assign(badge.style, {
-            marginLeft: '8px', padding: '2px 6px', fontSize: '12px', borderRadius: '6px',
-            background: '#ef4444', color: '#fff', opacity: '0.9'
-          });
-          brand.appendChild(badge);
-        }
-      }
-    } catch {}
-  })();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // 等待 intl-tel-input 库加载完成
-  if (window.intlTelInput) {
-    initializeApp();
-  } else {
-    // 如果库还没加载，等待一下再试
-    setTimeout(() => {
-      if (window.intlTelInput) {
-        initializeApp();
-      } else {
-        console.error('intl-tel-input library failed to load');
-        // 即使库没加载也继续初始化其他功能
-        initializeApp();
-      }
-    }, 100);
-  }
-});
-
-// ===== Debug Helper Functions =====
-// 在浏览器控制台中运行这些函数来调试
-window.debugPhone = {
-  // 测试手机号验证
-  testValidation: function(phoneNumber) {
-    console.log('=== Testing phone validation ===');
-    console.log('Input:', phoneNumber);
-    console.log('state.iti exists:', !!state.iti);
+// ===== Magic Link 验证 =====
+async function handleMagicLinkVerification(token, purpose, email) {
+  try {
+    // 显示验证状态
+    setStatus($('#emailStatus'), 'Verifying magic link...', 'info');
     
-    if (state.iti) {
-      // 设置手机号
-      state.iti.setNumber(phoneNumber);
-      console.log('Set number to:', phoneNumber);
-      
-      // 验证
-      const isValid = state.iti.isValidNumber();
-      console.log('isValidNumber():', isValid);
-      
-      if (isValid) {
-        const number = state.iti.getNumber();
-        console.log('getNumber():', number);
-        
-        // 获取不同格式
-        if (window.intlTelInputUtils && window.intlTelInputUtils.numberFormat) {
-          const e164Number = state.iti.getNumber(window.intlTelInputUtils.numberFormat.E164);
-          const nationalNumber = state.iti.getNumber(window.intlTelInputUtils.numberFormat.NATIONAL);
-          const internationalNumber = state.iti.getNumber(window.intlTelInputUtils.numberFormat.INTERNATIONAL);
-          
-          console.log('E164 format:', e164Number);
-          console.log('National format:', nationalNumber);
-          console.log('International format:', internationalNumber);
-        } else {
-          console.log('Utils not available for format conversion');
-        }
+    // 验证magic link
+    const response = await fetch(`${API_BASE}/magic-links/verify?token=${token}&purpose=${purpose}&email=${email}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.verified) {
+      if (purpose === 'signin') {
+        // 登录流程
+        await handleSignInFromMagicLink(data);
+      } else if (purpose === 'signup') {
+        // 注册流程
+        await handleSignUpFromMagicLink(data, email);
+      } else if (purpose === 'change_email') {
+        // 邮箱变更流程
+        await handleEmailChangeFromMagicLink(data);
       }
     } else {
-      console.error('intl-tel-input instance not available');
+      const errorMessage = data.detail?.detail || data.detail || 'Verification failed';
+      setStatus($('#emailStatus'), `Verification failed: ${errorMessage}`, 'error');
     }
-  },
-  
-  // 检查库状态
-  checkLibrary: function() {
-    console.log('=== Library Status ===');
-    console.log('window.intlTelInput:', !!window.intlTelInput);
-    console.log('window.intlTelInputUtils:', !!window.intlTelInputUtils);
-    console.log('state.iti:', !!state.iti);
-    console.log('Phone input element:', !!$('#phoneInput'));
-  },
-  
-  // 重新初始化
-  reinit: function() {
-    console.log('=== Reinitializing phone input ===');
-    state.iti = null;
-    initPhoneInput();
-  },
-  
-  // 测试格式化
-  testFormatting: function(phoneNumber) {
-    console.log('=== Testing phone formatting ===');
-    if (state.iti) {
-      state.iti.setNumber(phoneNumber);
-      console.log('Input:', phoneNumber);
-      console.log('Current display value:', $('#phoneInput').value);
-      
-      if (window.intlTelInputUtils && window.intlTelInputUtils.numberFormat) {
-        console.log('Available formats:');
-        console.log('- E164:', state.iti.getNumber(window.intlTelInputUtils.numberFormat.E164));
-        console.log('- NATIONAL:', state.iti.getNumber(window.intlTelInputUtils.numberFormat.NATIONAL));
-        console.log('- INTERNATIONAL:', state.iti.getNumber(window.intlTelInputUtils.numberFormat.INTERNATIONAL));
-      }
-    }
-  },
-  
-  // 测试实时格式化
-  testLiveFormatting: function() {
-    console.log('=== Testing live formatting ===');
-    const input = $('#phoneInput');
-    if (input) {
-      console.log('Simulating typing: 2015550123');
-      input.value = '';
-      input.focus();
-      
-      // 模拟逐字符输入
-      const number = '2015550123';
-      let current = '';
-      for (let i = 0; i < number.length; i++) {
-        current += number[i];
-        input.value = current;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        console.log(`After typing "${current}": "${input.value}"`);
-      }
-    }
+  } catch (error) {
+    console.error('Magic link verification error:', error);
+    setStatus($('#emailStatus'), 'Network error. Please try again.', 'error');
   }
-};
+}
+
+// 处理登录
+async function handleSignInFromMagicLink(data) {
+  try {
+    const sessionResponse = await fetch(`${API_BASE}/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        proof_token: data.proof_token
+      })
+    });
+
+    if (sessionResponse.ok) {
+      const sessionData = await sessionResponse.json();
+      sessionStorage.setItem('authToken', sessionData.access_token);
+      
+      setStatus($('#emailStatus'), 'Login successful! Redirecting...', 'success');
+      setTimeout(() => {
+        redirectToRoleHome();
+      }, 1500);
+    } else {
+      const errorData = await sessionResponse.json();
+      setStatus($('#emailStatus'), `Login failed: ${errorData.detail?.detail || errorData.detail}`, 'error');
+    }
+  } catch (error) {
+    console.error('Sign in error:', error);
+    setStatus($('#emailStatus'), 'Login error. Please try again.', 'error');
+  }
+}
+
+// 处理注册
+async function handleSignUpFromMagicLink(data, email) {
+  try {
+    // 保存状态并跳转到第2步
+    const saved = {
+      email: email,
+      emailProofToken: data.proof_token,
+      registrationId: data.subject_id || '',
+      currentStep: 2
+    };
+    sessionStorage.setItem('authState', JSON.stringify(saved));
+    
+    setStatus($('#emailStatus'), 'Email verified! Redirecting to registration...', 'success');
+    setTimeout(() => {
+      window.location.href = '/auth/auth.html?mode=signup&verified=true';
+    }, 1500);
+  } catch (error) {
+    console.error('Sign up error:', error);
+    setStatus($('#emailStatus'), 'Registration error. Please try again.', 'error');
+  }
+}
+
+// 处理邮箱变更
+async function handleEmailChangeFromMagicLink(data) {
+  setStatus($('#emailStatus'), 'Email changed successfully! Redirecting...', 'success');
+  setTimeout(() => {
+    window.location.href = '/portal/portal.html';
+  }, 1500);
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', initializeApp);

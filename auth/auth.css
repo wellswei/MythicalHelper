@@ -443,7 +443,7 @@ body {
 
 /* Auth Flow */
 .auth .process .auth-flow {
-  min-height: 400px;
+  min-height: 300px;
 }
 
 /* Steps: container */

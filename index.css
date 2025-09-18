@@ -640,6 +640,11 @@ body {
   margin-top: 18px;
 }
 
+/* 3个步骤的布局 */
+.index .steps--three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .index .step-card {
   position: relative;
   height: 100%;
@@ -649,6 +654,8 @@ body {
   padding: 16px 14px 16px;
   transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
   box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Subtle hover glow without movement */
@@ -658,11 +665,30 @@ body {
   box-shadow: 0 10px 28px rgba(0,0,0,.22);
 }
 
-/* 数字徽章（右上角） */
+/* 步骤卡片头部 - 包含图标、标题和数字 */
+.index .step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* 魔法 emoji 圆标 */
+.index .step-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+/* 数字徽章 */
 .index .step-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -673,27 +699,14 @@ body {
   color: #0b1020;
   background: linear-gradient(135deg, #ffe08a, #c7e7ff);
   box-shadow: 0 4px 10px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.5);
-}
-
-/* 左上角魔法 emoji 圆标 */
-.index .step-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  margin-bottom: 6px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* 每步不同轻微色调 */
 .index .steps .step:nth-child(1) .step-icon { background: rgba(123,196,255,.15); border-color: rgba(123,196,255,.35); }
-.index .steps .step:nth-child(2) .step-icon { background: rgba(155,231,176,.15); border-color: rgba(101,208,138,.35); }
-.index .steps .step:nth-child(3) .step-icon { background: rgba(195,155,255,.15); border-color: rgba(195,155,255,.35); }
-.index .steps .step:nth-child(4) .step-icon { background: rgba(248,210,106,.15); border-color: rgba(248,210,106,.35); }
+.index .steps .step:nth-child(2) .step-icon { background: rgba(195,155,255,.15); border-color: rgba(195,155,255,.35); }
+.index .steps .step:nth-child(3) .step-icon { background: rgba(248,210,106,.15); border-color: rgba(248,210,106,.35); }
 
 /* 文案 */
 .index .step-title {
@@ -701,7 +714,8 @@ body {
   font-size: 16px;
   font-weight: 700;
   color: #fff;
-  margin: 4px 0 6px;
+  margin: 0;
+  flex: 1;
 }
 
 .index .step-desc {
@@ -717,10 +731,18 @@ body {
   .index .steps {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .index .steps--three {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 560px) {
   .index .steps {
+    grid-template-columns: 1fr;
+  }
+  
+  .index .steps--three {
     grid-template-columns: 1fr;
   }
 }
@@ -1061,6 +1083,10 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
   
+  .index .steps--three {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
   .index .features ul {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1116,6 +1142,10 @@ body {
   }
   
   .index .steps {
+    grid-template-columns: 1fr;
+  }
+  
+  .index .steps--three {
     grid-template-columns: 1fr;
   }
   

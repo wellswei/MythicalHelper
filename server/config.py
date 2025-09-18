@@ -16,7 +16,7 @@ class Config:
         # ========= 安全密钥 =========
         self.JWT_SECRET_KEY = "mythical-helper-jwt-secret-key-2024-production"
         self.ENCRYPTION_KEY = "mythical-helper-encryption-key-2024-production"
-        self.TURNSTILE_SECRET = "0x4AAAAAAByLcFYku1vsnQnk1rYF_o1Q91A"  # Cloudflare Turnstile secret key
+        # Turnstile 已移除 - 魔法链接提供足够的安全保护
         
         # ========= Stripe 配置 =========
         self.STRIPE_SECRET_KEY = "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"
@@ -35,6 +35,11 @@ class Config:
         self.ZOHO_REDIRECT_URI = "https://api.mythicalhelper.org/auth/callback"
         self.ZOHO_SCOPE = "ZohoMail.accounts.READ,ZohoMail.messages.CREATE"
         self.ZOHO_PROXY_URL = "https://zoho.mythicalhelper.org"  # Cloudflare Worker Proxy
+        
+        # ========= Telnyx SMS服务配置 =========
+        self.TELNYX_API_KEY = "KEY0199558FAD9C39CBECC51A08DC9F514E_0tZnwzgUTemqVvUCyTziGj"
+        self.TELNYX_FROM_NUMBER = "+12037809782"
+        # self.TELNYX_SIMULATION_MODE = True  # 禁用模拟模式
         
         # ========= 管理员配置 =========
         self.ADMIN_PHONE = "+12032248879"

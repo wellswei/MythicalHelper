@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 import json
 from models import (
-    User, Registration, Ticket, Proof, Session as DBSession, 
+    User, Registration, MagicLink, Proof, Session as DBSession, 
     RefreshToken, Purchase, RateLimit, get_session
 )
 
@@ -35,8 +35,7 @@ class DatabaseService:
     def get_user_by_email(self, email: str) -> Optional[User]:
         return self.db.query(User).filter(User.email == email).first()
     
-    def get_user_by_phone(self, phone: str) -> Optional[User]:
-        return self.db.query(User).filter(User.phone == phone).first()
+    # phone-based lookup removed
     
     def get_user_by_username(self, username: str) -> Optional[User]:
         return self.db.query(User).filter(User.username == username).first()
@@ -79,32 +78,38 @@ class DatabaseService:
             self.db.commit()
         return reg
     
-    # Ticket operations
-    def create_ticket(self, ticket_id: str, channel: str, destination: str, 
-                     purpose: str, code_hash: str, expires_at: datetime, 
-                     subject_id: Optional[str] = None) -> Ticket:
-        ticket = Ticket(
-            id=ticket_id, channel=channel, destination=destination,
-            purpose=purpose, code_hash=code_hash, expires_at=expires_at,
-            subject_id=subject_id
+    # Magic Link operations
+    def create_magic_link(self, token: str, email: str, purpose: str, 
+                         expires_at: datetime, subject_id: Optional[str] = None) -> MagicLink:
+        magic_link = MagicLink(
+            token=token, email=email, purpose=purpose,
+            expires_at=expires_at, subject_id=subject_id
         )
-        self.db.add(ticket)
+        self.db.add(magic_link)
         self.db.commit()
-        return ticket
+        return magic_link
     
-    def get_ticket_by_id(self, ticket_id: str) -> Optional[Ticket]:
-        return self.db.query(Ticket).filter(Ticket.id == ticket_id).first()
+    def get_magic_link_by_token(self, token: str) -> Optional[MagicLink]:
+        return self.db.query(MagicLink).filter(MagicLink.token == token).first()
     
-    def delete_ticket(self, ticket_id: str) -> bool:
-        ticket = self.get_ticket_by_id(ticket_id)
-        if ticket:
-            self.db.delete(ticket)
+    def mark_magic_link_used(self, token: str) -> bool:
+        magic_link = self.get_magic_link_by_token(token)
+        if magic_link and not magic_link.used_at:
+            magic_link.used_at = datetime.utcnow()
             self.db.commit()
             return True
         return False
     
-    def cleanup_expired_tickets(self) -> int:
-        count = self.db.query(Ticket).filter(Ticket.expires_at < datetime.utcnow()).delete()
+    def delete_magic_link(self, token: str) -> bool:
+        magic_link = self.get_magic_link_by_token(token)
+        if magic_link:
+            self.db.delete(magic_link)
+            self.db.commit()
+            return True
+        return False
+    
+    def cleanup_expired_magic_links(self) -> int:
+        count = self.db.query(MagicLink).filter(MagicLink.expires_at < datetime.utcnow()).delete()
         self.db.commit()
         return count
     
@@ -284,15 +289,9 @@ class DatabaseService:
     
     def get_user_by_email_or_phone(self, email: Optional[str] = None, 
                                   phone: Optional[str] = None) -> Optional[User]:
-        if email and phone:
-            return self.db.query(User).filter(
-                or_(User.email == email, User.phone == phone),
-                User.deleted_at.is_(None)
-            ).first()
-        elif email:
+        # Backward-compat: only email is supported now
+        if email:
             return self.get_user_by_email(email)
-        elif phone:
-            return self.get_user_by_phone(phone)
         return None
 
 # Convenience function

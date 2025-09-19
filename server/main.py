@@ -781,7 +781,7 @@ def admin_patch_user(user_id: str, inb: AdminUsersPatchIn, su: SessionUser = Dep
             updates['email'] = new_email
             updates['email_verified_at'] = now()
 
-        # phone support removed
+        
 
         # valid_until
         if inb.valid_until is not None:

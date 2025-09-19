@@ -36,13 +36,7 @@ class Config:
         self.ZOHO_SCOPE = "ZohoMail.accounts.READ,ZohoMail.messages.CREATE"
         self.ZOHO_PROXY_URL = "https://zoho.mythicalhelper.org"  # Cloudflare Worker Proxy
         
-        # ========= Telnyx SMS服务配置 =========
-        self.TELNYX_API_KEY = "KEY0199558FAD9C39CBECC51A08DC9F514E_0tZnwzgUTemqVvUCyTziGj"
-        self.TELNYX_FROM_NUMBER = "+12037809782"
-        # self.TELNYX_SIMULATION_MODE = True  # 禁用模拟模式
-        
         # ========= 管理员配置 =========
-        self.ADMIN_PHONE = "+12032248879"
         self.ADMIN_USERNAME = "Admin"
         self.ADMIN_EMAIL = "admin@mythicalhelper.org"
         
@@ -333,7 +327,6 @@ class Config:
     def get_admin_config(self):
         """获取管理员配置"""
         return {
-            "phone": self.ADMIN_PHONE,
             "username": self.ADMIN_USERNAME,
             "email": self.ADMIN_EMAIL,
         }
@@ -350,7 +343,7 @@ class Config:
         """获取功能开关"""
         return {
             "email_verification": self.ENABLE_EMAIL_VERIFICATION,
-            "sms_verification": self.ENABLE_SMS_VERIFICATION,
+            # sms_verification removed
             "stripe_payments": self.ENABLE_STRIPE_PAYMENTS,
             "admin_panel": self.ENABLE_ADMIN_PANEL,
         }

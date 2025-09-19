@@ -287,9 +287,8 @@ class DatabaseService:
     def get_all_users(self) -> List[User]:
         return self.db.query(User).filter(User.deleted_at.is_(None)).all()
     
-    def get_user_by_email_or_phone(self, email: Optional[str] = None, 
-                                  phone: Optional[str] = None) -> Optional[User]:
-        # Backward-compat: only email is supported now
+    def get_user_by_email_or_phone(self, email: Optional[str] = None) -> Optional[User]:
+        # Deprecated: only email is supported now
         if email:
             return self.get_user_by_email(email)
         return None

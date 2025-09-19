@@ -1240,8 +1240,6 @@ function setupEventListeners() {
     changeEmailBtn.addEventListener('click', openEmailEditor);
   }
 
-  // 内联修改手机号
-  // phone change UI is deprecated; no listeners bound
 
   // 邮箱变更
   const sendEmailBtn = $('#btnSendEmailCode');
@@ -1316,7 +1314,6 @@ function setupEventListeners() {
   // 全局兜底：若局部监听未绑定成功，使用事件委托捕获按钮点击
   try {
     document.addEventListener('click', (e) => {
-      // phone flow removed: ignore phone change triggers
       const target = e.target && (e.target.closest ? e.target.closest('#btnChangeEmail') : null);
       if (target) {
         console.log('Change email button clicked via event delegation');

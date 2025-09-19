@@ -735,13 +735,12 @@ body {
 
 /* (removed) admin table cell status colors */
 
-/* 在change email/phone时隐藏静态字段 */
+/* 在change email时隐藏静态字段 */
 .portal .info-section .profile-card .static-field {
   transition: opacity 0.3s ease, height 0.3s ease, margin 0.3s ease;
 }
 
-.portal .info-section .profile-card.changing-email .static-field,
-.portal .info-section .profile-card.changing-phone .static-field {
+.portal .info-section .profile-card.changing-email .static-field {
   opacity: 0;
   height: 0;
   margin: 0;

@@ -600,7 +600,7 @@ function redirectToAuth() {
 
 function showNotAuthenticatedMessage() {
   // 更新所有字段显示未认证状态
-  const fields = ['userName', 'userEmail', 'userRole', 'userCreatedAt', 'userValidUntil'];
+  const fields = ['userName', 'userEmail', 'userPhone', 'userRole', 'userCreatedAt', 'userValidUntil'];
   fields.forEach(id => {
     const element = $(id);
     if (element) {
@@ -759,6 +759,7 @@ function updateUserInfo() {
   const fields = {
     'userName': currentUser.username || 'Unknown',
     'userEmail': currentUser.email || 'Not provided',
+    'userPhone': formatPhoneNumber(currentUser.phone) || 'Not provided',
     'userRole': currentUser.role || 'user',
     'userCreatedAt': formatDate(currentUser.created_at),
     'userValidUntil': formatPortalDate(currentUser.valid_until)

@@ -55,10 +55,6 @@
               <span class="value" id="userEmail">Loading…</span>
             </div>
             <div class="field">
-              <span class="label">Phone</span>
-              <span class="value" id="userPhone">Loading…</span>
-            </div>
-            <div class="field">
               <span class="label">Member Since</span>
               <span class="value" id="userCreatedAt">Loading…</span>
             </div>
@@ -68,7 +64,6 @@
             </div>
             <div class="button-row">
               <button class="btn link" id="btnChangeEmail" type="button">Change Email</button>
-              <button class="btn link" id="btnStartPhoneChange" type="button">Change Phone</button>
               <button class="btn link" id="btnDeleteAccount" type="button">Delete Account</button>
             </div>
           </div>
@@ -112,43 +107,6 @@
           </div>
         </div>
 
-        <!-- Phone Change Card -->
-        <div class="change-card" id="phoneChangeCard" style="display:none;">
-          <div class="change-header">
-            <h2>Change Phone</h2>
-          </div>
-
-          <div class="change-content">
-            <!-- 显示当前Phone信息 -->
-            <div class="field">
-              <span class="label">Current Phone</span>
-              <span class="value" id="currentPhoneDisplay">Loading…</span>
-            </div>
-            
-            <!-- Change Action部分 -->
-            <div class="field">
-              <span class="label" id="phoneLabel">New Phone</span>
-              <input type="tel" id="newPhoneInput" class="form-input" placeholder="Enter your new phone" />
-            </div>
-            
-            <!-- Turnstile验证 -->
-            <div class="turnstile-container">
-              <div class="cf-turnstile"
-                   data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
-                   data-callback="onPortalTurnstileSuccess"
-                   data-expired-callback="onPortalTurnstileExpired"
-                   data-error-callback="onPortalTurnstileError"
-                   data-action="submit">
-              </div>
-            </div>
-            
-            <div class="error" id="errPortalPhone"></div>
-            <div class="actions">
-              <button class="btn primary" id="btnSendPhoneCode" type="button">Send Code</button>
-              <button class="btn cancel" id="btnCancelPhoneChange" type="button">Cancel</button>
-            </div>
-          </div>
-        </div>
 
         <!-- QR卡（右） -->
         <div class="qr-card">

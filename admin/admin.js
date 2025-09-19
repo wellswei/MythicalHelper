@@ -230,7 +230,7 @@ async function loadAdminUsers() {
         console.error('Failed to load admin users:', error);
         const table = document.getElementById('usersTableBody');
         if (table) {
-            table.innerHTML = '<tr><td colspan="6" class="loading">Failed to load users: ' + error.message + '</td></tr>';
+            table.innerHTML = '<tr><td colspan="5" class="loading">Failed to load users: ' + error.message + '</td></tr>';
         }
     }
 }
@@ -240,7 +240,7 @@ function displayAdminUsers(users) {
     if (!tableBody) return;
     
     if (!users || users.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found</td></tr>';
         return;
     }
     
@@ -266,7 +266,6 @@ function displayAdminUsers(users) {
         <tr>
             <td>${user.username || 'N/A'}</td>
             <td>${user.email || 'N/A'}</td>
-            <td>${user.phone || 'N/A'}</td>
             <td>${formatAdminDateTime(user.created_at)}</td>
             <td>${getValidUntilWithColor(user.valid_until)}</td>
             <td>
@@ -326,7 +325,7 @@ async function loadBlocklistUsers() {
         console.error('Failed to load blocklist users:', error);
         const table = document.getElementById('blocklistTableBody');
         if (table) {
-            table.innerHTML = '<tr><td colspan="5" class="loading">Failed to load deleted users</td></tr>';
+            table.innerHTML = '<tr><td colspan="4" class="loading">Failed to load deleted users</td></tr>';
         }
     }
 }
@@ -336,7 +335,7 @@ function displayBlocklistUsers(users) {
     if (!tableBody) return;
     
     if (!users || users.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5" class="loading">No deleted users found</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="4" class="loading">No deleted users found</td></tr>';
         return;
     }
     
@@ -344,7 +343,6 @@ function displayBlocklistUsers(users) {
         <tr>
             <td>${user.username || 'N/A'}</td>
             <td>${user.email || 'N/A'}</td>
-            <td>${user.phone || 'N/A'}</td>
             <td>${formatAdminDateTime(user.deleted_at)}</td>
             <td>
                 <div class="history-actions">
@@ -431,7 +429,7 @@ function displayAdminPurchases(purchases) {
   if (!tableBody) return;
   
   if (!purchases || purchases.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="loading">No purchases found</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="loading">No purchases found</td></tr>';
         return;
     }
     
@@ -441,7 +439,6 @@ function displayAdminPurchases(purchases) {
         const statusText = purchase.status === 'Completed' ? '✓ Completed' : 
                           purchase.status === 'Refunded' ? '↩ Refunded' : '⏳ Pending';
         const email = purchase.email || purchase.user?.email || 'N/A';
-        const phone = purchase.phone || purchase.user?.phone || 'N/A';
         const amount = typeof purchase.amount === 'number' ? `$${(purchase.amount / 100).toFixed(2)}` : (purchase.amount || 'N/A');
         const date = purchase.purchased_at || purchase.date;
         const actionsHTML = `
@@ -466,7 +463,6 @@ function displayAdminPurchases(purchases) {
         return `
             <tr>
                 <td>${email}</td>
-                <td>${phone}</td>
                 <td>${purchase.type}</td>
                 <td>${amount}</td>
                 <td class="${statusClass}">${statusText}</td>
@@ -542,7 +538,6 @@ function closeEditUserModal() {
 function clearEditForm() {
     document.getElementById('editUsername').value = '';
     document.getElementById('editEmail').value = '';
-    document.getElementById('editPhone').value = '';
     document.getElementById('editValidUntil').value = '';
     document.getElementById('editGeneralError').style.display = 'none';
 }
@@ -553,12 +548,6 @@ async function loadUserForEdit(userId) {
         
         document.getElementById('editUsername').value = data.username || '';
         document.getElementById('editEmail').value = data.email || '';
-        // 以 E.164 格式显示手机号
-        document.getElementById('editPhone').value = data.phone || '';
-        const phoneInput = document.getElementById('editPhone');
-        if (phoneInput && !phoneInput.placeholder) {
-            phoneInput.placeholder = 'e.g. +12035550123';
-        }
         
         if (data.valid_until) {
             document.getElementById('editValidUntil').value = formatServerToLocalDateTime(data.valid_until);
@@ -575,7 +564,6 @@ async function saveUserChanges() {
     const formData = {
         username: document.getElementById('editUsername').value.trim(),
         email: document.getElementById('editEmail').value.trim(),
-        phone: document.getElementById('editPhone').value.trim(),
         valid_until: document.getElementById('editValidUntil').value
     };
   const modal = document.getElementById('editUserModal');
@@ -595,18 +583,6 @@ async function saveUserChanges() {
     showEditError('Please enter a valid email');
     return;
   }
-  
-    if (!formData.phone) {
-        showEditError('Phone is required');
-        return;
-    }
-    // 转换为 E.164 并校验
-    formData.phone = normalizeToE164(formData.phone);
-    if (!isE164(formData.phone)) {
-        showEditError('Please enter a valid phone in E.164 format (e.g. +12035550123)');
-        return;
-    }
-  // 允许多格式，后台会做更严格校验
   
   // 转换valid_until为UTC
   if (formData.valid_until) {
@@ -638,12 +614,8 @@ async function saveUserChanges() {
         let errorMessage = 'Failed to update user';
         
         if (error?.message) {
-            // 检查是否是重复电话错误
-            if (error.message.includes('phone_exists') || error.message.includes('Phone number already exists')) {
-                errorMessage = 'This phone number is already in use by another user';
-            }
             // 检查是否是重复邮箱错误
-            else if (error.message.includes('email_exists') || error.message.includes('Email already exists')) {
+            if (error.message.includes('email_exists') || error.message.includes('Email already exists')) {
                 errorMessage = 'This email address is already in use by another user';
             }
             // 检查是否是重复用户名错误
@@ -661,10 +633,6 @@ async function saveUserChanges() {
             // 检查是否是邮箱格式错误
             else if (error.message.includes('invalid_email') || error.message.includes('Invalid email format')) {
                 errorMessage = 'Please enter a valid email address';
-            }
-            // 检查是否是电话格式错误
-            else if (error.message.includes('invalid_phone') || error.message.includes('Invalid phone format')) {
-                errorMessage = 'Please enter a valid phone number in E.164 format (e.g. +12035550123)';
             }
             // 其他错误直接显示
             else {
@@ -692,26 +660,6 @@ document.getElementById('editUserForm')?.addEventListener('keydown', (e) => {
   }
 });
 
-// 简单的 E.164 处理（与后端一致）
-function isE164(v) {
-  return /^\+[1-9]\d{6,14}$/.test((v || '').trim());
-}
-function normalizeToE164(v) {
-  if (!v) return v;
-  let cleaned = ('' + v).trim().replace(/\s+/g, '');
-  if (cleaned.startsWith('+')) return cleaned;
-  // US heuristics: 11位且以1开头 → + 前缀；10位 → +1 前缀
-  const digits = cleaned.replace(/\D/g, '');
-  if (digits.length === 11 && digits[0] === '1') return '+' + digits;
-  if (digits.length === 10) return '+1' + digits;
-  return (cleaned.startsWith('+') ? cleaned : '+' + digits);
-}
-
-// 失焦时尝试格式化为 E.164
-document.getElementById('editPhone')?.addEventListener('blur', (e) => {
-  const v = normalizeToE164(e.target.value);
-  e.target.value = v || '';
-});
 
 // ===== SEARCH FUNCTIONS =====
 function handleUserSearch(event) {

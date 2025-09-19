@@ -96,7 +96,6 @@
                             <tr>
                                 <th onclick="sortTable('username')">Username <span class="sort-arrow">↕</span></th>
                                 <th onclick="sortTable('email')">Email <span class="sort-arrow">↕</span></th>
-                                <th onclick="sortTable('phone')">Phone <span class="sort-arrow">↕</span></th>
                                 <th onclick="sortTable('created_at')">Created <span class="sort-arrow">↕</span></th>
                                 <th onclick="sortTable('valid_until')">Valid Until <span class="sort-arrow">↕</span></th>
                                 <th>Actions</th>
@@ -104,7 +103,7 @@
                         </thead>
                         <tbody id="usersTableBody">
                             <tr>
-                                <td colspan="6" class="loading">Loading users...</td>
+                                <td colspan="5" class="loading">Loading users...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -130,14 +129,13 @@
                             <tr>
                                 <th onclick="sortTable('username')">Username <span class="sort-arrow">↕</span></th>
                                 <th onclick="sortTable('email')">Email <span class="sort-arrow">↕</span></th>
-                                <th onclick="sortTable('phone')">Phone <span class="sort-arrow">↕</span></th>
                                 <th onclick="sortTable('deleted_at')">Deleted <span class="sort-arrow">↕</span></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="blocklistTableBody">
                             <tr>
-                                <td colspan="5" class="loading">Loading blocked users...</td>
+                                <td colspan="4" class="loading">Loading blocked users...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -162,7 +160,6 @@
                         <thead>
                             <tr>
                                 <th onclick="sortTable('email')">Email <span class="sort-arrow">↕</span></th>
-                                <th onclick="sortTable('phone')">Phone <span class="sort-arrow">↕</span></th>
                                 <th onclick="sortTable('type')">Type <span class="sort-arrow">↕</span></th>
                                 <th onclick="sortTable('amount')">Amount <span class="sort-arrow">↕</span></th>
                                 <th onclick="sortTable('status')">Status <span class="sort-arrow">↕</span></th>
@@ -172,7 +169,7 @@
                         </thead>
                         <tbody id="purchasesTableBody">
                             <tr>
-                                <td colspan="7" class="loading">Loading purchases...</td>
+                                <td colspan="6" class="loading">Loading purchases...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -210,10 +207,6 @@
                 <div class="form-group">
                     <label for="editEmail">Email</label>
                     <input type="email" id="editEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="editPhone">Phone</label>
-                    <input type="tel" id="editPhone" required>
                 </div>
                 <div class="form-group">
                     <label for="editValidUntil">Valid Until</label>

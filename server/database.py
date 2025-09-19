@@ -35,7 +35,7 @@ class DatabaseService:
     def get_user_by_email(self, email: str) -> Optional[User]:
         return self.db.query(User).filter(User.email == email).first()
     
-    # phone-based lookup removed
+    # phone lookup removed
     
     def get_user_by_username(self, username: str) -> Optional[User]:
         return self.db.query(User).filter(User.username == username).first()

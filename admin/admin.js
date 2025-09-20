@@ -246,11 +246,10 @@ function displayAdminUsers(users) {
     
     // 调试：显示第一个用户的时间数据（调试用）
     // if (users.length > 0) {
-    //     console.log('=== 服务器返回的时间数据 ===');
-    //     console.log('第一个用户的created_at:', users[0].created_at);
-    //     console.log('第一个用户的valid_until:', users[0].valid_until);
-    //     console.log('created_at类型:', typeof users[0].created_at);
-    //     console.log('valid_until类型:', typeof users[0].valid_until);
+    console.log('=== 服务器返回的用户数据 ===');
+    console.log('第一个用户的所有字段:', Object.keys(users[0]));
+    console.log('第一个用户的完整数据:', users[0]);
+    console.log('==========================');
     //     
     //     // 测试valid_until的转换
     //     if (users[0].valid_until) {
@@ -262,6 +261,7 @@ function displayAdminUsers(users) {
     //     console.log('==========================');
     // }
     
+    // 确保只有5列：Username, Email, Created, Valid Until, Actions
     const tableHTML = users.map(user => `
         <tr>
             <td>${user.username || 'N/A'}</td>

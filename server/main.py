@@ -555,7 +555,7 @@ def attach_contact(registration_id: str, inb: RegistrationAttachIn):
         
         # 唯一性检查
         existing_user = db.get_user_by_email(proof.destination)
-        if existing_user and existing_user.id != user.id and existing_user.email_verified_at:
+        if existing_user and existing_user.id != user.id and existing_user.email_verified_at is not None:
             problem(409, "conflict", "Email already in use")
         user.email = proof.destination
         user.email_verified_at = now()
@@ -604,6 +604,8 @@ def patch_registration(registration_id: str, inb: RegistrationPatchIn):
             blacklist = {"official", "admin", "support", "help", "system", "root", "guild", "mythical", "helper"}
             if uname.lower() in blacklist:
                 problem(409, "conflict", "Username not allowed")
+            
+            # 用户名不需要唯一性检查，允许重复
             
             user.username = uname
             reg.username_set = True
@@ -654,8 +656,13 @@ def activate_registration(registration_id: str):
         if not user:
             problem(404, "not_found", "User not found")
         
+        # 检查注册状态
         if not (reg.email_verified and reg.username_set and reg.oath_accepted):
             problem(400, "invalid_state", "Complete email verification and oath before activation")
+        
+        # 检查用户状态
+        if not (user.email_verified_at and user.username and user.oath_accepted_at):
+            problem(400, "invalid_state", "User data incomplete, please complete registration steps")
         
         # 试用期90天
         trial_end = now() + timedelta(days=90)

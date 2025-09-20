@@ -53,7 +53,6 @@ function generateQRCode() {
 
 // ===== 编辑模式功能 =====
 function toggleEditMode() {
-  console.log('toggleEditMode called, current isEditMode:', isEditMode);
   isEditMode = !isEditMode;
   
   const editModeBtn = document.getElementById('btnToggleEditMode');
@@ -179,7 +178,6 @@ function addBadge() {
 
 // ===== 支付功能 =====
 async function renewMembership() {
-  console.log('renewMembership function called');
   console.log('Starting membership renewal...');
   
   const btn = document.getElementById('btnRenewMembership');
@@ -213,7 +211,6 @@ async function renewMembership() {
 }
 
 async function makeDonation() {
-  console.log('makeDonation function called');
   console.log('Starting donation process...');
   
   // 获取捐赠金额
@@ -269,7 +266,7 @@ async function loadPurchaseHistory() {
   
   try {
     // 调用API获取购买历史
-    const history = await apiCall('/api/purchases');
+    const history = await apiCall('/api/payment/history');
     purchaseHistory = history || [];
     
     if (historyLoading) historyLoading.style.display = 'none';
@@ -760,11 +757,7 @@ function setupEventListeners() {
   
   // 编辑模式按钮
   const editModeBtn = $('#btnToggleEditMode');
-  console.log('Edit mode button found:', editModeBtn);
-  if (editModeBtn) {
-    editModeBtn.addEventListener('click', toggleEditMode);
-    console.log('Edit mode button listener added');
-  }
+  if (editModeBtn) editModeBtn.addEventListener('click', toggleEditMode);
   
   // 编辑模式相关按钮
   const saveBadgesBtn = $('#btnSaveBadges');
@@ -778,18 +771,10 @@ function setupEventListeners() {
   
   // 支付按钮
   const renewMembershipBtn = $('#btnRenewMembership');
-  console.log('Renew membership button found:', renewMembershipBtn);
-  if (renewMembershipBtn) {
-    renewMembershipBtn.addEventListener('click', renewMembership);
-    console.log('Renew membership button listener added');
-  }
+  if (renewMembershipBtn) renewMembershipBtn.addEventListener('click', renewMembership);
   
   const makeDonationBtn = $('#btnMakeDonation');
-  console.log('Make donation button found:', makeDonationBtn);
-  if (makeDonationBtn) {
-    makeDonationBtn.addEventListener('click', makeDonation);
-    console.log('Make donation button listener added');
-  }
+  if (makeDonationBtn) makeDonationBtn.addEventListener('click', makeDonation);
   
   // 全局兜底：若局部监听未绑定成功，使用事件委托捕获按钮点击
   try {

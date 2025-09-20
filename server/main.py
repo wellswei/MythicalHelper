@@ -324,22 +324,14 @@ async def create_magic_link(inb: MagicLinkCreateIn, request: Request = None, aut
         token = random_token("mlk")
         expires_at = now() + timedelta(minutes=15)  # 15分钟有效期
         
-        # 异步发送魔法链接邮件
-        import threading
+        # 同步发送魔法链接邮件（测试模式下打印到控制台）
+        from zoho_sender import send_magic_link_email
         
-        def send_magic_link_async():
-            from zoho_sender import send_magic_link_email
-            
-            email_sent = send_magic_link_email(email, token, inb.purpose)
-            if not email_sent:
-                print(f"[MAGIC_LINK] WARNING: Failed to send magic link to {email}")
-            else:
-                print(f"[MAGIC_LINK] Magic link sent successfully to: {email}")
-        
-        # 在后台线程中发送邮件
-        email_thread = threading.Thread(target=send_magic_link_async)
-        email_thread.daemon = True
-        email_thread.start()
+        email_sent = send_magic_link_email(email, token, inb.purpose)
+        if not email_sent:
+            print(f"[MAGIC_LINK] WARNING: Failed to send magic link to {email}")
+        else:
+            print(f"[MAGIC_LINK] Magic link sent successfully to: {email}")
         
         # 创建魔法链接记录
         db.create_magic_link(

@@ -245,9 +245,9 @@ function deleteBadge(badgeId) {
 // ===== 支付功能 =====
 async function renewMembership() {
   try {
-    const response = await apiCall('/api/payment/create-checkout-session', {
+    const response = await apiCall('/api/payment/renewal', {
       method: 'POST',
-      body: JSON.stringify({ type: 'renewal' })
+      body: JSON.stringify({})
     });
     
     if (response.url) {
@@ -260,10 +260,16 @@ async function renewMembership() {
 }
 
 async function makeDonation() {
+  const amount = prompt('Enter donation amount (USD):');
+  if (!amount || isNaN(amount) || amount <= 0) {
+    showError('Please enter a valid donation amount');
+    return;
+  }
+  
   try {
-    const response = await apiCall('/api/payment/create-checkout-session', {
+    const response = await apiCall('/api/payment/donation', {
       method: 'POST',
-      body: JSON.stringify({ type: 'donation' })
+      body: JSON.stringify({ amount: Math.round(parseFloat(amount) * 100) })
     });
     
     if (response.url) {
@@ -312,12 +318,12 @@ function displayPurchaseHistory() {
   list.innerHTML = purchaseHistory.map(purchase => `
     <div class="history-item">
       <div class="history-info">
-        <h4>${purchase.description || 'Purchase'}</h4>
-        <p>${formatDate(purchase.created_at)}</p>
+        <h4>${purchase.type || 'Purchase'}</h4>
+        <p>${formatDate(purchase.date)}</p>
       </div>
       <div class="history-amount">
-        <span class="amount">${formatCurrency(purchase.amount)}</span>
-        <span class="status ${purchase.status || 'completed'}">${purchase.status || 'Completed'}</span>
+        <span class="amount">${purchase.amount || '$0.00'}</span>
+        <span class="status ${(purchase.status || 'completed').toLowerCase()}">${purchase.status || 'Completed'}</span>
       </div>
     </div>
   `).join('');

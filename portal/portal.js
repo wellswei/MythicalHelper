@@ -732,6 +732,15 @@ function startInitialization() {
   initializePortal();
 }
 
+// 立即测试DOM元素
+console.log('=== Immediate DOM Test ===');
+console.log('Document ready state:', document.readyState);
+console.log('Document body exists:', !!document.body);
+console.log('All divs:', document.querySelectorAll('div').length);
+console.log('Elements with id qrCode:', document.querySelectorAll('#qrCode').length);
+console.log('Elements with id badgesGrid:', document.querySelectorAll('#badgesGrid').length);
+console.log('=== End Immediate DOM Test ===');
+
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM Content Loaded event fired');
   // 添加小延迟确保所有元素都已渲染

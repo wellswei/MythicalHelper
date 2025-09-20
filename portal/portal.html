@@ -121,16 +121,12 @@
     <!-- Section 2: Badges -->
     <section class="portal-section" id="badgesSection">
       <div class="portal-card badges-card">
-        <div class="badges-header">
-          <h2>Your Badges</h2>
-          <div class="header-actions">
-            <button class="btn edit-mode-btn" id="btnToggleEditMode" type="button">Edit Mode</button>
-            <div class="edit-actions" id="headerEditActions" style="display: none;">
-              <button class="btn primary" id="btnSaveBadges" type="button">Save Changes</button>
-              <button class="btn" id="btnCancelEdit" type="button">Cancel</button>
+          <div class="badges-header">
+            <h2>Your Badges</h2>
+            <div class="header-actions">
+              <button class="btn edit-mode-btn" id="btnToggleEditMode" type="button">Edit Mode</button>
             </div>
           </div>
-        </div>
         
         <!-- 展示模式 -->
         <div class="badges-display" id="badgesDisplay">
@@ -145,6 +141,13 @@
         
         <!-- 编辑模式 -->
         <div class="badges-edit" id="badgesEdit" style="display: none;">
+          <div class="badges-edit-intro" id="badgesEditIntro" aria-live="polite">
+            <span class="intro-icon" aria-hidden="true">✨</span>
+            <div class="intro-copy">
+              <h3>Craft your legends</h3>
+              <p>Adjust each realm and guardian focus, then save when you are happy with the story.</p>
+            </div>
+          </div>
           <div class="badges-list" id="badgesEditList">
             <!-- Editable badges will be here -->
           </div>
@@ -153,6 +156,16 @@
               <span class="add-icon">+</span>
               Add New Badge
             </button>
+          </div>
+        </div>
+        <div class="badges-edit-footer" id="badgesEditFooter" style="display: none;" aria-live="polite">
+          <div class="footer-status">
+            <span class="status-dot" id="badgesStatusDot" aria-hidden="true"></span>
+            <span id="badgesStatusLabel">All changes saved</span>
+          </div>
+          <div class="footer-actions">
+            <button class="btn ghost" id="btnCancelEdit" type="button">Discard</button>
+            <button class="btn primary" id="btnSaveBadges" type="button" disabled>Save Changes</button>
           </div>
         </div>
       </div>

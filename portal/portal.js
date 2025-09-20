@@ -9,6 +9,9 @@ const API_BASE = 'https://api.mythicalhelper.org';
 let currentUser = null;
 let isEditMode = false;
 let purchaseHistory = [];
+let editingBadges = {};
+let originalBadgesSnapshot = {};
+let hasUnsavedChanges = false;
 
 // ===== 工具函数 =====
 function $(id) {
@@ -88,6 +91,197 @@ function formatDate(dateStr) {
       } catch (e) {
     return dateStr;
   }
+}
+
+const REALM_OPTIONS = ['north', 'tooth', 'bunny'];
+const REALM_LABELS = {
+  north: 'North',
+  tooth: 'Tooth',
+  bunny: 'Bunny'
+};
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function cloneBadges(source) {
+  return JSON.parse(JSON.stringify(source || {}));
+}
+
+function formatRealmLabel(realm) {
+  return REALM_LABELS[realm] || 'Unknown';
+}
+
+function updateEditFooterState() {
+  const footer = $('#badgesEditFooter');
+  const saveBtn = $('#btnSaveBadges');
+  const statusLabel = $('#badgesStatusLabel');
+
+  if (footer) {
+    footer.style.display = isEditMode ? 'flex' : 'none';
+    footer.dataset.state = hasUnsavedChanges ? 'dirty' : 'clean';
+  }
+
+  if (saveBtn) {
+    saveBtn.disabled = !hasUnsavedChanges;
+  }
+
+  if (statusLabel) {
+    statusLabel.textContent = hasUnsavedChanges ? 'Unsaved changes' : 'All changes saved';
+  }
+}
+
+function updateRealmPill(badgeElement, realm) {
+  const pill = badgeElement?.querySelector('.badge-realm-pill');
+  if (pill) {
+    pill.dataset.realm = realm;
+    pill.textContent = formatRealmLabel(realm);
+  }
+}
+
+function collectBadgeValues(badgeElement) {
+  const badgeId = badgeElement?.dataset.badgeId;
+  if (!badgeId) return null;
+
+  const realmInput = badgeElement.querySelector('input[name^="realm-"]:checked');
+  const watchOverInput = badgeElement.querySelector('.watch-over-input');
+
+  const realm = realmInput ? realmInput.value : (editingBadges[badgeId]?.realm || 'north');
+  const watchOver = watchOverInput ? watchOverInput.value : (editingBadges[badgeId]?.watchOver || '');
+
+  return { badgeId, realm, watchOver };
+}
+
+function collectAllBadgeValues() {
+  const snapshot = cloneBadges(editingBadges);
+
+  document.querySelectorAll('.badge-edit-item').forEach(item => {
+    const values = collectBadgeValues(item);
+    if (!values) return;
+
+    const { badgeId, realm, watchOver } = values;
+    const existing = snapshot[badgeId] || {};
+    snapshot[badgeId] = { ...existing, realm, watchOver };
+  });
+
+  return snapshot;
+}
+
+function computeDirtyBadgeIds() {
+  const dirty = new Set();
+  const original = originalBadgesSnapshot || {};
+  const edited = editingBadges || {};
+  const keys = new Set([...Object.keys(original), ...Object.keys(edited)]);
+
+  keys.forEach(id => {
+    const originalBadge = original[id];
+    const editedBadge = edited[id];
+
+    if (!originalBadge && editedBadge) {
+      dirty.add(id);
+      return;
+    }
+
+    if (originalBadge && !editedBadge) {
+      dirty.add(id);
+      return;
+    }
+
+    if (originalBadge && editedBadge) {
+      const originalRealm = originalBadge.realm || 'north';
+      const editedRealm = editedBadge.realm || 'north';
+      const originalWatch = (originalBadge.watchOver || '').trim();
+      const editedWatch = (editedBadge.watchOver || '').trim();
+
+      if (originalRealm !== editedRealm || originalWatch !== editedWatch) {
+        dirty.add(id);
+      }
+    }
+  });
+
+  return dirty;
+}
+
+function updateUnsavedSummary() {
+  const dirtyIds = computeDirtyBadgeIds();
+  hasUnsavedChanges = dirtyIds.size > 0;
+  updateEditFooterState();
+
+  const original = originalBadgesSnapshot || {};
+  document.querySelectorAll('.badge-edit-item').forEach(item => {
+    const badgeId = item.dataset.badgeId;
+    const stateLabel = item.querySelector('[data-badge-state]');
+
+    if (!stateLabel || !badgeId) return;
+
+    if (!Object.prototype.hasOwnProperty.call(original, badgeId)) {
+      stateLabel.textContent = 'New';
+      return;
+    }
+
+    stateLabel.textContent = dirtyIds.has(badgeId) ? 'Unsaved' : 'Saved';
+  });
+}
+
+function handleRealmChange(event) {
+  const input = event.target;
+  if (!input?.checked) return;
+  const badgeElement = input.closest('.badge-edit-item');
+  if (!badgeElement) return;
+
+  const { badgeId } = badgeElement.dataset;
+  if (!badgeId) return;
+
+  const existing = editingBadges[badgeId] || {};
+  editingBadges[badgeId] = { ...existing, realm: input.value };
+  updateRealmPill(badgeElement, input.value);
+  updateUnsavedSummary();
+}
+
+function handleWatchOverInput(event) {
+  const input = event.target;
+  const badgeElement = input.closest('.badge-edit-item');
+  if (!badgeElement) return;
+
+  const { badgeId } = badgeElement.dataset;
+  if (!badgeId) return;
+
+  const existing = editingBadges[badgeId] || {};
+  editingBadges[badgeId] = { ...existing, watchOver: input.value };
+  updateUnsavedSummary();
+}
+
+function handleBadgeDelete(event) {
+  const button = event.currentTarget;
+  const badgeElement = button.closest('.badge-edit-item');
+  if (!badgeElement) return;
+
+  const { badgeId } = badgeElement.dataset;
+  if (!badgeId) return;
+
+  deleteBadge(badgeId);
+}
+
+function bindBadgeEditEvents() {
+  const badgesEditList = $('#badgesEditList');
+  if (!badgesEditList) return;
+
+  badgesEditList.querySelectorAll('.realm-chip input').forEach(input => {
+    input.addEventListener('change', handleRealmChange);
+  });
+
+  badgesEditList.querySelectorAll('.watch-over-input').forEach(input => {
+    input.addEventListener('input', handleWatchOverInput);
+  });
+
+  badgesEditList.querySelectorAll('.badge-delete-btn').forEach(button => {
+    button.addEventListener('click', handleBadgeDelete);
+  });
 }
 
 // ===== API调用 =====
@@ -294,7 +488,6 @@ async function loadBadges() {
           <h4>${badge.name || 'Unnamed Badge'}</h4>
           <p>${badge.description || 'No description'}</p>
         </div>
-        ${isEditMode ? `<button class="btn-delete" onclick="deleteBadge('${id}')">×</button>` : ''}
       </div>
     `;
   }).join('');
@@ -306,45 +499,82 @@ async function loadBadges() {
 }
 
 async function saveBadges() {
-  if (!currentUser?.badges) return;
-  
+  if (!isEditMode) return;
+
+  const saveBtn = $('#btnSaveBadges');
+  const previousLabel = saveBtn ? saveBtn.textContent : '';
+
   try {
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+    }
+
+    editingBadges = collectAllBadgeValues();
+
+    const payload = {};
+    Object.entries(editingBadges).forEach(([id, badge]) => {
+      payload[id] = {
+        ...badge,
+        realm: badge?.realm || 'north',
+        watchOver: (badge?.watchOver || '').trim()
+      };
+    });
+
     const response = await apiCall('/users/me', {
       method: 'PATCH',
-      body: JSON.stringify({ badges: currentUser.badges })
+      body: JSON.stringify({ badges: payload })
     });
-    
-    // 更新本地用户数据
+
     currentUser = response;
+    currentUser.badges = currentUser.badges || payload;
+
+    editingBadges = cloneBadges(currentUser.badges);
+    originalBadgesSnapshot = cloneBadges(currentUser.badges);
+    hasUnsavedChanges = false;
+
     updateUserInfo();
-    showError('Badges saved successfully');
-    return true;
+    loadBadges();
+    loadEditableBadges();
+    showSuccess('Badges saved successfully');
   } catch (error) {
     console.error('Failed to save badges:', error);
-    showError('Failed to save badges');
-    return false;
+    showError(error.message || 'Failed to save badges');
+  } finally {
+    if (saveBtn) {
+      saveBtn.textContent = previousLabel || 'Save Changes';
+      saveBtn.disabled = !hasUnsavedChanges;
+    }
+    updateUnsavedSummary();
   }
 }
 
 async function deleteBadge(badgeId) {
-  if (!currentUser?.badges || !currentUser.badges[badgeId]) return;
-  
+  if (isEditMode) {
+    if (!editingBadges || !editingBadges[badgeId]) return;
+    delete editingBadges[badgeId];
+    loadEditableBadges();
+    showSuccess('Badge removed from draft');
+    return true;
+  }
+
+  if (!currentUser?.badges || !currentUser.badges[badgeId]) return false;
+
   try {
-    // 创建新的徽章对象，移除指定徽章
-    const newBadges = { ...currentUser.badges };
-    delete newBadges[badgeId];
-    
+    const updatedBadges = { ...currentUser.badges };
+    delete updatedBadges[badgeId];
+
     const response = await apiCall('/users/me', {
       method: 'PATCH',
-      body: JSON.stringify({ badges: newBadges })
+      body: JSON.stringify({ badges: updatedBadges })
     });
-    
-    // 更新本地用户数据
+
     currentUser = response;
-    await loadBadges(); // 重新加载徽章显示
-    showError('Badge deleted successfully');
+    updateUserInfo();
+    await loadBadges();
+    showSuccess('Badge deleted successfully');
     return true;
-    } catch (error) {
+  } catch (error) {
     console.error('Failed to delete badge:', error);
     showError('Failed to delete badge');
     return false;
@@ -352,178 +582,115 @@ async function deleteBadge(badgeId) {
 }
 
 function toggleEditMode() {
-  console.log('=== Toggle Edit Mode Debug ===');
-  console.log('Current edit mode:', isEditMode);
-  
+  if (isEditMode && hasUnsavedChanges) {
+    showError('You still have unsaved changes. Save or discard them first.');
+    return;
+  }
+
   isEditMode = !isEditMode;
-  console.log('New edit mode:', isEditMode);
-  
+
   const editBtn = $('#btnToggleEditMode');
-  const editActions = $('#headerEditActions');
   const badgesDisplay = $('#badgesDisplay');
   const badgesEdit = $('#badgesEdit');
-  
-  console.log('Edit button element:', editBtn);
-  console.log('Edit actions element:', editActions);
-  console.log('Badges display element:', badgesDisplay);
-  console.log('Badges edit element:', badgesEdit);
-  
-  if (editBtn) {
-    editBtn.textContent = isEditMode ? 'Cancel Edit' : 'Edit Mode';
-    console.log('Edit button text updated to:', editBtn.textContent);
-  }
-  
-  if (editActions) {
-    editActions.style.display = isEditMode ? 'flex' : 'none';
-    console.log('Edit actions display set to:', editActions.style.display);
-  }
-  
+  const editIntro = $('#badgesEditIntro');
+
   if (isEditMode) {
-    console.log('Entering edit mode, loading editable badges');
+    originalBadgesSnapshot = cloneBadges(currentUser?.badges);
+    editingBadges = cloneBadges(currentUser?.badges);
+    hasUnsavedChanges = false;
+
+    if (editBtn) editBtn.textContent = 'Done';
+    if (badgesDisplay) badgesDisplay.style.display = 'none';
+    if (badgesEdit) badgesEdit.style.display = 'block';
+    if (editIntro) editIntro.style.display = 'flex';
+
+    updateEditFooterState();
     loadEditableBadges();
   } else {
-    console.log('Exiting edit mode, loading normal badges');
-    // 切换回显示模式
+    if (editBtn) editBtn.textContent = 'Edit Mode';
     if (badgesDisplay) badgesDisplay.style.display = 'block';
     if (badgesEdit) badgesEdit.style.display = 'none';
-    loadBadges(); // 重新加载正常显示
+    if (editIntro) editIntro.style.display = 'none';
+
+    updateEditFooterState();
+    loadBadges();
   }
-  console.log('=== Toggle Edit Mode Debug End ===');
 }
 
 function loadEditableBadges() {
-  console.log('=== Load Editable Badges Debug ===');
   const badgesEditList = $('#badgesEditList');
-  const badgesDisplay = $('#badgesDisplay');
-  const badgesEdit = $('#badgesEdit');
-  
-  console.log('Badges edit list element:', badgesEditList);
-  console.log('Badges display element:', badgesDisplay);
-  console.log('Badges edit element:', badgesEdit);
-  console.log('Current user badges:', currentUser?.badges);
-  
-  if (!badgesEditList) {
-    console.error('Badges edit list not found! Looking for #badgesEditList');
-    return;
-  }
-  
-  // 切换到编辑模式
-  if (badgesDisplay) badgesDisplay.style.display = 'none';
-  if (badgesEdit) badgesEdit.style.display = 'block';
-  
-  if (!currentUser?.badges) {
-    console.log('No current user or badges data available');
-    badgesEditList.innerHTML = '<div class="no-badges-edit"><p>No badges available</p></div>';
-    return;
-  }
-  
-  const badges = Object.entries(currentUser.badges);
-  console.log('Badges entries:', badges);
-  console.log('Number of badges:', badges.length);
-  
-  if (badges.length === 0) {
-    console.log('No badges found, showing empty state');
+  if (!badgesEditList) return;
+
+  const entries = Object.entries(editingBadges || {});
+
+  if (entries.length === 0) {
     badgesEditList.innerHTML = '<div class="no-badges-edit"><p>No badges yet. Click "Add New Badge" to create your first badge!</p></div>';
+    updateUnsavedSummary();
+    bindBadgeEditEvents();
     return;
   }
-  
-  console.log('Displaying editable badges');
-  
-  const badgesHTML = badges.map(([id, badge]) => {
-    console.log(`Rendering editable badge ${id}:`, badge);
+
+  badgesEditList.innerHTML = entries.map(([id, badge], index) => {
+    const realm = badge?.realm || 'north';
+    const watchOver = escapeHtml(badge?.watchOver || '');
+    const isNew = !Object.prototype.hasOwnProperty.call(originalBadgesSnapshot || {}, id);
+    const created = badge?.updated_at || badge?.updatedAt || badge?.created_at || null;
+    const metaText = created ? `Last touched ${formatDate(created)}` : 'Awaiting first save';
+
+    const realmOptions = REALM_OPTIONS.map(realmOption => `
+      <label class="realm-chip" data-realm="${realmOption}">
+        <input type="radio" name="realm-${id}" value="${realmOption}" ${realmOption === realm ? 'checked' : ''}>
+        <span class="chip-label">${formatRealmLabel(realmOption)}</span>
+      </label>
+    `).join('');
+
     return `
-      <div class="badge-edit-item" data-badge-id="${id}">
-        <div class="badge-edit-content">
-          <!-- 第一行：Realm选择 + 删除按钮 -->
-          <div class="badge-edit-row">
-            <div class="realm-selector">
-              <label class="realm-label">Realm:</label>
-              <div class="realm-toggle">
-                <input type="radio" id="realm-north-${id}" name="realm-${id}" value="north" ${badge.realm === 'north' ? 'checked' : ''} data-field="realm">
-                <label for="realm-north-${id}" class="realm-option realm-north">North</label>
-                
-                <input type="radio" id="realm-tooth-${id}" name="realm-${id}" value="tooth" ${badge.realm === 'tooth' ? 'checked' : ''} data-field="realm">
-                <label for="realm-tooth-${id}" class="realm-option realm-tooth">Tooth</label>
-                
-                <input type="radio" id="realm-bunny-${id}" name="realm-${id}" value="bunny" ${badge.realm === 'bunny' ? 'checked' : ''} data-field="realm">
-                <label for="realm-bunny-${id}" class="realm-option realm-bunny">Bunny</label>
-              </div>
-            </div>
-            <button class="btn btn-small btn-danger" onclick="deleteBadge('${id}')" title="Delete Badge">
-              <span class="btn-icon">🗑️</span>
-              Delete
-            </button>
+      <article class="badge-edit-item" data-badge-id="${id}">
+        <header class="badge-edit-header">
+          <div class="badge-title">
+            <span class="badge-seq">Badge ${index + 1}</span>
+            <span class="badge-realm-pill" data-realm="${realm}">${formatRealmLabel(realm)}</span>
           </div>
-          
-          <!-- 第二行：Whom you watch over -->
-          <div class="badge-edit-row">
-            <div class="watch-over-field">
-              <label class="watch-over-label">Whom you watch over:</label>
-              <input type="text" class="watch-over-input" value="${badge.watchOver || ''}" placeholder="Enter who you watch over" data-field="watchOver">
+          <button type="button" class="badge-delete-btn" data-remove="${id}">
+            <span aria-hidden="true">🗑️</span>
+            Remove
+          </button>
+        </header>
+        <div class="badge-edit-body">
+          <div class="badge-field-group">
+            <span class="badge-field-label">Realm Alignment</span>
+            <div class="realm-chip-group" role="radiogroup" aria-label="Select realm">
+              ${realmOptions}
             </div>
+            <p class="field-hint">Choose the realm this guardian answers to.</p>
+          </div>
+          <div class="badge-field-group">
+            <label class="badge-field-label" for="watch-${id}">Guardian Focus</label>
+            <input type="text" id="watch-${id}" class="watch-over-input" value="${watchOver}" placeholder="Enter who you watch over">
+            <p class="field-hint">Name the dreamer, tooth holder, or bunny you protect.</p>
           </div>
         </div>
-      </div>
+        <footer class="badge-edit-meta">
+          <span class="badge-updated">${metaText}</span>
+          <span class="badge-state" data-badge-state="${isNew ? 'New' : 'Saved'}">${isNew ? 'New' : 'Saved'}</span>
+        </footer>
+      </article>
     `;
   }).join('');
-  
-  console.log('Generated editable badges HTML length:', badgesHTML.length);
-  badgesEditList.innerHTML = badgesHTML;
-  console.log('Editable badges list updated');
-  console.log('=== Load Editable Badges Debug End ===');
-}
 
-async function saveBadges() {
-  console.log('=== Save Badges Debug ===');
-  
-  try {
-    // 收集所有编辑的徽章数据
-    const badgeItems = document.querySelectorAll('.badge-edit-item');
-    const updatedBadges = {};
-    
-    badgeItems.forEach(item => {
-      const badgeId = item.dataset.badgeId;
-      const realmInput = item.querySelector('input[name^="realm-"]:checked');
-      const watchOverInput = item.querySelector('.watch-over-input');
-      
-      if (realmInput && watchOverInput) {
-        updatedBadges[badgeId] = {
-          realm: realmInput.value,
-          watchOver: watchOverInput.value.trim()
-        };
-      }
-    });
-    
-    console.log('Updated badges:', updatedBadges);
-    
-    // 调用API保存徽章
-    const response = await apiCall('/api/badges', {
-      method: 'PUT',
-      body: JSON.stringify({ badges: updatedBadges })
-    });
-    
-    console.log('Badges saved successfully:', response);
-    
-    // 更新当前用户数据
-    if (currentUser) {
-      currentUser.badges = updatedBadges;
-    }
-    
-    // 退出编辑模式
-    toggleEditMode();
-    
-    console.log('=== Save Badges Debug End ===');
-  } catch (error) {
-    console.error('Failed to save badges:', error);
-    showError('Failed to save badges');
-  }
+  bindBadgeEditEvents();
+  updateUnsavedSummary();
 }
 
 function cancelEdit() {
-  // 恢复原始数据，不保存更改
-  loadUserData().then(() => {
+  editingBadges = cloneBadges(originalBadgesSnapshot);
+  hasUnsavedChanges = false;
+  updateEditFooterState();
+
+  if (isEditMode) {
     toggleEditMode();
-  });
+    showSuccess('Changes discarded');
+  }
 }
 
 function addBadge() {
@@ -532,21 +699,24 @@ function addBadge() {
   // 创建新的徽章ID
   const badgeId = `badge_${Date.now()}`;
   
-  // 创建新的徽章对象，包含默认值
-  const newBadges = { ...currentUser.badges };
-  newBadges[badgeId] = {
-    realm: 'north', // 默认选择North
-    watchOver: '', // 默认为空
-    created_at: new Date().toISOString()
+  const timestamp = new Date().toISOString();
+  editingBadges = {
+    ...editingBadges,
+    [badgeId]: {
+      ...(editingBadges[badgeId] || {}),
+      realm: 'north',
+      watchOver: '',
+      created_at: timestamp,
+      updated_at: timestamp
+    }
   };
-  
-  console.log('Adding new badge to local data:', newBadges[badgeId]);
-  
-  // 更新本地用户数据（不保存到服务器）
-  currentUser.badges = newBadges;
-  
-  // 重新加载编辑模式显示
+
   loadEditableBadges();
+
+  requestAnimationFrame(() => {
+    const newlyCreated = document.querySelector(`.badge-edit-item[data-badge-id="${badgeId}"] .watch-over-input`);
+    newlyCreated?.focus();
+  });
   
   console.log('Badge added to edit mode successfully');
   console.log('=== Add Badge Debug End ===');

@@ -1264,7 +1264,7 @@ body {
 .portal .badges-card .badges-edit-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   padding: 20px 24px;
   background: rgba(255, 255, 255, 0.03);
@@ -1273,18 +1273,6 @@ body {
   margin-bottom: 20px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-
-.portal .badges-card .badges-edit-header h3 {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  background: linear-gradient(90deg, #ffffff, #ffe08a 55%, #c7e7ff 90%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
 }
 
 .portal .badges-card .edit-actions {

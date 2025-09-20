@@ -58,6 +58,27 @@ function hideError() {
   }
 }
 
+function showSuccess(message) {
+  const toast = $('#errorToast');
+  const messageEl = toast?.querySelector('.error-message');
+  
+  if (toast && messageEl) {
+    // 改变样式为成功样式
+    toast.classList.add('success-toast');
+    messageEl.textContent = message;
+    toast.style.display = 'flex';
+    // 3秒后自动隐藏
+    const timer = setTimeout(() => {
+      hideError();
+      toast.classList.remove('success-toast');
+    }, 3000);
+    // 存储timer id以便在手动关闭时清除
+    toast.dataset.timerId = timer;
+  } else {
+    alert(message);
+  }
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '';
   try {
@@ -392,7 +413,7 @@ function loadEditableBadges() {
   
   if (!currentUser?.badges) {
     console.log('No current user or badges data available');
-    badgesEditList.innerHTML = '<p class="no-badges">No badges available</p>';
+    badgesEditList.innerHTML = '<div class="no-badges-edit"><p>No badges available</p></div>';
     return;
   }
   
@@ -402,7 +423,7 @@ function loadEditableBadges() {
   
   if (badges.length === 0) {
     console.log('No badges found, showing empty state');
-    badgesEditList.innerHTML = '<p class="no-badges">No badges yet. Click "Add New Badge" to create your first badge!</p>';
+    badgesEditList.innerHTML = '<div class="no-badges-edit"><p>No badges yet. Click "Add New Badge" to create your first badge!</p></div>';
     return;
   }
   
@@ -412,18 +433,20 @@ function loadEditableBadges() {
     console.log(`Rendering editable badge ${id}:`, badge);
     return `
       <div class="badge-edit-item" data-badge-id="${id}">
-        <div class="badge-edit-content">
-          <div class="badge-edit-field">
-            <label>Name:</label>
-            <input type="text" class="badge-name-input" value="${badge.name || ''}" data-field="name">
+        <div class="badge-edit-header">
+          <div class="badge-edit-icon">
+            <span class="badge-icon">🏆</span>
           </div>
-          <div class="badge-edit-field">
-            <label>Description:</label>
-            <textarea class="badge-desc-input" data-field="description">${badge.description || ''}</textarea>
+          <div class="badge-edit-info">
+            <input type="text" class="badge-name-input" value="${badge.name || 'Unnamed Badge'}" placeholder="Badge Name" data-field="name">
+            <textarea class="badge-desc-input" placeholder="Badge Description" data-field="description">${badge.description || ''}</textarea>
           </div>
         </div>
         <div class="badge-edit-actions">
-          <button class="btn-delete" onclick="deleteBadge('${id}')">Delete</button>
+          <button class="btn btn-small btn-danger" onclick="deleteBadge('${id}')" title="Delete Badge">
+            <span class="btn-icon">🗑️</span>
+            Delete
+          </button>
         </div>
       </div>
     `;
@@ -486,10 +509,16 @@ function cancelEdit() {
 }
 
 async function addBadge() {
+  console.log('=== Add Badge Debug ===');
+  
   const name = prompt('Enter badge name:');
-  if (!name) return;
+  if (!name) {
+    console.log('Badge name cancelled');
+    return;
+  }
   
   const description = prompt('Enter badge description:') || 'No description';
+  console.log('Adding badge:', { name, description });
   
   try {
     // 创建新的徽章ID
@@ -503,19 +532,33 @@ async function addBadge() {
       created_at: new Date().toISOString()
     };
     
+    console.log('New badges object:', newBadges);
+    
     const response = await apiCall('/users/me', {
       method: 'PATCH',
       body: JSON.stringify({ badges: newBadges })
     });
     
+    console.log('API response:', response);
+    
     // 更新本地用户数据
     currentUser = response;
-    await loadBadges(); // 重新加载徽章显示
-    showError('Badge added successfully');
+    
+    // 如果在编辑模式，重新加载编辑模式显示
+    if (isEditMode) {
+      await loadEditableBadges();
+    } else {
+      await loadBadges(); // 重新加载徽章显示
+    }
+    
+    console.log('Badge added successfully');
+    showSuccess('Badge added successfully');
   } catch (error) {
     console.error('Failed to add badge:', error);
     showError('Failed to add badge');
   }
+  
+  console.log('=== Add Badge Debug End ===');
 }
 
 

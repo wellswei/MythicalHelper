@@ -433,20 +433,35 @@ function loadEditableBadges() {
     console.log(`Rendering editable badge ${id}:`, badge);
     return `
       <div class="badge-edit-item" data-badge-id="${id}">
-        <div class="badge-edit-header">
-          <div class="badge-edit-icon">
-            <span class="badge-icon">🏆</span>
+        <div class="badge-edit-content">
+          <!-- 第一行：Realm选择 + 删除按钮 -->
+          <div class="badge-edit-row">
+            <div class="realm-selector">
+              <label class="realm-label">Realm:</label>
+              <div class="realm-toggle">
+                <input type="radio" id="realm-north-${id}" name="realm-${id}" value="north" ${badge.realm === 'north' ? 'checked' : ''} data-field="realm">
+                <label for="realm-north-${id}" class="realm-option realm-north">North</label>
+                
+                <input type="radio" id="realm-tooth-${id}" name="realm-${id}" value="tooth" ${badge.realm === 'tooth' ? 'checked' : ''} data-field="realm">
+                <label for="realm-tooth-${id}" class="realm-option realm-tooth">Tooth</label>
+                
+                <input type="radio" id="realm-bunny-${id}" name="realm-${id}" value="bunny" ${badge.realm === 'bunny' ? 'checked' : ''} data-field="realm">
+                <label for="realm-bunny-${id}" class="realm-option realm-bunny">Bunny</label>
+              </div>
+            </div>
+            <button class="btn btn-small btn-danger" onclick="deleteBadge('${id}')" title="Delete Badge">
+              <span class="btn-icon">🗑️</span>
+              Delete
+            </button>
           </div>
-          <div class="badge-edit-info">
-            <input type="text" class="badge-name-input" value="${badge.name || 'Unnamed Badge'}" placeholder="Badge Name" data-field="name">
-            <textarea class="badge-desc-input" placeholder="Badge Description" data-field="description">${badge.description || ''}</textarea>
+          
+          <!-- 第二行：Whom you watch over -->
+          <div class="badge-edit-row">
+            <div class="watch-over-field">
+              <label class="watch-over-label">Whom you watch over:</label>
+              <input type="text" class="watch-over-input" value="${badge.watchOver || ''}" placeholder="Enter who you watch over" data-field="watchOver">
+            </div>
           </div>
-        </div>
-        <div class="badge-edit-actions">
-          <button class="btn btn-small btn-danger" onclick="deleteBadge('${id}')" title="Delete Badge">
-            <span class="btn-icon">🗑️</span>
-            Delete
-          </button>
         </div>
       </div>
     `;
@@ -468,13 +483,13 @@ async function saveBadges() {
     
     badgeItems.forEach(item => {
       const badgeId = item.dataset.badgeId;
-      const nameInput = item.querySelector('.badge-name-input');
-      const descInput = item.querySelector('.badge-desc-input');
+      const realmInput = item.querySelector('input[name^="realm-"]:checked');
+      const watchOverInput = item.querySelector('.watch-over-input');
       
-      if (nameInput && descInput) {
+      if (realmInput && watchOverInput) {
         updatedBadges[badgeId] = {
-          name: nameInput.value.trim(),
-          description: descInput.value.trim()
+          realm: realmInput.value,
+          watchOver: watchOverInput.value.trim()
         };
       }
     });
@@ -511,29 +526,20 @@ function cancelEdit() {
 async function addBadge() {
   console.log('=== Add Badge Debug ===');
   
-  const name = prompt('Enter badge name:');
-  if (!name) {
-    console.log('Badge name cancelled');
-    return;
-  }
+  // 创建新的徽章ID
+  const badgeId = `badge_${Date.now()}`;
   
-  const description = prompt('Enter badge description:') || 'No description';
-  console.log('Adding badge:', { name, description });
+  // 创建新的徽章对象，包含默认值
+  const newBadges = { ...currentUser.badges };
+  newBadges[badgeId] = {
+    realm: 'north', // 默认选择North
+    watchOver: '', // 默认为空
+    created_at: new Date().toISOString()
+  };
+  
+  console.log('Adding new badge:', newBadges[badgeId]);
   
   try {
-    // 创建新的徽章ID
-    const badgeId = `badge_${Date.now()}`;
-    
-    // 创建新的徽章对象
-    const newBadges = { ...currentUser.badges };
-    newBadges[badgeId] = {
-      name: name,
-      description: description,
-      created_at: new Date().toISOString()
-    };
-    
-    console.log('New badges object:', newBadges);
-    
     const response = await apiCall('/users/me', {
       method: 'PATCH',
       body: JSON.stringify({ badges: newBadges })

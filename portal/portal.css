@@ -1256,57 +1256,111 @@ body {
 }
 
 /* Badge Edit Mode Components */
-.portal .badge-edit-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  flex: 1;
-}
-
-.portal .badge-edit-icon {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-}
-
-.portal .badge-edit-info {
-  flex: 1;
+.portal .badge-edit-content {
+  width: 100%;
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.portal .badge-edit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.portal .realm-selector {
+  display: flex;
+  align-items: center;
   gap: 12px;
+  flex: 1;
 }
 
-.portal .badge-name-input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 12px 16px;
-  color: #ffffff;
-  font-size: 16px;
+.portal .realm-label {
+  font-size: 14px;
   font-weight: 600;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+
+.portal .realm-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.portal .realm-toggle input[type="radio"] {
+  display: none;
+}
+
+.portal .realm-option {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
   transition: all 0.2s ease;
-  width: 100%;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.portal .badge-name-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.portal .realm-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.portal .badge-name-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+.portal .realm-option.realm-north {
+  border-color: rgba(135, 206, 250, 0.3);
 }
 
-.portal .badge-desc-input {
+.portal .realm-option.realm-tooth {
+  border-color: rgba(221, 160, 221, 0.3);
+}
+
+.portal .realm-option.realm-bunny {
+  border-color: rgba(144, 238, 144, 0.3);
+}
+
+.portal .realm-toggle input[type="radio"]:checked + .realm-option {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.portal .realm-toggle input[type="radio"]:checked + .realm-option.realm-north {
+  background: rgba(135, 206, 250, 0.2);
+  border-color: rgba(135, 206, 250, 0.6);
+  box-shadow: 0 0 10px rgba(135, 206, 250, 0.3);
+}
+
+.portal .realm-toggle input[type="radio"]:checked + .realm-option.realm-tooth {
+  background: rgba(221, 160, 221, 0.2);
+  border-color: rgba(221, 160, 221, 0.6);
+  box-shadow: 0 0 10px rgba(221, 160, 221, 0.3);
+}
+
+.portal .realm-toggle input[type="radio"]:checked + .realm-option.realm-bunny {
+  background: rgba(144, 238, 144, 0.2);
+  border-color: rgba(144, 238, 144, 0.6);
+  box-shadow: 0 0 10px rgba(144, 238, 144, 0.3);
+}
+
+.portal .watch-over-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.portal .watch-over-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+
+.portal .watch-over-input {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -1315,19 +1369,17 @@ body {
   font-size: 14px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   transition: all 0.2s ease;
-  width: 100%;
-  min-height: 60px;
-  resize: vertical;
+  flex: 1;
 }
 
-.portal .badge-desc-input:focus {
+.portal .watch-over-input:focus {
   outline: none;
   border-color: #3b82f6;
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.portal .badge-desc-input::placeholder {
+.portal .watch-over-input::placeholder {
   color: rgba(255, 255, 255, 0.4);
 }
 

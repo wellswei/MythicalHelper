@@ -64,7 +64,7 @@ function formatDate(dateStr) {
     return new Date(dateStr).toLocaleDateString(undefined, { 
       year: 'numeric', month: 'long', day: 'numeric'
     });
-  } catch (e) {
+      } catch (e) {
     return dateStr;
   }
 }
@@ -135,7 +135,7 @@ function updateUserInfo() {
     console.log('No current user data, skipping update');
     return;
   }
-  
+
   const fields = {
     userName: currentUser.username || 'Unknown User',
     userEmail: currentUser.email || 'No Email',
@@ -144,7 +144,7 @@ function updateUserInfo() {
   };
   
   console.log('Fields to update:', fields);
-  
+
   Object.entries(fields).forEach(([id, value]) => {
     const element = $(id);
     console.log(`Updating ${id}:`, element ? 'Found' : 'Not found', 'Value:', value);
@@ -182,14 +182,10 @@ async function generateQRCode() {
       throw new Error('QRCode library not loaded');
     }
 
-     // 创建QR码数据
-     const qrData = JSON.stringify({
-       id: currentUser.user_id,
-       userId: currentUser.user_id, // 保持向后兼容
-       username: currentUser.username,
-       email: currentUser.email,
-       timestamp: Date.now()
-     });
+     // 创建QR码数据 - 生成指向scan页面的链接
+     const baseUrl = window.location.origin;
+     const scanUrl = `${baseUrl}/scan/scan.html?id=${encodeURIComponent(currentUser.user_id)}`;
+     const qrData = scanUrl;
 
     console.log('QR data to encode:', qrData);
     console.log('QR data length:', qrData.length);
@@ -215,6 +211,9 @@ async function generateQRCode() {
      
      console.log('QRCode instance created:', qr);
      console.log('Container after QR creation:', container.innerHTML.length, 'characters');
+     
+     // 更新容器的title属性显示链接
+     container.title = qrData;
 
     console.log('QR code generated successfully');
   } catch (error) {
@@ -324,7 +323,7 @@ async function deleteBadge(badgeId) {
     await loadBadges(); // 重新加载徽章显示
     showError('Badge deleted successfully');
     return true;
-  } catch (error) {
+    } catch (error) {
     console.error('Failed to delete badge:', error);
     showError('Failed to delete badge');
     return false;
@@ -341,10 +340,12 @@ function toggleEditMode() {
   const editBtn = $('#btnToggleEditMode');
   const editActions = $('#headerEditActions');
   const badgesDisplay = $('#badgesDisplay');
+  const badgesEdit = $('#badgesEdit');
   
   console.log('Edit button element:', editBtn);
   console.log('Edit actions element:', editActions);
   console.log('Badges display element:', badgesDisplay);
+  console.log('Badges edit element:', badgesEdit);
   
   if (editBtn) {
     editBtn.textContent = isEditMode ? 'Cancel Edit' : 'Edit Mode';
@@ -356,37 +357,42 @@ function toggleEditMode() {
     console.log('Edit actions display set to:', editActions.style.display);
   }
   
-  if (badgesDisplay) {
-    badgesDisplay.classList.toggle('edit-mode', isEditMode);
-    console.log('Badges display edit-mode class:', badgesDisplay.classList.contains('edit-mode'));
-  }
-  
   if (isEditMode) {
     console.log('Entering edit mode, loading editable badges');
     loadEditableBadges();
   } else {
     console.log('Exiting edit mode, loading normal badges');
-    loadBadges(); // 退出编辑模式时重新加载正常显示
+    // 切换回显示模式
+    if (badgesDisplay) badgesDisplay.style.display = 'block';
+    if (badgesEdit) badgesEdit.style.display = 'none';
+    loadBadges(); // 重新加载正常显示
   }
   console.log('=== Toggle Edit Mode Debug End ===');
 }
 
 function loadEditableBadges() {
   console.log('=== Load Editable Badges Debug ===');
-  const badgesGrid = $('#badgesGrid');
-  const noBadges = $('#noBadges');
+  const badgesEditList = $('#badgesEditList');
+  const badgesDisplay = $('#badgesDisplay');
+  const badgesEdit = $('#badgesEdit');
   
-  console.log('Badges grid element:', badgesGrid);
-  console.log('No badges element:', noBadges);
+  console.log('Badges edit list element:', badgesEditList);
+  console.log('Badges display element:', badgesDisplay);
+  console.log('Badges edit element:', badgesEdit);
   console.log('Current user badges:', currentUser?.badges);
   
-  if (!badgesGrid) {
-    console.error('Badges grid not found! Looking for #badgesGrid');
+  if (!badgesEditList) {
+    console.error('Badges edit list not found! Looking for #badgesEditList');
     return;
   }
   
+  // 切换到编辑模式
+  if (badgesDisplay) badgesDisplay.style.display = 'none';
+  if (badgesEdit) badgesEdit.style.display = 'block';
+  
   if (!currentUser?.badges) {
     console.log('No current user or badges data available');
+    badgesEditList.innerHTML = '<p class="no-badges">No badges available</p>';
     return;
   }
   
@@ -395,24 +401,28 @@ function loadEditableBadges() {
   console.log('Number of badges:', badges.length);
   
   if (badges.length === 0) {
-    console.log('No badges found, showing no badges message');
-    if (noBadges) noBadges.style.display = 'block';
-    if (badgesGrid) badgesGrid.innerHTML = '';
+    console.log('No badges found, showing empty state');
+    badgesEditList.innerHTML = '<p class="no-badges">No badges yet. Click "Add New Badge" to create your first badge!</p>';
     return;
   }
   
   console.log('Displaying editable badges');
-  if (noBadges) noBadges.style.display = 'none';
   
   const badgesHTML = badges.map(([id, badge]) => {
     console.log(`Rendering editable badge ${id}:`, badge);
     return `
-      <div class="badge-item edit-mode" data-badge-id="${id}">
-        <div class="badge-content">
-          <h3>${badge.name || 'Unnamed Badge'}</h3>
-          <p>${badge.description || 'No description'}</p>
+      <div class="badge-edit-item" data-badge-id="${id}">
+        <div class="badge-edit-content">
+          <div class="badge-edit-field">
+            <label>Name:</label>
+            <input type="text" class="badge-name-input" value="${badge.name || ''}" data-field="name">
+          </div>
+          <div class="badge-edit-field">
+            <label>Description:</label>
+            <textarea class="badge-desc-input" data-field="description">${badge.description || ''}</textarea>
+          </div>
         </div>
-        <div class="badge-actions">
+        <div class="badge-edit-actions">
           <button class="btn-delete" onclick="deleteBadge('${id}')">Delete</button>
         </div>
       </div>
@@ -420,15 +430,55 @@ function loadEditableBadges() {
   }).join('');
   
   console.log('Generated editable badges HTML length:', badgesHTML.length);
-  badgesGrid.innerHTML = badgesHTML;
-  console.log('Editable badges grid updated');
+  badgesEditList.innerHTML = badgesHTML;
+  console.log('Editable badges list updated');
   console.log('=== Load Editable Badges Debug End ===');
 }
 
-function saveBadges() {
-  // 简化版保存徽章
-  console.log('Badges saved');
-  toggleEditMode();
+async function saveBadges() {
+  console.log('=== Save Badges Debug ===');
+  
+  try {
+    // 收集所有编辑的徽章数据
+    const badgeItems = document.querySelectorAll('.badge-edit-item');
+    const updatedBadges = {};
+    
+    badgeItems.forEach(item => {
+      const badgeId = item.dataset.badgeId;
+      const nameInput = item.querySelector('.badge-name-input');
+      const descInput = item.querySelector('.badge-desc-input');
+      
+      if (nameInput && descInput) {
+        updatedBadges[badgeId] = {
+          name: nameInput.value.trim(),
+          description: descInput.value.trim()
+        };
+      }
+    });
+    
+    console.log('Updated badges:', updatedBadges);
+    
+    // 调用API保存徽章
+    const response = await apiCall('/api/badges', {
+      method: 'PUT',
+      body: JSON.stringify({ badges: updatedBadges })
+    });
+    
+    console.log('Badges saved successfully:', response);
+    
+    // 更新当前用户数据
+    if (currentUser) {
+      currentUser.badges = updatedBadges;
+    }
+    
+    // 退出编辑模式
+    toggleEditMode();
+    
+    console.log('=== Save Badges Debug End ===');
+  } catch (error) {
+    console.error('Failed to save badges:', error);
+    showError('Failed to save badges');
+  }
 }
 
 function cancelEdit() {
@@ -626,8 +676,8 @@ async function waitForQRCode(timeout = 5000) {
   return new Promise((resolve, reject) => {
     if (typeof QRCode !== 'undefined') {
       resolve();
-      return;
-    }
+    return;
+  }
 
     const startTime = Date.now();
     const checkInterval = 100; // 每100ms检查一次
@@ -685,7 +735,7 @@ async function initializePortal() {
   
   console.log('User is authenticated, proceeding with initialization');
   handlePaymentResult();
-  setupEventListeners();
+    setupEventListeners();
   
   try {
     console.log('Starting parallel loading of QRCode library and user data...');
@@ -718,7 +768,7 @@ async function initializePortal() {
     if (currentUser && qrCodeLoaded.status === 'fulfilled') {
       console.log('Generating QR code after successful initialization');
       await generateQRCode();
-    } else {
+  } else {
       console.warn('QR code generation skipped:', 
         qrCodeLoaded.status === 'rejected' ? qrCodeLoaded.reason : 'User data not available');
     }
@@ -769,7 +819,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // 备用：如果DOMContentLoaded已经触发，立即执行
 if (document.readyState === 'loading') {
   console.log('Document still loading, waiting for DOMContentLoaded');
-} else {
+      } else {
   console.log('Document already loaded, initializing immediately');
   setTimeout(startInitialization, 100);
 }

@@ -13,6 +13,15 @@ class Config:
         self.API_URL = "https://api.mythicalhelper.org"
         self.DATABASE_URL = "sqlite:///mythicalhelper.db"
         
+        # ========= 邮件模式配置 =========
+        self.EMAIL_MODE = "test"  # "test" 或 "production"
+        # test: 打印magic link到控制台，不发送邮件
+        # production: 通过Zoho发送真实邮件
+        
+        # 快速切换方法：
+        # self.set_test_mode()   # 切换到测试模式
+        # self.set_production_mode()  # 切换到生产模式
+        
         # ========= 安全密钥 =========
         self.JWT_SECRET_KEY = "mythical-helper-jwt-secret-key-2024-production"
         self.ENCRYPTION_KEY = "mythical-helper-encryption-key-2024-production"
@@ -473,6 +482,7 @@ class Config:
             "environment": self.DEPLOYMENT_ENV,
             "version": self.VERSION,
             "build_date": self.BUILD_DATE,
+            "email_mode": self.EMAIL_MODE,
             "maintenance_mode": self.MAINTENANCE_MODE,
             "maintenance_message": self.MAINTENANCE_MESSAGE,
             "maintenance_end_time": self.MAINTENANCE_END_TIME,
@@ -497,6 +507,16 @@ class Config:
             print("✅ 配置验证通过")
         except ValueError as e:
             print(f"❌ 配置验证失败: {e}")
+    
+    def set_test_mode(self):
+        """切换到测试模式"""
+        self.EMAIL_MODE = "test"
+        print("[CONFIG] 切换到测试模式 - magic link将打印到控制台")
+    
+    def set_production_mode(self):
+        """切换到生产模式"""
+        self.EMAIL_MODE = "production"
+        print("[CONFIG] 切换到生产模式 - magic link将通过Zoho发送邮件")
     
     def to_dict(self):
         """转换为字典格式"""

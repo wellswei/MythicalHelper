@@ -109,7 +109,7 @@
           <div class="qr-container">
             <div class="qr-box" id="qrCode">
             </div>
-            <p class="muted">Scan to preview your badges</p>
+            <p class="muted">Scan to view your badges</p>
           </div>
         </div>
       </div>
@@ -263,38 +263,5 @@
   
   <script src="portal.js?v=20250107-27&t=1737360000"></script>
   
-  <!-- 直接DOM测试 -->
-  <script>
-    console.log('=== DIRECT HTML TEST ===');
-    console.log('Document ready state:', document.readyState);
-    console.log('Document body:', !!document.body);
-    console.log('All divs:', document.querySelectorAll('div').length);
-    console.log('QR Code element:', document.getElementById('qrCode'));
-    console.log('Badges Grid element:', document.getElementById('badgesGrid'));
-    console.log('Badges Display element:', document.getElementById('badgesDisplay'));
-    console.log('=== END DIRECT HTML TEST ===');
-    
-    // 添加测试按钮
-    setTimeout(function() {
-      const testBtn = document.createElement('button');
-      testBtn.textContent = 'Test DOM Elements';
-      testBtn.style.position = 'fixed';
-      testBtn.style.top = '10px';
-      testBtn.style.right = '10px';
-      testBtn.style.zIndex = '9999';
-      testBtn.style.background = 'red';
-      testBtn.style.color = 'white';
-      testBtn.style.padding = '10px';
-      testBtn.onclick = function() {
-        console.log('=== MANUAL DOM TEST ===');
-        console.log('QR Code element:', document.getElementById('qrCode'));
-        console.log('Badges Grid element:', document.getElementById('badgesGrid'));
-        console.log('All elements with id qrCode:', document.querySelectorAll('#qrCode'));
-        console.log('All elements with id badgesGrid:', document.querySelectorAll('#badgesGrid'));
-        console.log('=== END MANUAL DOM TEST ===');
-      };
-      document.body.appendChild(testBtn);
-    }, 1000);
-  </script>
 </body>
 </html>

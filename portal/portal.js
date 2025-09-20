@@ -172,25 +172,15 @@ async function generateQRCode() {
 
     console.log('Generating QR code with data:', qrData);
 
-     // 创建canvas元素
-     const canvas = document.createElement('canvas');
-     container.appendChild(canvas);
-     
-     // 生成QR码到canvas
-     await QRCode.toCanvas(canvas, qrData, {
-       errorCorrectionLevel: 'M',
-       margin: 1,
+     // 使用QRCode.js库的构造函数API
+     new QRCode(container, {
+       text: qrData,
        width: 200,
-       scale: 4,
-       color: {
-         dark: '#000000',
-         light: '#ffffff'
-       }
+       height: 200,
+       colorDark: '#000000',
+       colorLight: '#ffffff',
+       correctLevel: QRCode.CorrectLevel.M
      });
-     
-     // 确保画布居中显示
-     canvas.style.display = 'block';
-     canvas.style.margin = '0 auto';
 
     console.log('QR code generated successfully');
   } catch (error) {
@@ -286,6 +276,40 @@ function toggleEditMode() {
   if (editBtn) editBtn.textContent = isEditMode ? 'Cancel Edit' : 'Edit Mode';
   if (editActions) editActions.style.display = isEditMode ? 'flex' : 'none';
   if (badgesDisplay) badgesDisplay.classList.toggle('edit-mode', isEditMode);
+  
+  if (isEditMode) {
+    loadEditableBadges();
+  } else {
+    loadBadges(); // 退出编辑模式时重新加载正常显示
+  }
+}
+
+function loadEditableBadges() {
+  const badgesGrid = $('#badgesGrid');
+  const noBadges = $('#noBadges');
+  
+  if (!badgesGrid || !currentUser?.badges) return;
+  
+  const badges = Object.entries(currentUser.badges);
+  
+  if (badges.length === 0) {
+    if (noBadges) noBadges.style.display = 'block';
+    if (badgesGrid) badgesGrid.innerHTML = '';
+    return;
+  }
+  
+  if (noBadges) noBadges.style.display = 'none';
+  badgesGrid.innerHTML = badges.map(([id, badge]) => `
+    <div class="badge-item edit-mode" data-badge-id="${id}">
+      <div class="badge-content">
+        <h3>${badge.name || 'Unnamed Badge'}</h3>
+        <p>${badge.description || 'No description'}</p>
+      </div>
+      <div class="badge-actions">
+        <button class="btn-delete" onclick="deleteBadge('${id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
 }
 
 function saveBadges() {
@@ -381,14 +405,19 @@ async function loadPurchaseHistory() {
   if (noHistory) noHistory.style.display = 'none';
   
   try {
+    console.log('Loading purchase history...');
     const response = await apiCall('/api/payment/history');
+    console.log('Purchase history response:', response);
     purchaseHistory = response.history || [];
+    console.log('Purchase history data:', purchaseHistory);
     
     if (loading) loading.style.display = 'none';
     
     if (purchaseHistory.length === 0) {
+      console.log('No purchase history found');
       if (noHistory) noHistory.style.display = 'block';
     } else {
+      console.log('Displaying purchase history');
       displayPurchaseHistory();
     }
   } catch (error) {

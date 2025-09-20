@@ -1,5 +1,7 @@
 // ===== PORTAL JAVASCRIPT =====
 
+// portal.js — user portal functionality v20250107-24
+console.log('=== PORTAL.JS LOADED v20250107-24 ===');
 // 配置
 const API_BASE = 'https://api.mythicalhelper.org';
 

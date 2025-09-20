@@ -23,7 +23,13 @@ function $(id) {
 // ===== QR码生成 =====
 function generateQRCode() {
   const qrContainer = document.getElementById('qrCode');
-  if (!qrContainer || !currentUser) return;
+  if (!qrContainer || !currentUser) {
+    console.log('QR container or currentUser not available');
+    return;
+  }
+  
+  console.log('Generating QR code for user:', currentUser.username);
+  console.log('QRCode library available:', typeof QRCode !== 'undefined');
   
   // 生成QR码数据（用户ID和用户名）
   const qrData = JSON.stringify({
@@ -37,16 +43,34 @@ function generateQRCode() {
   
   // 使用QRCode.js生成QR码
   if (typeof QRCode !== 'undefined') {
-    new QRCode(qrContainer, {
-      text: qrData,
-      width: 200,
-      height: 200,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
+    try {
+      // 使用QRCode.js的正确API - 创建canvas元素
+      const canvas = document.createElement('canvas');
+      qrContainer.appendChild(canvas);
+      
+      QRCode.toCanvas(canvas, qrData, {
+        width: 200,
+        height: 200,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        },
+        errorCorrectionLevel: 'M'
+      }, function (error) {
+        if (error) {
+          console.error('Error generating QR code:', error);
+          qrContainer.innerHTML = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc;">QR Code Error</div>';
+        } else {
+          console.log('QR Code generated successfully');
+        }
+      });
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      qrContainer.innerHTML = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc;">QR Code Error</div>';
+    }
   } else {
     // 如果QRCode.js未加载，显示占位符
+    console.log('QRCode.js not loaded, showing placeholder');
     qrContainer.innerHTML = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc;">QR Code</div>';
   }
 }
@@ -508,7 +532,8 @@ async function apiCall(endpoint, options = {}) {
     }
   };
 
-  const response = await fetch(`${API_BASE}${endpoint}`, { ...defaultOptions, ...options });
+  const url = `${API_BASE}${endpoint}`;
+  const response = await fetch(url, { ...defaultOptions, ...options });
   
   if (!response.ok) {
     let errorMessage = 'Request failed';
@@ -737,23 +762,23 @@ function setupEventListeners() {
   
   // 邮箱变更
   const changeEmailBtn = $('#btnChangeEmail');
-  if (changeEmailBtn) {
-    changeEmailBtn.addEventListener('click', openEmailEditor);
-  }
+  if (changeEmailBtn) changeEmailBtn.addEventListener('click', openEmailEditor);
   
   // 邮箱变更相关按钮
   const sendEmailBtn = $('#btnSendEmailCode');
   if (sendEmailBtn) sendEmailBtn.addEventListener('click', onEmailPrimaryClick);
   
   const cancelEmailBtn = $('#btnCancelEmailChange');
-  if (cancelEmailBtn) cancelEmailBtn.addEventListener('click', () => {
-    clearEmailChangeState();
-    resetEmailEditorUI(true);
-    const profileCard = document.getElementById('profileCard');
-    const emailChangeCard = document.getElementById('emailChangeCard');
-    if (profileCard) profileCard.style.display = 'block';
-    if (emailChangeCard) emailChangeCard.style.display = 'none';
-  });
+  if (cancelEmailBtn) {
+    cancelEmailBtn.addEventListener('click', () => {
+      clearEmailChangeState();
+      resetEmailEditorUI(true);
+      const profileCard = document.getElementById('profileCard');
+      const emailChangeCard = document.getElementById('emailChangeCard');
+      if (profileCard) profileCard.style.display = 'block';
+      if (emailChangeCard) emailChangeCard.style.display = 'none';
+    });
+  }
   
   // 编辑模式按钮
   const editModeBtn = $('#btnToggleEditMode');
@@ -854,12 +879,28 @@ function initializePortal() {
   
   // 加载用户数据
   loadUserData().then(() => {
-    console.log('User data loaded successfully');
+    console.log('User data loaded successfully, currentUser:', currentUser);
     
     // 用户数据加载完成后，初始化其他功能
-    generateQRCode();
     loadBadges();
     loadPurchaseHistory();
+    
+    // 等待QRCode.js库加载完成后再生成二维码
+    if (typeof QRCode !== 'undefined') {
+      console.log('QRCode library available, generating QR code');
+      generateQRCode();
+    } else {
+      console.log('QRCode library not available, waiting...');
+      // 如果QRCode.js还没加载，等待一下再试
+      setTimeout(() => {
+        if (typeof QRCode !== 'undefined') {
+          console.log('QRCode library loaded after timeout, generating QR code');
+          generateQRCode();
+        } else {
+          console.log('QRCode.js still not loaded after timeout');
+        }
+      }, 2000);
+    }
   }).catch(error => {
     console.error('Failed to load user data:', error);
   });

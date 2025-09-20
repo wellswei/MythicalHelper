@@ -540,7 +540,9 @@ async function apiCall(endpoint, options = {}) {
     throw new Error(errorMessage);
   }
 
-  return await response.json();
+  const data = await response.json();
+  console.log('apiCall response data:', data);
+  return data;
 }
 
 // ===== 用户数据加载 =====
@@ -878,9 +880,6 @@ function initializePortal() {
     // 用户数据加载完成后，初始化其他功能
     loadBadges();
     loadPurchaseHistory();
-    
-    // 更新用户信息显示
-    updateUserInfo();
     
     // 等待QRCode.js库加载完成后再生成二维码
     if (typeof QRCode !== 'undefined') {

@@ -752,6 +752,12 @@ console.log('Elements with id qrCode:', document.querySelectorAll('#qrCode').len
 console.log('Elements with id badgesGrid:', document.querySelectorAll('#badgesGrid').length);
 console.log('=== End Immediate DOM Test ===');
 
+// 使用window.onload确保所有资源都加载完成
+window.addEventListener('load', function() {
+  console.log('Window load event fired - all resources loaded');
+  setTimeout(startInitialization, 200);
+});
+
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM Content Loaded event fired');
   // 添加小延迟确保所有元素都已渲染

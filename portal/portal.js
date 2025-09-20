@@ -177,26 +177,82 @@ function addBadge() {
 }
 
 // ===== 支付功能 =====
-function renewMembership() {
-  // 这里应该集成Stripe支付
-  console.log('Renewing membership...');
-  showSuccess('Redirecting to payment...');
+async function renewMembership() {
+  console.log('Starting membership renewal...');
   
-  // 模拟支付流程
-  setTimeout(() => {
-    showSuccess('Payment successful! Your membership has been renewed.');
-  }, 2000);
+  const btn = document.getElementById('btnRenewMembership');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+  }
+  
+  try {
+    // 调用后端API创建Stripe checkout session
+    const response = await apiCall('/api/payment/renewal', {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+    
+    if (response && response.checkout_url) {
+      // 重定向到Stripe checkout页面
+      window.location.href = response.checkout_url;
+    } else {
+      throw new Error('Invalid response from payment server');
+    }
+  } catch (error) {
+    console.error('Failed to create renewal session:', error);
+    showError('Failed to start payment process. Please try again.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'RENEW YOUR ENCHANTMENT';
+    }
+  }
 }
 
-function makeDonation() {
-  // 这里应该集成Stripe支付
-  console.log('Making donation...');
-  showSuccess('Redirecting to donation...');
+async function makeDonation() {
+  console.log('Starting donation process...');
   
-  // 模拟支付流程
-  setTimeout(() => {
-    showSuccess('Thank you for your donation!');
-  }, 2000);
+  // 获取捐赠金额
+  const amount = prompt('Enter donation amount (minimum $1.00):');
+  if (!amount) return;
+  
+  const amountCents = Math.round(parseFloat(amount) * 100);
+  if (amountCents < 100) {
+    showError('Minimum donation amount is $1.00');
+    return;
+  }
+  
+  const btn = document.getElementById('btnMakeDonation');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+  }
+  
+  try {
+    // 调用后端API创建Stripe checkout session
+    const response = await apiCall('/api/payment/donation', {
+      method: 'POST',
+      body: JSON.stringify({
+        amount: amountCents
+      })
+    });
+    
+    if (response && response.checkout_url) {
+      // 重定向到Stripe checkout页面
+      window.location.href = response.checkout_url;
+    } else {
+      throw new Error('Invalid response from payment server');
+    }
+  } catch (error) {
+    console.error('Failed to create donation session:', error);
+    showError('Failed to start donation process. Please try again.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'SHARE A GIFT OF KINDNESS';
+    }
+  }
 }
 
 // ===== 购买历史加载 =====
@@ -210,7 +266,7 @@ async function loadPurchaseHistory() {
   
   try {
     // 调用API获取购买历史
-    const history = await apiCall('/purchases/history');
+    const history = await apiCall('/api/purchases');
     purchaseHistory = history || [];
     
     if (historyLoading) historyLoading.style.display = 'none';
@@ -748,6 +804,37 @@ function setupEventListeners() {
   }
 }
 
+// ===== 支付结果处理 =====
+function handlePaymentResult() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const renewal = urlParams.get('renewal');
+  const donation = urlParams.get('donation');
+  
+  if (renewal === 'success') {
+    showSuccess('Payment successful! Your membership has been renewed for another year.');
+    // 重新加载用户数据以更新有效期
+    loadUserData();
+    // 清除URL参数
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else if (renewal === 'cancelled') {
+    showError('Payment was cancelled. You can try again anytime.');
+    // 清除URL参数
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+  
+  if (donation === 'success') {
+    showSuccess('Thank you for your donation! Your generosity helps our guild shine brighter.');
+    // 重新加载购买历史
+    loadPurchaseHistory();
+    // 清除URL参数
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else if (donation === 'cancelled') {
+    showError('Donation was cancelled. You can try again anytime.');
+    // 清除URL参数
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
 // ===== 页面加载完成后初始化 =====
 function initializePortal() {
   console.log('Initializing Portal...');
@@ -758,6 +845,9 @@ function initializePortal() {
     redirectToAuth();
     return;
   }
+  
+  // 处理支付结果
+  handlePaymentResult();
   
   // 设置事件监听器
   setupEventListeners();

@@ -261,6 +261,18 @@
     });
   </script>
   
-  <script src="portal.js?v=20250107-24&t=1737360000"></script>
+  <script src="portal.js?v=20250107-25&t=1737360000"></script>
+  
+  <!-- 直接DOM测试 -->
+  <script>
+    console.log('=== DIRECT HTML TEST ===');
+    console.log('Document ready state:', document.readyState);
+    console.log('Document body:', !!document.body);
+    console.log('All divs:', document.querySelectorAll('div').length);
+    console.log('QR Code element:', document.getElementById('qrCode'));
+    console.log('Badges Grid element:', document.getElementById('badgesGrid'));
+    console.log('Badges Display element:', document.getElementById('badgesDisplay'));
+    console.log('=== END DIRECT HTML TEST ===');
+  </script>
 </body>
 </html>

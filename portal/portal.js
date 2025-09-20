@@ -664,6 +664,15 @@ async function initializePortal() {
     console.log('After waiting:');
     console.log('- #qrCode:', $('#qrCode'));
     console.log('- #badgesGrid:', $('#badgesGrid'));
+    
+    // 如果还是找不到，再等待1秒
+    if (!$('#qrCode') || !$('#badgesGrid')) {
+      console.log('Elements still not found, waiting 1s more...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('After 1s wait:');
+      console.log('- #qrCode:', $('#qrCode'));
+      console.log('- #badgesGrid:', $('#badgesGrid'));
+    }
   }
   
   if (!isAuthenticated()) {

@@ -646,10 +646,23 @@ async function initializePortal() {
   console.log('=== Portal Initialization Debug ===');
   console.log('Initializing Portal...');
   console.log('Document ready state:', document.readyState);
+  console.log('Document body:', document.body);
+  console.log('All elements with id qrCode:', document.querySelectorAll('#qrCode'));
+  console.log('All elements with id badgesGrid:', document.querySelectorAll('#badgesGrid'));
+  
   console.log('DOM elements check:');
   console.log('- #qrCode:', $('#qrCode'));
   console.log('- #badgesGrid:', $('#badgesGrid'));
   console.log('- #badgesDisplay:', $('#badgesDisplay'));
+  
+  // 如果元素还是找不到，等待更长时间
+  if (!$('#qrCode') || !$('#badgesGrid')) {
+    console.log('Elements not found, waiting 500ms more...');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    console.log('After waiting:');
+    console.log('- #qrCode:', $('#qrCode'));
+    console.log('- #badgesGrid:', $('#badgesGrid'));
+  }
   
   if (!isAuthenticated()) {
     console.log('User not authenticated, redirecting to auth');
@@ -707,10 +720,22 @@ async function initializePortal() {
 }
 
 // ===== 页面加载 =====
+let initializationStarted = false;
+
+function startInitialization() {
+  if (initializationStarted) {
+    console.log('Initialization already started, skipping');
+    return;
+  }
+  initializationStarted = true;
+  console.log('Starting portal initialization');
+  initializePortal();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM Content Loaded event fired');
   // 添加小延迟确保所有元素都已渲染
-  setTimeout(initializePortal, 100);
+  setTimeout(startInitialization, 100);
 });
 
 // 备用：如果DOMContentLoaded已经触发，立即执行
@@ -718,5 +743,5 @@ if (document.readyState === 'loading') {
   console.log('Document still loading, waiting for DOMContentLoaded');
 } else {
   console.log('Document already loaded, initializing immediately');
-  setTimeout(initializePortal, 100);
+  setTimeout(startInitialization, 100);
 }

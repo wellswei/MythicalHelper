@@ -86,20 +86,10 @@
               <input type="email" id="newEmailInput" class="form-input" placeholder="you@example.com" />
             </div>
             
-            <!-- Turnstile验证 -->
-            <div class="turnstile-container">
-              <div class="cf-turnstile"
-                   data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
-                   data-callback="onPortalTurnstileSuccess"
-                   data-expired-callback="onPortalTurnstileExpired"
-                   data-error-callback="onPortalTurnstileError"
-                   data-action="submit">
-              </div>
-            </div>
             
             <div class="error" id="errPortalEmail"></div>
             <div class="actions">
-              <button class="btn primary" id="btnSendEmailCode" type="button">Send Code</button>
+              <button class="btn primary" id="btnSendEmailCode" type="button">Send Magic Link</button>
               <button class="btn cancel" id="btnCancelEmailChange" type="button">Cancel</button>
             </div>
           </div>
@@ -260,8 +250,8 @@
     });
   </script>
   
-  <!-- Turnstile 脚本 -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <!-- QRCode.js 脚本 -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   
   <script src="portal.js?v=20250107-4"></script>
 </body>

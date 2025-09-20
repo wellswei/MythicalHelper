@@ -44,26 +44,16 @@ function generateQRCode() {
   // 使用QRCode.js生成QR码
   if (typeof QRCode !== 'undefined') {
     try {
-      // 使用QRCode.js的正确API - 创建canvas元素
-      const canvas = document.createElement('canvas');
-      qrContainer.appendChild(canvas);
-      
-      QRCode.toCanvas(canvas, qrData, {
+      // 使用QRCode.js的正确API - 直接传入容器元素
+      new QRCode(qrContainer, {
+        text: qrData,
         width: 200,
         height: 200,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
-        },
-        errorCorrectionLevel: 'M'
-      }, function (error) {
-        if (error) {
-          console.error('Error generating QR code:', error);
-          qrContainer.innerHTML = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc;">QR Code Error</div>';
-        } else {
-          console.log('QR Code generated successfully');
-        }
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
       });
+      console.log('QR Code generated successfully');
     } catch (error) {
       console.error('Error generating QR code:', error);
       qrContainer.innerHTML = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc;">QR Code Error</div>';

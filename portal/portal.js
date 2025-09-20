@@ -12,9 +12,11 @@ let purchaseHistory = [];
 
 // ===== 工具函数 =====
 function $(id) {
-  const element = document.getElementById(id);
+  // 移除 # 前缀（如果存在）
+  const cleanId = id.startsWith('#') ? id.substring(1) : id;
+  const element = document.getElementById(cleanId);
   if (!element) {
-    console.warn(`Element with id "${id}" not found in DOM`);
+    console.warn(`Element with id "${cleanId}" not found in DOM`);
   }
   return element;
 }

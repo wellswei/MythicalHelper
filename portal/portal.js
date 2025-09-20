@@ -13,6 +13,16 @@ function $(id) {
   return document.getElementById(id);
 }
 
+// 格式化货币
+const formatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD'
+});
+
+function formatCurrency(cents) {
+  return formatter.format(cents / 100);
+}
+
 function showError(message) {
   const toast = $('#errorToast');
   const messageEl = toast?.querySelector('.error-message');
@@ -20,9 +30,23 @@ function showError(message) {
   if (toast && messageEl) {
     messageEl.textContent = message;
     toast.style.display = 'flex';
-    setTimeout(() => toast.style.display = 'none', 3000);
+    // 3秒后自动隐藏
+    const timer = setTimeout(() => hideError(), 3000);
+    // 存储timer id以便在手动关闭时清除
+    toast.dataset.timerId = timer;
   } else {
     alert(message);
+  }
+}
+
+function hideError() {
+  const toast = $('#errorToast');
+  if (toast) {
+    // 清除可能存在的计时器
+    const timerId = toast.dataset.timerId;
+    if (timerId) clearTimeout(Number(timerId));
+    // 隐藏toast
+    toast.style.display = 'none';
   }
 }
 
@@ -136,9 +160,55 @@ function generateQRCode() {
 }
 
 // ===== 徽章管理 =====
-function loadBadges() {
-  // 简化版徽章加载 - 可以根据需要扩展
-  console.log('Badges loaded');
+async function loadBadges() {
+  const badgesGrid = $('#badgesGrid');
+  const noBadges = $('#noBadges');
+  
+  if (!badgesGrid || !currentUser?.badges) return;
+  
+  const badges = Object.entries(currentUser.badges);
+  
+  if (badges.length === 0) {
+    if (noBadges) noBadges.style.display = 'block';
+    if (badgesGrid) badgesGrid.innerHTML = '';
+    return;
+  }
+  
+  if (noBadges) noBadges.style.display = 'none';
+  badgesGrid.innerHTML = badges.map(([id, badge]) => `
+    <div class="badge-item" data-badge-id="${id}">
+      <div class="badge-icon">🏆</div>
+      <div class="badge-content">
+        <h4>${badge.name || 'Unnamed Badge'}</h4>
+        <p>${badge.description || 'No description'}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveBadge(badgeId, data) {
+  try {
+    await apiCall(`/api/badges/${badgeId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    return true;
+  } catch (error) {
+    showError('Failed to save badge');
+    return false;
+  }
+}
+
+async function deleteBadgeFromServer(badgeId) {
+  try {
+    await apiCall(`/api/badges/${badgeId}`, {
+      method: 'DELETE'
+    });
+    return true;
+  } catch (error) {
+    showError('Failed to delete badge');
+    return false;
+  }
 }
 
 function toggleEditMode() {
@@ -246,7 +316,8 @@ function displayPurchaseHistory() {
         <p>${formatDate(purchase.created_at)}</p>
       </div>
       <div class="history-amount">
-        $${(purchase.amount / 100).toFixed(2)}
+        <span class="amount">${formatCurrency(purchase.amount)}</span>
+        <span class="status ${purchase.status || 'completed'}">${purchase.status || 'Completed'}</span>
       </div>
     </div>
   `).join('');
@@ -297,18 +368,46 @@ function setupEventListeners() {
     'btnMakeDonation': makeDonation,
     'btnChangeEmail': startEmailChange,
     'btnDeleteAccount': () => showError('Account deletion not implemented yet'),
-    'btnLogout': logout
+    'btnLogout': logout,
+    'btnCloseError': hideError
   };
   
   Object.entries(events).forEach(([id, handler]) => {
     const element = $(id);
     if (element) {
-      element.addEventListener('click', handler);
+      // 移除可能存在的旧事件监听器
+      const newHandler = handler.bind(null);
+      element.removeEventListener('click', newHandler);
+      element.addEventListener('click', newHandler);
     }
   });
 }
 
 // ===== 初始化 =====
+async function waitForQRCode(timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    if (typeof QRCode !== 'undefined') {
+      resolve();
+      return;
+    }
+
+    const startTime = Date.now();
+    const checkInterval = 100; // 每100ms检查一次
+
+    const check = () => {
+      if (typeof QRCode !== 'undefined') {
+        resolve();
+      } else if (Date.now() - startTime >= timeout) {
+        reject(new Error('QRCode library failed to load'));
+      } else {
+        setTimeout(check, checkInterval);
+      }
+    };
+
+    check();
+  });
+}
+
 async function initializePortal() {
   console.log('Initializing Portal...');
   
@@ -322,16 +421,16 @@ async function initializePortal() {
   
   try {
     await loadUserData();
-    loadBadges();
-    loadPurchaseHistory();
+    await loadBadges();
+    await loadPurchaseHistory();
     
     // 等待QRCode库加载
-    if (typeof QRCode !== 'undefined') {
+    try {
+      await waitForQRCode();
       generateQRCode();
-    } else {
-      setTimeout(() => {
-        if (typeof QRCode !== 'undefined') generateQRCode();
-      }, 2000);
+    } catch (error) {
+      console.error('QRCode initialization failed:', error);
+      // 继续执行其他功能，QR码显示为占位符
     }
   } catch (error) {
     console.error('Initialization failed:', error);

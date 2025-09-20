@@ -10,7 +10,11 @@ let purchaseHistory = [];
 
 // ===== 工具函数 =====
 function $(id) {
-  return document.getElementById(id);
+  const element = document.getElementById(id);
+  if (!element) {
+    console.warn(`Element with id "${id}" not found in DOM`);
+  }
+  return element;
 }
 
 // 格式化货币
@@ -641,6 +645,11 @@ async function waitForQRCode(timeout = 5000) {
 async function initializePortal() {
   console.log('=== Portal Initialization Debug ===');
   console.log('Initializing Portal...');
+  console.log('Document ready state:', document.readyState);
+  console.log('DOM elements check:');
+  console.log('- #qrCode:', $('#qrCode'));
+  console.log('- #badgesGrid:', $('#badgesGrid'));
+  console.log('- #badgesDisplay:', $('#badgesDisplay'));
   
   if (!isAuthenticated()) {
     console.log('User not authenticated, redirecting to auth');
@@ -698,4 +707,16 @@ async function initializePortal() {
 }
 
 // ===== 页面加载 =====
-document.addEventListener('DOMContentLoaded', initializePortal);
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Content Loaded event fired');
+  // 添加小延迟确保所有元素都已渲染
+  setTimeout(initializePortal, 100);
+});
+
+// 备用：如果DOMContentLoaded已经触发，立即执行
+if (document.readyState === 'loading') {
+  console.log('Document still loading, waiting for DOMContentLoaded');
+} else {
+  console.log('Document already loaded, initializing immediately');
+  setTimeout(initializePortal, 100);
+}

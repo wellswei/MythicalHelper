@@ -539,6 +539,7 @@ async function initializePortal() {
     console.error('Initialization failed:', error);
     showError('Failed to initialize portal');
   }
+}
 
 // ===== 页面加载 =====
 document.addEventListener('DOMContentLoaded', initializePortal);

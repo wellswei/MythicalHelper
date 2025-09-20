@@ -130,32 +130,61 @@ function updateUserInfo() {
 }
 
 // ===== QR码生成 =====
-function generateQRCode() {
+async function generateQRCode() {
   const container = $('#qrCode');
-  if (!container || !currentUser) return;
+  if (!container || !currentUser) {
+    console.log('QR container or currentUser not available');
+    return;
+  }
   
+  // 清空容器
   container.innerHTML = '';
   
-  if (typeof QRCode !== 'undefined') {
-    try {
-      new QRCode(container, {
-        text: JSON.stringify({
-          userId: currentUser.user_id,
-          username: currentUser.username,
-          timestamp: Date.now()
-        }),
-        width: 200,
-        height: 200,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-    } catch (error) {
-      console.error('QR Code generation failed:', error);
-      container.innerHTML = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc;">QR Code Error</div>';
+  try {
+    // 检查QRCode库是否加载
+    if (typeof QRCode === 'undefined') {
+      throw new Error('QRCode library not loaded');
     }
-  } else {
-    container.innerHTML = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc;">QR Code</div>';
+
+     // 创建QR码数据
+     const qrData = JSON.stringify({
+       id: currentUser.user_id,
+       userId: currentUser.user_id, // 保持向后兼容
+       username: currentUser.username,
+       email: currentUser.email,
+       timestamp: Date.now()
+     });
+
+    console.log('Generating QR code with data:', qrData);
+
+     // 创建canvas元素
+     const canvas = document.createElement('canvas');
+     container.appendChild(canvas);
+     
+     // 生成QR码到canvas
+     await QRCode.toCanvas(canvas, qrData, {
+       errorCorrectionLevel: 'M',
+       margin: 1,
+       width: 200,
+       scale: 4,
+       color: {
+         dark: '#000000',
+         light: '#ffffff'
+       }
+     });
+     
+     // 确保画布居中显示
+     canvas.style.display = 'block';
+     canvas.style.margin = '0 auto';
+
+    console.log('QR code generated successfully');
+  } catch (error) {
+    console.error('Failed to generate QR code:', error);
+    container.innerHTML = `
+      <div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; text-align: center;">
+        ${error.message === 'QRCode library not loaded' ? 'QR Code Library Not Loaded' : 'QR Code Error'}
+      </div>
+    `;
   }
 }
 
@@ -472,23 +501,29 @@ async function initializePortal() {
   setupEventListeners();
   
   try {
-    await loadUserData();
-    await loadBadges();
-    await loadPurchaseHistory();
-    
-    // 等待QRCode库加载
-    try {
-      await waitForQRCode();
-      generateQRCode();
-    } catch (error) {
-      console.error('QRCode initialization failed:', error);
-      // 继续执行其他功能，QR码显示为占位符
+    // 并行等待QRCode库加载和用户数据
+    const [qrCodeLoaded] = await Promise.allSettled([
+      waitForQRCode(),
+      loadUserData().then(async () => {
+        await Promise.all([
+          loadBadges(),
+          loadPurchaseHistory()
+        ]);
+      })
+    ]);
+
+    // 如果用户数据加载成功且QRCode库也加载成功，生成QR码
+    if (currentUser && qrCodeLoaded.status === 'fulfilled') {
+      console.log('Generating QR code after successful initialization');
+      await generateQRCode();
+    } else {
+      console.warn('QR code generation skipped:', 
+        qrCodeLoaded.status === 'rejected' ? qrCodeLoaded.reason : 'User data not available');
     }
   } catch (error) {
     console.error('Initialization failed:', error);
     showError('Failed to initialize portal');
   }
-}
 
 // ===== 页面加载 =====
 document.addEventListener('DOMContentLoaded', initializePortal);

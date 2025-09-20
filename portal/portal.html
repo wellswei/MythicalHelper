@@ -7,17 +7,9 @@
     <link rel="stylesheet" href="portal.css?v=20250107-4"/>
     
     <!-- QR Code Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
-    <!-- 确保所有依赖加载完成后再加载portal.js -->
-    <script>
-      window.addEventListener('load', function() {
-        if (!window.QRCode) {
-          console.error('QR Code library failed to load');
-        }
-      });
-    </script>
   </head>
   <body class="page-portal portal">
   <!-- 全站星空背景元素 -->
@@ -271,6 +263,6 @@
     });
   </script>
   
-  <script src="portal.js?v=20250107-14"></script>
+  <script src="portal.js?v=20250107-15"></script>
 </body>
 </html>

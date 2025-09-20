@@ -266,8 +266,8 @@ async function loadPurchaseHistory() {
   
   try {
     // 调用API获取购买历史
-    const history = await apiCall('/api/payment/history');
-    purchaseHistory = history || [];
+    const response = await apiCall('/api/payment/history');
+    purchaseHistory = response.history || [];
     
     if (historyLoading) historyLoading.style.display = 'none';
     

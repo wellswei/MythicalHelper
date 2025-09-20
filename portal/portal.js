@@ -182,30 +182,52 @@ async function loadBadges() {
         <h4>${badge.name || 'Unnamed Badge'}</h4>
         <p>${badge.description || 'No description'}</p>
       </div>
+      ${isEditMode ? `<button class="btn-delete" onclick="deleteBadge('${id}')">×</button>` : ''}
     </div>
   `).join('');
 }
 
-async function saveBadge(badgeId, data) {
+async function saveBadges() {
+  if (!currentUser?.badges) return;
+  
   try {
-    await apiCall(`/api/badges/${badgeId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
+    const response = await apiCall('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ badges: currentUser.badges })
     });
+    
+    // 更新本地用户数据
+    currentUser = response;
+    updateUserInfo();
+    showError('Badges saved successfully');
     return true;
   } catch (error) {
-    showError('Failed to save badge');
+    console.error('Failed to save badges:', error);
+    showError('Failed to save badges');
     return false;
   }
 }
 
-async function deleteBadgeFromServer(badgeId) {
+async function deleteBadge(badgeId) {
+  if (!currentUser?.badges || !currentUser.badges[badgeId]) return;
+  
   try {
-    await apiCall(`/api/badges/${badgeId}`, {
-      method: 'DELETE'
+    // 创建新的徽章对象，移除指定徽章
+    const newBadges = { ...currentUser.badges };
+    delete newBadges[badgeId];
+    
+    const response = await apiCall('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ badges: newBadges })
     });
+    
+    // 更新本地用户数据
+    currentUser = response;
+    await loadBadges(); // 重新加载徽章显示
+    showError('Badge deleted successfully');
     return true;
   } catch (error) {
+    console.error('Failed to delete badge:', error);
     showError('Failed to delete badge');
     return false;
   }
@@ -232,15 +254,39 @@ function cancelEdit() {
   toggleEditMode();
 }
 
-function addBadge() {
-  // 简化版添加徽章
-  console.log('Add badge');
+async function addBadge() {
+  const name = prompt('Enter badge name:');
+  if (!name) return;
+  
+  const description = prompt('Enter badge description:') || 'No description';
+  
+  try {
+    // 创建新的徽章ID
+    const badgeId = `badge_${Date.now()}`;
+    
+    // 创建新的徽章对象
+    const newBadges = { ...currentUser.badges };
+    newBadges[badgeId] = {
+      name: name,
+      description: description,
+      created_at: new Date().toISOString()
+    };
+    
+    const response = await apiCall('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ badges: newBadges })
+    });
+    
+    // 更新本地用户数据
+    currentUser = response;
+    await loadBadges(); // 重新加载徽章显示
+    showError('Badge added successfully');
+  } catch (error) {
+    console.error('Failed to add badge:', error);
+    showError('Failed to add badge');
+  }
 }
 
-function deleteBadge(badgeId) {
-  // 简化版删除徽章
-  console.log('Delete badge:', badgeId);
-}
 
 // ===== 支付功能 =====
 async function renewMembership() {

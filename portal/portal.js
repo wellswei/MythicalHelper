@@ -149,7 +149,7 @@ function collectBadgeValues(badgeElement) {
 function collectAllBadgeValues() {
   const snapshot = cloneBadges(editingBadges);
 
-  document.querySelectorAll('.badge-edit-item').forEach(item => {
+  document.querySelectorAll('.badge-edit-card').forEach(item => {
     const values = collectBadgeValues(item);
     if (!values) return;
 
@@ -202,7 +202,7 @@ function updateUnsavedSummary() {
   updateEditFooterState();
 
   const original = originalBadgesSnapshot || {};
-  document.querySelectorAll('.badge-edit-item').forEach(item => {
+  document.querySelectorAll('.badge-edit-card').forEach(item => {
     const badgeId = item.dataset.badgeId;
     const stateLabel = item.querySelector('[data-badge-state]');
 
@@ -219,7 +219,7 @@ function updateUnsavedSummary() {
 
 function handleRealmChange(event) {
   const select = event.target;
-  const badgeElement = select.closest('.badge-edit-item');
+  const badgeElement = select.closest('.badge-edit-card');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
@@ -232,7 +232,7 @@ function handleRealmChange(event) {
 
 function handleWatchOverInput(event) {
   const input = event.target;
-  const badgeElement = input.closest('.badge-edit-item');
+  const badgeElement = input.closest('.badge-edit-card');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
@@ -245,7 +245,7 @@ function handleWatchOverInput(event) {
 
 function handleEnchantedToggle(event) {
   const toggle = event.target;
-  const badgeElement = toggle.closest('.badge-edit-item');
+  const badgeElement = toggle.closest('.badge-edit-card');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
@@ -258,7 +258,7 @@ function handleEnchantedToggle(event) {
 
 function handleBadgeDelete(event) {
   const button = event.currentTarget;
-  const badgeElement = button.closest('.badge-edit-item');
+  const badgeElement = button.closest('.badge-edit-card');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
@@ -642,36 +642,34 @@ function loadEditableBadges() {
     const isEnchanted = badge?.enchanted || false;
 
     return `
-      <article class="badge-edit-item" data-badge-id="${id}">
-        <div class="badge-edit-content">
-          <div class="badge-edit-row">
-            <div class="realm-section">
-              <label class="section-label">Realm alignment</label>
-              <select class="realm-select" name="realm-${id}">
-                <option value="north" ${realm === 'north' ? 'selected' : ''}>North Pole</option>
-                <option value="tooth" ${realm === 'tooth' ? 'selected' : ''}>Tooth Fairy</option>
-                <option value="bunny" ${realm === 'bunny' ? 'selected' : ''}>Spring Bunny</option>
-              </select>
-            </div>
-            <div class="enchanted-section">
-              <label class="toggle-label">
-                <input type="checkbox" class="enchanted-toggle" ${isEnchanted ? 'checked' : ''}>
-                <span class="toggle-text">Enchanted</span>
-              </label>
-            </div>
-            <button class="badge-delete-btn" type="button" aria-label="Delete badge">
-              <span class="delete-icon">×</span>
-            </button>
+      <div class="badge-edit-card" data-badge-id="${id}">
+        <div class="badge-edit-row">
+          <div class="realm-section">
+            <label class="section-label">Realm alignment</label>
+            <select class="realm-select" name="realm-${id}">
+              <option value="north" ${realm === 'north' ? 'selected' : ''}>North Pole</option>
+              <option value="tooth" ${realm === 'tooth' ? 'selected' : ''}>Tooth Fairy</option>
+              <option value="bunny" ${realm === 'bunny' ? 'selected' : ''}>Spring Bunny</option>
+            </select>
           </div>
-          
-          <div class="badge-edit-row">
-            <div class="watch-over-section">
-              <label class="section-label">Whom you watch over</label>
-              <input type="text" class="watch-over-input" value="${watchOver}" placeholder="Enter who you watch over...">
-            </div>
+          <div class="enchanted-section">
+            <label class="toggle-label">
+              <input type="checkbox" class="enchanted-toggle" ${isEnchanted ? 'checked' : ''}>
+              <span class="toggle-text">Enchanted</span>
+            </label>
+          </div>
+          <button class="badge-delete-btn" type="button" aria-label="Delete badge">
+            <span class="delete-icon">×</span>
+          </button>
+        </div>
+        
+        <div class="badge-edit-row">
+          <div class="watch-over-section">
+            <label class="section-label">Whom you watch over</label>
+            <input type="text" class="watch-over-input" value="${watchOver}" placeholder="Enter who you watch over...">
           </div>
         </div>
-      </article>
+      </div>
     `;
   }).join('');
 

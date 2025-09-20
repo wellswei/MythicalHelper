@@ -209,7 +209,6 @@ class Config:
         # ========= 测试配置 =========
         self.TEST_DATABASE_URL = "sqlite:///test_mythicalhelper.db"
         self.TEST_EMAIL = "test@mythicalhelper.org"
-        self.TEST_PHONE = "+1234567890"
         
         # ========= 开发工具配置 =========
         self.PROFILER_ENABLED = False
@@ -487,7 +486,6 @@ class Config:
         print(f"数据库: {self.DATABASE_URL}")
         print(f"Stripe: {'已配置' if self.STRIPE_SECRET_KEY else '未配置'}")
         print(f"Zoho: {'已配置' if self.ZOHO_CLIENT_ID else '未配置'}")
-        print(f"管理员电话: {self.ADMIN_PHONE}")
         print(f"功能开关: {self.get_feature_flags()}")
         print(f"部署环境: {self.DEPLOYMENT_ENV}")
         print(f"版本: {self.VERSION}")

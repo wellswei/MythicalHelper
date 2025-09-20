@@ -35,7 +35,6 @@ class DatabaseService:
     def get_user_by_email(self, email: str) -> Optional[User]:
         return self.db.query(User).filter(User.email == email).first()
     
-    # phone lookup removed
     
     def get_user_by_username(self, username: str) -> Optional[User]:
         return self.db.query(User).filter(User.username == username).first()
@@ -287,11 +286,6 @@ class DatabaseService:
     def get_all_users(self) -> List[User]:
         return self.db.query(User).filter(User.deleted_at.is_(None)).all()
     
-    def get_user_by_email_or_phone(self, email: Optional[str] = None) -> Optional[User]:
-        # Deprecated: only email is supported now
-        if email:
-            return self.get_user_by_email(email)
-        return None
 
 # Convenience function
 def get_db() -> DatabaseService:

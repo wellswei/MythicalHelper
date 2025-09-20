@@ -2,11 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mythical Helper – Portal</title>
-  <link rel="stylesheet" href="portal.css?v=20250107-4"/>
-</head>
-<body class="page-portal portal">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Mythical Helper – Portal</title>
+    <link rel="stylesheet" href="portal.css?v=20250107-4"/>
+    
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- 确保所有依赖加载完成后再加载portal.js -->
+    <script>
+      window.addEventListener('load', function() {
+        if (!window.QRCode) {
+          console.error('QR Code library failed to load');
+        }
+      });
+    </script>
+  </head>
+  <body class="page-portal portal">
   <!-- 全站星空背景元素 -->
   <div class="meteor" aria-hidden="true"></div>
   <div class="meteor" aria-hidden="true"></div>
@@ -224,6 +237,14 @@
   </div>
 
 
+  <!-- Error Toast -->
+  <div id="errorToast" class="error-toast" style="display: none;">
+    <div class="error-content">
+      <span class="error-message"></span>
+      <button class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</button>
+    </div>
+  </div>
+
   <!-- Footer -->
   <footer class="site-footer">
     <div class="container footer-inner">
@@ -253,6 +274,6 @@
   <!-- QRCode.js 脚本 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
   
-  <script src="portal.js?v=20250107-6"></script>
+  <script src="portal.js?v=20250107-7"></script>
 </body>
 </html>

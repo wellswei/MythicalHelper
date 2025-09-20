@@ -875,6 +875,9 @@ function initializePortal() {
     loadBadges();
     loadPurchaseHistory();
     
+    // 更新用户信息显示
+    updateUserInfo();
+    
     // 等待QRCode.js库加载完成后再生成二维码
     if (typeof QRCode !== 'undefined') {
       console.log('QRCode library available, generating QR code');
@@ -893,6 +896,7 @@ function initializePortal() {
     }
   }).catch(error => {
     console.error('Failed to load user data:', error);
+    showError('Failed to load user data. Please try refreshing the page.');
   });
   
   // 恢复邮箱变更进行中的状态（防止 Live Server 刷新中断）
@@ -924,5 +928,52 @@ function initializePortal() {
   }
 }
 
-// ===== 页面加载完成后初始化 =====
-document.addEventListener('DOMContentLoaded', initializePortal);
+// 帮助函数：更新用户信息显示
+function updateUserInfo() {
+  if (!currentUser) return;
+  
+  const userName = $('#userName');
+  const userEmail = $('#userEmail');
+  const userCreatedAt = $('#userCreatedAt');
+  const userValidUntil = $('#userValidUntil');
+  
+  if (userName) userName.textContent = currentUser.username || 'Unknown User';
+  if (userEmail) userEmail.textContent = currentUser.email || 'No Email';
+  if (userCreatedAt) userCreatedAt.textContent = formatDate(currentUser.created_at) || 'Unknown';
+  if (userValidUntil) userValidUntil.textContent = formatDate(currentUser.valid_until) || 'Unknown';
+}
+
+// 帮助函数：格式化日期
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(undefined, { 
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+// 帮助函数：显示错误信息
+function showError(message) {
+  const toast = document.getElementById('errorToast');
+  const messageEl = toast?.querySelector('.error-message');
+  
+  if (toast && messageEl) {
+    messageEl.textContent = message;
+    toast.style.display = 'flex';
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 3000);
+  } else {
+    // 降级方案
+    console.error(message);
+    alert(message);
+  }
+}

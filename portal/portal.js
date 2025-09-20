@@ -99,12 +99,18 @@ function logout() {
 // ===== 用户数据管理 =====
 async function loadUserData() {
   try {
+    console.log('Loading user data...');
+    console.log('Auth token:', sessionStorage.getItem('authToken') ? 'Present' : 'Missing');
+    
     currentUser = await apiCall('/users/me');
+    console.log('User data loaded:', currentUser);
+    
     updateUserInfo();
     return currentUser;
   } catch (error) {
     console.error('Failed to load user data:', error);
     if (error.message.includes('401')) {
+      console.log('Authentication failed, redirecting to auth...');
       logout();
     } else {
       showError('Failed to load user data');
@@ -114,7 +120,13 @@ async function loadUserData() {
 }
 
 function updateUserInfo() {
-  if (!currentUser) return;
+  console.log('Updating user info...');
+  console.log('Current user:', currentUser);
+  
+  if (!currentUser) {
+    console.log('No current user data, skipping update');
+    return;
+  }
   
   const fields = {
     userName: currentUser.username || 'Unknown User',
@@ -123,8 +135,11 @@ function updateUserInfo() {
     userValidUntil: formatDate(currentUser.valid_until) || 'Unknown'
   };
   
+  console.log('Fields to update:', fields);
+  
   Object.entries(fields).forEach(([id, value]) => {
     const element = $(id);
+    console.log(`Updating ${id}:`, element ? 'Found' : 'Not found', 'Value:', value);
     if (element) element.textContent = value;
   });
 }

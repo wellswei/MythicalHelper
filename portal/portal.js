@@ -93,7 +93,7 @@ function redirectToAuth() {
 
 function logout() {
   sessionStorage.clear();
-  redirectToAuth();
+  window.location.href = '../index.html';
 }
 
 // ===== 用户数据管理 =====

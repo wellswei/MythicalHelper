@@ -546,9 +546,13 @@ async function apiCall(endpoint, options = {}) {
 // ===== 用户数据加载 =====
 async function loadUserData() {
   try {
+    console.log('loadUserData: Starting to load user data...');
     const userData = await apiCall('/users/me');
+    console.log('loadUserData: Received user data:', userData);
     currentUser = userData;
+    console.log('loadUserData: Set currentUser, calling updateUserInfo...');
     updateUserInfo();
+    console.log('loadUserData: updateUserInfo completed');
     return userData;
   } catch (error) {
     console.error('Failed to load user data:', error);
@@ -930,17 +934,35 @@ function initializePortal() {
 
 // 帮助函数：更新用户信息显示
 function updateUserInfo() {
-  if (!currentUser) return;
+  console.log('updateUserInfo called, currentUser:', currentUser);
+  if (!currentUser) {
+    console.log('No currentUser, returning');
+    return;
+  }
   
   const userName = $('#userName');
   const userEmail = $('#userEmail');
   const userCreatedAt = $('#userCreatedAt');
   const userValidUntil = $('#userValidUntil');
   
-  if (userName) userName.textContent = currentUser.username || 'Unknown User';
-  if (userEmail) userEmail.textContent = currentUser.email || 'No Email';
-  if (userCreatedAt) userCreatedAt.textContent = formatDate(currentUser.created_at) || 'Unknown';
-  if (userValidUntil) userValidUntil.textContent = formatDate(currentUser.valid_until) || 'Unknown';
+  console.log('Found elements:', { userName, userEmail, userCreatedAt, userValidUntil });
+  
+  if (userName) {
+    userName.textContent = currentUser.username || 'Unknown User';
+    console.log('Updated userName to:', userName.textContent);
+  }
+  if (userEmail) {
+    userEmail.textContent = currentUser.email || 'No Email';
+    console.log('Updated userEmail to:', userEmail.textContent);
+  }
+  if (userCreatedAt) {
+    userCreatedAt.textContent = formatDate(currentUser.created_at) || 'Unknown';
+    console.log('Updated userCreatedAt to:', userCreatedAt.textContent);
+  }
+  if (userValidUntil) {
+    userValidUntil.textContent = formatDate(currentUser.valid_until) || 'Unknown';
+    console.log('Updated userValidUntil to:', userValidUntil.textContent);
+  }
 }
 
 // 帮助函数：格式化日期

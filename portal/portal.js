@@ -118,21 +118,10 @@ function formatRealmLabel(realm) {
 }
 
 function updateEditFooterState() {
-  const footer = $('#badgesEditFooter');
   const saveBtn = $('#btnSaveBadges');
-  const statusLabel = $('#badgesStatusLabel');
-
-  if (footer) {
-    footer.style.display = isEditMode ? 'flex' : 'none';
-    footer.dataset.state = hasUnsavedChanges ? 'dirty' : 'clean';
-  }
 
   if (saveBtn) {
     saveBtn.disabled = !hasUnsavedChanges;
-  }
-
-  if (statusLabel) {
-    statusLabel.textContent = hasUnsavedChanges ? 'Unsaved changes' : 'All changes saved';
   }
 }
 
@@ -229,17 +218,15 @@ function updateUnsavedSummary() {
 }
 
 function handleRealmChange(event) {
-  const input = event.target;
-  if (!input?.checked) return;
-  const badgeElement = input.closest('.badge-edit-item');
+  const select = event.target;
+  const badgeElement = select.closest('.badge-edit-item');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
   if (!badgeId) return;
 
   const existing = editingBadges[badgeId] || {};
-  editingBadges[badgeId] = { ...existing, realm: input.value };
-  updateRealmPill(badgeElement, input.value);
+  editingBadges[badgeId] = { ...existing, realm: select.value };
   updateUnsavedSummary();
 }
 
@@ -253,6 +240,19 @@ function handleWatchOverInput(event) {
 
   const existing = editingBadges[badgeId] || {};
   editingBadges[badgeId] = { ...existing, watchOver: input.value };
+  updateUnsavedSummary();
+}
+
+function handleEnchantedToggle(event) {
+  const toggle = event.target;
+  const badgeElement = toggle.closest('.badge-edit-item');
+  if (!badgeElement) return;
+
+  const { badgeId } = badgeElement.dataset;
+  if (!badgeId) return;
+
+  const existing = editingBadges[badgeId] || {};
+  editingBadges[badgeId] = { ...existing, enchanted: toggle.checked };
   updateUnsavedSummary();
 }
 
@@ -271,8 +271,12 @@ function bindBadgeEditEvents() {
   const badgesEditList = $('#badgesEditList');
   if (!badgesEditList) return;
 
-  badgesEditList.querySelectorAll('.realm-chip input').forEach(input => {
-    input.addEventListener('change', handleRealmChange);
+  badgesEditList.querySelectorAll('.realm-select').forEach(select => {
+    select.addEventListener('change', handleRealmChange);
+  });
+
+  badgesEditList.querySelectorAll('.enchanted-toggle').forEach(toggle => {
+    toggle.addEventListener('change', handleEnchantedToggle);
   });
 
   badgesEditList.querySelectorAll('.watch-over-input').forEach(input => {
@@ -481,12 +485,17 @@ async function loadBadges() {
   
   const badgesHTML = badges.map(([id, badge]) => {
     console.log(`Rendering badge ${id}:`, badge);
+    const realm = badge?.realm || 'north';
+    const watchOver = badge?.watchOver || '';
+    const isEnchanted = badge?.enchanted || false;
+    const realmLabel = formatRealmLabel(realm);
+    
     return `
       <div class="badge-item" data-badge-id="${id}">
         <div class="badge-icon">🏆</div>
         <div class="badge-content">
-          <h4>${badge.name || 'Unnamed Badge'}</h4>
-          <p>${badge.description || 'No description'}</p>
+          <h4>${realmLabel}${isEnchanted ? ' ✨' : ''}</h4>
+          <p>${watchOver || 'No one watched over'}</p>
         </div>
       </div>
     `;
@@ -592,7 +601,6 @@ function toggleEditMode() {
   const editBtn = $('#btnToggleEditMode');
   const badgesDisplay = $('#badgesDisplay');
   const badgesEdit = $('#badgesEdit');
-  const editIntro = $('#badgesEditIntro');
 
   if (isEditMode) {
     originalBadgesSnapshot = cloneBadges(currentUser?.badges);
@@ -602,7 +610,6 @@ function toggleEditMode() {
     if (editBtn) editBtn.textContent = 'Done';
     if (badgesDisplay) badgesDisplay.style.display = 'none';
     if (badgesEdit) badgesEdit.style.display = 'block';
-    if (editIntro) editIntro.style.display = 'flex';
 
     updateEditFooterState();
     loadEditableBadges();
@@ -610,7 +617,6 @@ function toggleEditMode() {
     if (editBtn) editBtn.textContent = 'Edit Mode';
     if (badgesDisplay) badgesDisplay.style.display = 'block';
     if (badgesEdit) badgesEdit.style.display = 'none';
-    if (editIntro) editIntro.style.display = 'none';
 
     updateEditFooterState();
     loadBadges();
@@ -633,47 +639,38 @@ function loadEditableBadges() {
   badgesEditList.innerHTML = entries.map(([id, badge], index) => {
     const realm = badge?.realm || 'north';
     const watchOver = escapeHtml(badge?.watchOver || '');
-    const isNew = !Object.prototype.hasOwnProperty.call(originalBadgesSnapshot || {}, id);
-    const created = badge?.updated_at || badge?.updatedAt || badge?.created_at || null;
-    const metaText = created ? `Last touched ${formatDate(created)}` : 'Awaiting first save';
-
-    const realmOptions = REALM_OPTIONS.map(realmOption => `
-      <label class="realm-chip" data-realm="${realmOption}">
-        <input type="radio" name="realm-${id}" value="${realmOption}" ${realmOption === realm ? 'checked' : ''}>
-        <span class="chip-label">${formatRealmLabel(realmOption)}</span>
-      </label>
-    `).join('');
+    const isEnchanted = badge?.enchanted || false;
 
     return `
       <article class="badge-edit-item" data-badge-id="${id}">
-        <header class="badge-edit-header">
-          <div class="badge-title">
-            <span class="badge-seq">Badge ${index + 1}</span>
-            <span class="badge-realm-pill" data-realm="${realm}">${formatRealmLabel(realm)}</span>
-          </div>
-          <button type="button" class="badge-delete-btn" data-remove="${id}">
-            <span aria-hidden="true">🗑️</span>
-            Remove
-          </button>
-        </header>
-        <div class="badge-edit-body">
-          <div class="badge-field-group">
-            <span class="badge-field-label">Realm Alignment</span>
-            <div class="realm-chip-group" role="radiogroup" aria-label="Select realm">
-              ${realmOptions}
+        <div class="badge-edit-content">
+          <div class="badge-edit-row">
+            <div class="realm-section">
+              <label class="section-label">Realm alignment</label>
+              <select class="realm-select" name="realm-${id}">
+                <option value="north" ${realm === 'north' ? 'selected' : ''}>North Pole</option>
+                <option value="tooth" ${realm === 'tooth' ? 'selected' : ''}>Tooth Fairy</option>
+                <option value="bunny" ${realm === 'bunny' ? 'selected' : ''}>Spring Bunny</option>
+              </select>
             </div>
-            <p class="field-hint">Choose the realm this guardian answers to.</p>
+            <div class="enchanted-section">
+              <label class="toggle-label">
+                <input type="checkbox" class="enchanted-toggle" ${isEnchanted ? 'checked' : ''}>
+                <span class="toggle-text">Enchanted</span>
+              </label>
+            </div>
+            <button class="badge-delete-btn" type="button" aria-label="Delete badge">
+              <span class="delete-icon">×</span>
+            </button>
           </div>
-          <div class="badge-field-group">
-            <label class="badge-field-label" for="watch-${id}">Guardian Focus</label>
-            <input type="text" id="watch-${id}" class="watch-over-input" value="${watchOver}" placeholder="Enter who you watch over">
-            <p class="field-hint">Name the dreamer, tooth holder, or bunny you protect.</p>
+          
+          <div class="badge-edit-row">
+            <div class="watch-over-section">
+              <label class="section-label">Whom you watch over</label>
+              <input type="text" class="watch-over-input" value="${watchOver}" placeholder="Enter who you watch over...">
+            </div>
           </div>
         </div>
-        <footer class="badge-edit-meta">
-          <span class="badge-updated">${metaText}</span>
-          <span class="badge-state" data-badge-state="${isNew ? 'New' : 'Saved'}">${isNew ? 'New' : 'Saved'}</span>
-        </footer>
       </article>
     `;
   }).join('');
@@ -696,6 +693,23 @@ function cancelEdit() {
 function addBadge() {
   console.log('=== Add Badge Debug ===');
   
+  // 检查是否已有所有realm的徽章
+  const existingRealms = new Set();
+  Object.values(editingBadges || {}).forEach(badge => {
+    if (badge?.realm) {
+      existingRealms.add(badge.realm);
+    }
+  });
+  
+  if (existingRealms.size >= 3) {
+    showError('You already have badges for all three realms. Remove an existing badge first.');
+    return;
+  }
+  
+  // 找到第一个可用的realm
+  const availableRealms = ['north', 'tooth', 'bunny'].filter(realm => !existingRealms.has(realm));
+  const selectedRealm = availableRealms[0] || 'north';
+  
   // 创建新的徽章ID
   const badgeId = `badge_${Date.now()}`;
   
@@ -704,8 +718,9 @@ function addBadge() {
     ...editingBadges,
     [badgeId]: {
       ...(editingBadges[badgeId] || {}),
-      realm: 'north',
+      realm: selectedRealm,
       watchOver: '',
+      enchanted: false,
       created_at: timestamp,
       updated_at: timestamp
     }

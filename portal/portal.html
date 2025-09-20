@@ -141,31 +141,18 @@
         
         <!-- 编辑模式 -->
         <div class="badges-edit" id="badgesEdit" style="display: none;">
-          <div class="badges-edit-intro" id="badgesEditIntro" aria-live="polite">
-            <span class="intro-icon" aria-hidden="true">✨</span>
-            <div class="intro-copy">
-              <h3>Craft your legends</h3>
-              <p>Adjust each realm and guardian focus, then save when you are happy with the story.</p>
-            </div>
-          </div>
-          <div class="badges-list" id="badgesEditList">
-            <!-- Editable badges will be here -->
-          </div>
-          <div class="add-badge-section">
+          <div class="badges-edit-header">
             <button class="btn add-badge-btn" id="btnAddBadge" type="button">
               <span class="add-icon">+</span>
               Add New Badge
             </button>
+            <div class="edit-actions">
+              <button class="btn ghost" id="btnCancelEdit" type="button">Discard</button>
+              <button class="btn primary" id="btnSaveBadges" type="button" disabled>Save</button>
+            </div>
           </div>
-        </div>
-        <div class="badges-edit-footer" id="badgesEditFooter" style="display: none;" aria-live="polite">
-          <div class="footer-status">
-            <span class="status-dot" id="badgesStatusDot" aria-hidden="true"></span>
-            <span id="badgesStatusLabel">All changes saved</span>
-          </div>
-          <div class="footer-actions">
-            <button class="btn ghost" id="btnCancelEdit" type="button">Discard</button>
-            <button class="btn primary" id="btnSaveBadges" type="button" disabled>Save Changes</button>
+          <div class="badges-list" id="badgesEditList">
+            <!-- Editable badges will be here -->
           </div>
         </div>
       </div>

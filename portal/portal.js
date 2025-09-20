@@ -520,10 +520,13 @@ async function saveBadges() {
 }
 
 function cancelEdit() {
-  toggleEditMode();
+  // 恢复原始数据，不保存更改
+  loadUserData().then(() => {
+    toggleEditMode();
+  });
 }
 
-async function addBadge() {
+function addBadge() {
   console.log('=== Add Badge Debug ===');
   
   // 创建新的徽章ID
@@ -537,33 +540,15 @@ async function addBadge() {
     created_at: new Date().toISOString()
   };
   
-  console.log('Adding new badge:', newBadges[badgeId]);
+  console.log('Adding new badge to local data:', newBadges[badgeId]);
   
-  try {
-    const response = await apiCall('/users/me', {
-      method: 'PATCH',
-      body: JSON.stringify({ badges: newBadges })
-    });
-    
-    console.log('API response:', response);
-    
-    // 更新本地用户数据
-    currentUser = response;
-    
-    // 如果在编辑模式，重新加载编辑模式显示
-    if (isEditMode) {
-      await loadEditableBadges();
-    } else {
-      await loadBadges(); // 重新加载徽章显示
-    }
-    
-    console.log('Badge added successfully');
-    showSuccess('Badge added successfully');
-  } catch (error) {
-    console.error('Failed to add badge:', error);
-    showError('Failed to add badge');
-  }
+  // 更新本地用户数据（不保存到服务器）
+  currentUser.badges = newBadges;
   
+  // 重新加载编辑模式显示
+  loadEditableBadges();
+  
+  console.log('Badge added to edit mode successfully');
   console.log('=== Add Badge Debug End ===');
 }
 

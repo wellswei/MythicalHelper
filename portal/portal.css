@@ -1428,6 +1428,34 @@ body {
   margin: 0;
 }
 
+/* Badge Edit Buttons - 统一按钮样式 */
+.portal .badge-edit-item .btn {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.portal .badge-edit-item .btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.portal .badge-edit-item .btn-danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+  transform: translateY(-1px);
+}
+
 /* Realm-specific edit item effects */
 .portal .badge-edit-item.realm-north {
   border-color: rgba(135, 206, 250, 0.3);

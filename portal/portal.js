@@ -494,8 +494,14 @@ async function loadBadges() {
       <div class="badge-item" data-badge-id="${id}">
         <div class="badge-icon">🏆</div>
         <div class="badge-content">
-          <h4>${realmLabel}${isEnchanted ? ' ✨' : ''}</h4>
-          <p>${watchOver || 'No one watched over'}</p>
+          <div class="badge-row">
+            <span class="badge-label">Realm alignment</span>
+            <span class="badge-value">${realmLabel}${isEnchanted ? ' ✨' : ''}</span>
+          </div>
+          <div class="badge-row">
+            <span class="badge-label">Whom you watch over</span>
+            <span class="badge-value">${watchOver || 'No one watched over'}</span>
+          </div>
         </div>
       </div>
     `;
@@ -672,6 +678,28 @@ function loadEditableBadges() {
       </div>
     `;
   }).join('');
+
+  // 如果没有徽章，添加Add Badge卡片
+  if (entries.length === 0) {
+    badgesEditList.innerHTML = `
+      <div class="add-badge-card">
+        <button class="btn add-badge-btn" id="btnAddBadge" type="button">
+          <span class="add-icon">+</span>
+          Add New Badge
+        </button>
+      </div>
+    `;
+  } else {
+    // 如果有徽章，在最后添加Add Badge卡片
+    badgesEditList.innerHTML += `
+      <div class="add-badge-card">
+        <button class="btn add-badge-btn" id="btnAddBadge" type="button">
+          <span class="add-icon">+</span>
+          Add New Badge
+        </button>
+      </div>
+    `;
+  }
 
   bindBadgeEditEvents();
   updateUnsavedSummary();

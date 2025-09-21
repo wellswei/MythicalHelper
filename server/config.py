@@ -14,7 +14,7 @@ class Config:
         self.DATABASE_URL = "sqlite:///mythicalhelper.db"
         
         # ========= 邮件模式配置 =========
-        self.EMAIL_MODE = "test"  # "test" 或 "production"
+        self.EMAIL_MODE = "production"  # "test" 或 "production"
         # test: 打印magic link到控制台，不发送邮件
         # production: 通过Zoho发送真实邮件
         

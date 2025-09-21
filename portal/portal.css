@@ -20,59 +20,6 @@ html, body {
   z-index: 0;
 }
 
-/* 错误提示样式 */
-.error-toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #ff4444;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  display: none;
-  animation: slideUp 0.3s ease-out;
-}
-
-.error-toast .error-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.error-toast .close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0 4px;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-.error-toast .close-btn:hover {
-  opacity: 1;
-}
-
-.success-toast {
-  background-color: #22c55e !important;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translate(-50%, 100%);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
-  font-family: 'Inter', sans-serif;
-}
-
 /* Keep layout width stable across pages with/without scrollbar */
 html { scrollbar-gutter: stable; }
 @supports not (scrollbar-gutter: stable) {
@@ -419,84 +366,10 @@ body {
 
 
 
-/* Change Card Input Styles */
-.portal .change-card .field input.form-input {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 16px;
-  padding: 12px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  width: 100%;
-  transition: all 0.3s ease;
-}
-
-.portal .change-card .field input.form-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.portal .change-card .field input.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* Change Card Actions */
-.portal .change-card .actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
 
 
-/* Change Card Error */
-.portal .change-card .error {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  color: #ef4444;
-  margin: 0 0 4px 0;
-  text-align: center;
-}
-/* 错误信息为空时不占位，避免制造多余间距 */
-.portal .change-card .error:empty { display: none; }
 
-/* Portal Section 内部Turnstile样式 */
-/* Change Card Turnstile */
-.portal .change-card .turnstile-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 4px 0 4px;
-}
 
-.portal .change-card .turnstile-status {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  margin-top: 4px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-align: center;
-}
-
-.portal .change-card .turnstile-status.default {
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.portal .change-card .turnstile-status.success {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.portal .change-card .turnstile-status.error {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
 
 .portal .info-grid {
   display: grid;
@@ -518,16 +391,50 @@ body {
   height: 100%;
 }
 
-/* Change Card - 与Profile Card样式一致 */
-.portal .change-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+/* Email Change Modal - 现代化弹出模态框设计 */
+.portal .email-change-modal {
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+  width: 90%;
 }
+
+.portal .email-change-modal .modal-header {
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  position: relative;
+}
+
+.portal .email-change-modal .modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+}
+
+.portal .email-change-modal .modal-header h3 {
+  font-family: 'Cinzel Decorative', Inter, system-ui, serif;
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 700;
+  letter-spacing: .4px;
+  background: linear-gradient(90deg, #ffffff, #ffe08a 55%, #c7e7ff 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 
 .portal .profile-header {
   display: flex;
@@ -538,172 +445,53 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Change Card Header - 与Profile Header样式一致 */
+/* Change Card Header - 现代化设计 */
 .portal .change-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px; /* divider bottom spacing */
-  padding-bottom: 10px; /* divider top spacing */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  position: relative;
 }
 
-/* Change Card Cancel 按钮 - 红底白字设计 */
-.portal .change-header .btn {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #dc2626;
-  border: 1px solid #b91c1c;
-  color: #ffffff;
-  font-size: 0.9rem;
-  padding: 8px 16px;
-  min-height: auto;
-  font-weight: 500;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-sizing: border-box;
+.portal .change-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
 }
 
-.portal .change-header .btn:hover {
-  background: #b91c1c;
-  border-color: #991b1b;
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-}
 
 .portal .change-header h2 {
-  font-family: 'Cinzel Decorative', Inter, system-ui, serif;
-  font-size: clamp(22px, 3.6vw, 30px);
-  font-weight: 700;
-  letter-spacing: .4px;
-  background: linear-gradient(90deg, #ffffff, #ffe08a 55%, #c7e7ff 90%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #ffffff;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal .change-header h2::before {
+  content: '✉️';
+  font-size: 20px;
 }
 
 /* Change Card Content */
 .portal .change-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
   flex: 1;
-  /* 确保内容在垂直方向上均匀分布 */
-  justify-content: space-between;
 }
 
-/* Change Card 中的 field 样式 - 确保标签和输入框之间有足够间距 */
-.portal .info-section .change-card .field {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0; /* 增加垂直间距 */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  gap: 16px; /* 在标签和输入框之间添加水平间距 */
-}
-
-.portal .info-section .change-card .field:last-child {
-  border-bottom: none;
-}
-
-.portal .info-section .change-card .field .label {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  min-width: 120px;
-}
-
-/* Change Card 中的输入框样式 - 与 profile field 保持一致 */
-.portal .info-section .change-card .field input.form-input {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 500;
-  text-align: right;
-  padding: 4px 8px; /* 预先设置 padding，避免聚焦时高度变化 */
-  width: 100%;
-  flex: 1;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  border-radius: 4px; /* 预先设置 border-radius */
-  transition: background-color 0.2s ease; /* 添加平滑过渡 */
-}
-
-/* Change Card 中的 Turnstile 容器 - 紧凑间距 */
-.portal .change-card .turnstile-container {
-  margin: 4px 0 4px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Change Card 中的 Actions 区域 - 紧凑且并排 */
-.portal .change-card .actions {
-  margin-top: 4px; /* 更靠近上方元素 */
-  display: flex;
-  gap: 8px; /* 更紧凑的按钮间距 */
-  justify-content: center;
-}
-
-/* Change Card 中的 Send Code 按钮样式 - 蓝底白字设计 */
-.portal .change-card .actions .btn {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #3b82f6;
-  color: #ffffff;
-  border: 1px solid #2563eb;
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 6px 12px; /* 更紧凑的按钮内边距 */
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: auto;
-  box-sizing: border-box;
-}
-
-.portal .change-card .actions .btn:hover {
-  background: #2563eb;
-  border-color: #1d4ed8;
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-/* Cancel 按钮为中性灰 */
-.portal .change-card .actions .btn.cancel {
-  background: #6b7280;
-  border-color: #4b5563;
-}
-.portal .change-card .actions .btn.cancel:hover {
-  background: #4b5563;
-  border-color: #374151;
-}
-
-.portal .info-section .change-card .field input.form-input:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.05);
-  /* 移除 padding 变化，保持高度一致 */
-}
-
-.portal .info-section .change-card .field input.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-  font-style: italic;
-}
 
 .portal .profile-header h2 {
   font-family: 'Cinzel Decorative', Inter, system-ui, serif;
@@ -785,23 +573,12 @@ body {
   font-weight: 600;
 }
 
-/* (removed) admin table cell status colors */
 
-/* 在change email时隐藏静态字段 */
-.portal .info-section .profile-card .static-field {
-  transition: opacity 0.3s ease, height 0.3s ease, margin 0.3s ease;
-}
 
-.portal .info-section .profile-card.changing-email .static-field {
-  opacity: 0;
-  height: 0;
-  margin: 0;
-  overflow: hidden;
-}
 
 .portal .info-section .profile-card .button-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 20px;
 }
@@ -862,18 +639,10 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0; /* use sibling margin to control exact spacing */
+  margin-bottom: 10px; /* add space below divider */
   padding-bottom: 10px; /* divider top spacing */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
-/* Ensure exactly 10px from divider to content (view and edit modes) */
-.portal .badges-card .badges-header + .badges-display,
-.portal .badges-card .badges-header + .badges-edit {
-  margin-top: 10px;
-}
-
-/* Removed ad-hoc negative margins; standardized to 10px spacing above/below divider */
 
 .portal .badges-header h2 {
   font-family: 'Cinzel Decorative', Inter, system-ui, serif;
@@ -885,12 +654,6 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
-}
-
-.portal .badges-header .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 /* Edit Mode Button */
@@ -922,11 +685,11 @@ body {
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Edit Actions */
+/* Edit actions container spacing */
 .portal .badges-header .edit-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .portal .badges-header .edit-actions .btn.primary {
@@ -953,7 +716,6 @@ body {
   background: #059669;
   border-color: #047857;
   color: #ffffff;
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
@@ -981,84 +743,144 @@ body {
   background: #4b5563;
   border-color: #374151;
   color: #ffffff;
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
-/* Badges Display Mode */
-.portal .badges-display {
-  min-height: 200px;
-}
-
-.portal .badges-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.portal .badge-item {
-  background: rgba(255, 255, 255, 0.04);
-  border: 2px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 12px;
-  transition: all 0.4s ease;
+.portal .display-card {
   position: relative;
-  overflow: hidden;
-  width: 100%;
-  min-height: 180px;
+  padding: 20px; /* uniform 20px padding */
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  margin: 10px 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px; /* unify typography with edit-card */
+  overflow: hidden; /* hide SVG overflow outside card bounds */
 }
 
-.portal .badge-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+.portal .display-card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  border-color: rgba(96, 165, 250, 0.3);
 }
 
-/* Realm-specific glowing effects */
-.portal .badge-item.realm-north {
-  border-color: rgba(135, 206, 250, 0.4);
-  box-shadow: 0 0 20px rgba(135, 206, 250, 0.3);
+/* Display card rows - match edit-card structure */
+.portal .display-row { 
+  padding: 10px 0; /* 10px top and bottom padding */
+}
+.portal .display-row + .display-row { 
+  margin-top: 8px; /* match edit-row spacing */
+}
+.portal .display-card .display-row { 
+  border-bottom: none; /* remove border like edit-card */
 }
 
-.portal .badge-item.realm-north:hover {
-  box-shadow: 0 0 30px rgba(135, 206, 250, 0.5);
-}
-
-.portal .badge-item.realm-tooth {
-  border-color: rgba(221, 160, 221, 0.4);
-  box-shadow: 0 0 20px rgba(221, 160, 221, 0.3);
-}
-
-.portal .badge-item.realm-tooth:hover {
-  box-shadow: 0 0 30px rgba(221, 160, 221, 0.5);
-}
-
-.portal .badge-item.realm-bunny {
-  border-color: rgba(144, 238, 144, 0.4);
-  box-shadow: 0 0 20px rgba(144, 238, 144, 0.3);
-}
-
-.portal .badge-item.realm-bunny:hover {
-  box-shadow: 0 0 30px rgba(144, 238, 144, 0.5);
-}
-
-.portal .badge-item.inactive {
-  opacity: 0.6;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.portal .badges-card .badge-row {
-  display: flex;
-  justify-content: space-between;
+/* Display card top row - match edit-top grid */
+.portal .display-top {
+  display: grid;
+  grid-template-columns: auto 1fr; /* status, realm name */
+  gap: 12px;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.portal .badges-card .badge-row:last-child {
-  border-bottom: none;
+/* Display card bottom row - match edit-bottom grid */
+.portal .display-bottom {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
 }
 
-.portal .badges-card .badge-label {
+/* Realm name styling - match "Your badges" title color exactly */
+.portal .display-realm-name {
+  font-family: 'Cinzel Decorative', Inter, system-ui, serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  background: linear-gradient(90deg, #ffffff, #ffe08a 55%, #c7e7ff 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+/* Active/Inactive status styling */
+.portal .display-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.portal .status-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.portal .status-badge.active {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgba(34, 197, 94, 0.9);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.portal .status-badge.inactive {
+  background: rgba(156, 163, 175, 0.2);
+  color: rgba(156, 163, 175, 0.9);
+  border: 1px solid rgba(156, 163, 175, 0.4);
+}
+
+/* Realm seal positioning - full height on right side */
+.portal .display-seal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 100%;
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portal .display-card:hover .display-seal {
+  opacity: 1;
+}
+
+.portal .display-seal svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Watch over label and value */
+.portal .display-watch-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.portal .display-watch-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Legacy display styles for backward compatibility */
+.portal .display-label {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -1068,7 +890,7 @@ body {
   min-width: 120px;
 }
 
-.portal .badges-card .badge-value {
+.portal .display-value {
   font-family: 'Inter', sans-serif;
   font-size: 16px;
   color: #fff;
@@ -1076,6 +898,35 @@ body {
   flex: 1;
   word-break: break-word;
   font-weight: 500;
+}
+
+.portal .display-value.muted {
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+}
+
+/* No badges card styling */
+.portal .display-empty {
+  text-align: center;
+}
+
+.portal .display-empty .no-badges-content {
+  padding: 20px; /* match edit-new padding */
+}
+
+.portal .display-empty .no-badges-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 8px 0;
+}
+
+.portal .display-empty .no-badges-subtext {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  margin: 0;
 }
 
 .portal .badge-header {
@@ -1210,61 +1061,11 @@ body {
   text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
 
-.portal .badge-seal {
-  position: absolute;
-  left: -120px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 240px;
-  height: 240px;
-  opacity: 0.3;
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.18s ease;
-  z-index: 10;
-}
-
-.portal .badge-item:hover .badge-seal { 
-  opacity: 0.5;
-  transform: translateY(-50%);
-}
-
-.portal .badge-seal .stamp {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.portal .no-badges {
-  text-align: center;
-  padding: 40px 20px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.portal .no-badges p {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 16px;
-  margin: 0 0 8px 0;
-}
-
-.portal .no-badges .muted {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
-  font-style: italic;
-}
-
-/* Badges Edit Mode */
-.portal .badges-card .badges-edit {
-  padding: 12px 0 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
 /* Badges Edit Header */
-.portal .badges-card .badges-edit-header {
-  display: flex;
+.badges-edit-header {
+  display: flex !important;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 16px;
   padding: 20px 24px;
   background: rgba(255, 255, 255, 0.03);
@@ -1273,12 +1074,6 @@ body {
   margin-bottom: 20px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-
-.portal .badges-card .edit-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .portal .badges-card .badges-edit-intro {
@@ -1319,12 +1114,20 @@ body {
 
 .portal .badges-card .badges-list {
   display: grid;
-  gap: 20px;
+  gap: 10px; /* consistent 10px spacing between cards */
 }
 
-.portal .badges-card .badge-edit-card {
+/* Avoid double-spacing: remove margins on cards inside badges-list */
+.portal .badges-card .badges-list > .edit-card,
+.portal .badges-card .badges-list > .display-card,
+.portal .badges-card .badges-list > .edit-new {
+  margin: 0;
+}
+
+
+.portal .badges-card .edit-card {
   position: relative;
-  padding: 20px;
+  padding: 8px 20px; /* 8px vertical, 20px horizontal */
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1332,24 +1135,68 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   transform: translateY(0);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  margin-bottom: 16px;
+  margin: 10px 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px; /* unify typography with add-new */
 }
 
-.portal .badges-card .badge-edit-card:hover {
-  transform: translateY(-2px);
+.portal .badges-card .edit-card:hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   border-color: rgba(96, 165, 250, 0.3);
 }
 
-.portal .badges-card .badge-edit-row {
-  display: flex;
+.portal .badges-card .edit-row { padding: 10px 0; }
+.portal .badges-card .edit-row + .edit-row { margin-top: 8px; }
+.portal .badges-card .edit-card .edit-row { border-bottom: none; }
+
+.portal .badges-card .edit-top {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr; /* 1/2, 1/4, 1/4 */
+  gap: 12px;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
 }
 
-.portal .badges-card .badge-edit-row:last-child {
-  margin-bottom: 0;
+.portal .badges-card .realm-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0;
+}
+
+.portal .badges-card .enchanted-control { 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  margin: 0;
+  padding: 0;
+}
+.portal .badges-card .remove-control { 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  margin: 0;
+  padding: 0;
+}
+
+.portal .badges-card .edit-bottom {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Typography: make Realm/Enchanted match section-label look */
+.portal .badges-card .realm-label,
+.portal .badges-card .switch .switch-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
 }
 
 .portal .badges-card .realm-section {
@@ -1359,11 +1206,10 @@ body {
   flex: 1;
 }
 
-.portal .badges-card .enchanted-section {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+/* Align dropdown left naturally */
+.portal .badges-card .realm-control { display: flex; justify-content: flex-start; align-items: center; }
+
+/* enchanted section replaced by .switch below */
 
 .portal .badges-card .watch-over-section {
   flex: 1;
@@ -1376,7 +1222,10 @@ body {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(226, 232, 240, 0.9);
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 110px; /* slightly tighter to reduce height wrapping */
   margin: 0;
 }
 
@@ -1385,10 +1234,18 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 8px;
   color: #fff;
-  padding: 10px 12px;
+  padding: 0 28px 0 8px; /* left and right padding for text and icon */
+  min-height: 32px; /* ensure consistent height */
   font-size: 14px;
   font-family: 'Inter', sans-serif;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3e%3cpath d='M5.5 7l4.5 5 4.5-5'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  display: flex;
+  align-items: center;
 }
 
 .portal .badges-card .realm-select:focus {
@@ -1397,21 +1254,52 @@ body {
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
 }
 
-.portal .badges-card .toggle-label {
-  display: flex;
+/* Switch (rounded toggle) */
+.portal .badges-card .switch {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: rgba(226, 232, 240, 0.9);
+  user-select: none;
+  margin: 0;
+  padding: 0;
 }
-
-.portal .badges-card .enchanted-toggle {
-  width: 18px;
-  height: 18px;
-  accent-color: #60a5fa;
-  cursor: pointer;
+.portal .badges-card .switch .switch-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  padding: 0;
+}
+.portal .badges-card .switch input[type="checkbox"] { display: none; }
+.portal .badges-card .switch .switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 999px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0; /* prevent shrinking */
+}
+.portal .badges-card .switch .switch-track::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  transition: left 0.2s ease;
+}
+.portal .badges-card .switch input[type="checkbox"]:checked + .switch-track {
+  background: rgba(34, 197, 94, 0.6);
+  border-color: rgba(34, 197, 94, 0.7);
+}
+.portal .badges-card .switch input[type="checkbox"]:checked + .switch-track::after {
+  left: 20px;
 }
 
 .portal .badges-card .watch-over-input {
@@ -1419,10 +1307,13 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 8px;
   color: #fff;
-  padding: 10px 12px;
+  padding: 0 8px; /* horizontal padding for text */
+  min-height: 32px; /* match other controls height */
   font-size: 14px;
   font-family: 'Inter', sans-serif;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
 }
 
 .portal .badges-card .watch-over-input:focus {
@@ -1435,31 +1326,34 @@ body {
   color: rgba(148, 163, 184, 0.65);
 }
 
-.portal .badges-card .badge-delete-btn {
-  background: rgba(248, 113, 113, 0.15);
-  border: 1px solid rgba(248, 113, 113, 0.3);
-  color: rgba(248, 113, 113, 0.9);
-  padding: 8px;
-  border-radius: 8px;
+.portal .badges-card .enchanted-control,
+.portal .badges-card .remove-control { 
+  display: flex; 
+  justify-content: flex-end; 
+  align-items: center; 
+}
+
+.portal .badges-card .remove-btn {
+  background: #dc2626;
+  border: 1px solid #b91c1c;
+  color: #ffffff;
+  padding: 0 12px; /* horizontal padding for text */
+  min-height: 32px; /* match other controls height */
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  font-size: 13px; /* slightly smaller font */
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
-
-.portal .badges-card .badge-delete-btn:hover {
-  background: rgba(248, 113, 113, 0.25);
-  border-color: rgba(248, 113, 113, 0.5);
-  color: #fff;
-  transform: translateY(-1px);
-}
-
-.portal .badges-card .delete-icon {
-  font-size: 16px;
-  font-weight: bold;
+.portal .badges-card .remove-btn:hover {
+  background: #b91c1c;
+  border-color: #991b1b;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 
@@ -1486,48 +1380,43 @@ body {
   margin: 0;
 }
 
-.portal .badges-card .add-badge-card {
+.portal .badges-card .edit-new {
   display: flex;
   justify-content: center;
-  padding: 20px;
+  padding: 20px; /* match .display-card/.edit-card */
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  margin-top: 20px;
   transition: all 0.25s ease;
+  margin: 10px 0;
+  align-items: center;
 }
 
-.portal .badges-card .add-badge-card:hover {
-  transform: translateY(-2px);
+.portal .badges-card .edit-new.display-empty {
+  cursor: pointer;
+  border-style: dashed;
+  border-color: rgba(96, 165, 250, 0.45);
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.portal .badges-card .edit-new.display-empty:hover {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(96, 165, 250, 0.7);
+}
+
+.portal .badges-card .edit-new.display-empty:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+  border-color: rgba(96, 165, 250, 0.85);
+}
+
+.portal .badges-card .edit-new:hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   border-color: rgba(96, 165, 250, 0.3);
 }
 
-.portal .badges-card .add-badge-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 28px;
-  border-radius: 999px;
-  background: rgba(59, 130, 246, 0.16);
-  border: 1px dashed rgba(96, 165, 250, 0.55);
-  color: rgba(191, 219, 254, 0.95);
-  font-weight: 600;
-  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-}
-
-.portal .badges-card .add-badge-btn .add-icon {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.portal .badges-card .add-badge-btn:hover {
-  background: rgba(59, 130, 246, 0.28);
-  border-color: rgba(96, 165, 250, 0.8);
-  transform: translateY(-1px);
-}
 
 .portal .badges-card .badges-edit-footer {
   position: sticky;
@@ -1710,29 +1599,6 @@ body {
 
 
 
-/* Turnstile Container */
-/* Modal Turnstile */
-.portal .modal .turnstile-container {
-  margin: 16px 0;
-}
-
-.portal .modal .turnstile-status {
-  margin-top: 8px;
-  font-size: 14px;
-  text-align: center;
-}
-
-.portal .modal .turnstile-status.default {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.portal .modal .turnstile-status.success {
-  color: #10b981;
-}
-
-.portal .modal .turnstile-status.error {
-  color: #ef4444;
-}
 
 /* Responsive Design for Profile */
 
@@ -1893,10 +1759,13 @@ body {
 
 .portal .renewal-action-desc {
   flex: 0 0 50%; /* 1/2 width */
-  font-size: clamp(12px, 1.4vw, 14px);
-  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(13px, 1.5vw, 15px);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.2px;
 }
 
 .portal .history-content {
@@ -1913,7 +1782,11 @@ body {
 .portal .no-history {
   text-align: center;
   padding: 32px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .portal .no-history .muted {
@@ -1944,6 +1817,7 @@ body {
   letter-spacing: 0.5px;
   color: rgba(255, 255, 255, 0.8);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-align: center;
 }
 
 .portal .history-item {
@@ -1954,6 +1828,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.2s ease;
   align-items: center;
+  text-align: center;
 }
 
 .portal .history-item:last-child {
@@ -1966,8 +1841,11 @@ body {
 
 .portal .history-item-date {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .portal .history-item-type {
@@ -1975,24 +1853,33 @@ body {
   color: #ffffff;
   font-weight: 500;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  text-align: center;
 }
 
 .portal .history-item-amount {
-  font-size: 14px;
+  font-size: 15px;
   color: #10b981;
   font-weight: 600;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  letter-spacing: 0.2px;
+  text-align: center;
 }
 
 .portal .history-item-status {
   font-size: 12px;
   font-weight: 600;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 6px;
   text-align: center;
-  display: inline-block;
-  width: fit-content;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
 }
 
 .portal .history-item-status.status-completed {
@@ -2323,8 +2210,6 @@ body {
   box-shadow: 0 4px 12px rgba(248, 210, 106, 0.3);
 }
 
-/* (removed) edit user modal form styles */
-
 /* Removed refund button styles for member portal */
 
 /* ===== FOOTER SECTION ===== */
@@ -2363,37 +2248,45 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+.portal .footer-contact {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin-top: 4px;
+}
+
+.portal .footer-contact a {
+  color: rgba(248, 210, 106, 0.8);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.portal .footer-contact a:hover {
+  color: #f8d26a;
+  text-decoration: underline;
+}
+
 /* ===== BADGES SECTION RESPONSIVE DESIGN ===== */
 /* 平板横屏 (1024px) */
 @media (max-width: 1024px) {
   .portal .badges-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 16px;
+    gap: 10px;
   }
   
-  .portal .badge-item {
-    min-height: 160px;
-  }
+  /* 旧的badge-item样式已移除 */
   
-  .portal .badge-seal {
-    width: 200px;
-    height: 200px;
-    left: -100px;
-  }
+  /* 旧的badge-seal样式已移除 */
 }
 
 /* 平板竖屏和手机横屏 (768px) */
 @media (max-width: 768px) {
   .portal .badges-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 10px;
   }
   
-  .portal .badge-item {
-    padding: 16px 20px;
-    min-height: 180px;
-    max-width: 100%;
-  }
+  /* 旧的badge-item样式已移除 */
   
   .portal .badges-card .badge-title {
     font-size: 22px;
@@ -2411,11 +2304,7 @@ body {
     font-size: 16px;
   }
   
-  .portal .badge-seal {
-    width: 180px;
-    height: 180px;
-    left: -90px;
-  }
+  /* 旧的badge-seal样式已移除 */
   
   .portal .badge-field.single-line {
     min-height: 24px;
@@ -2432,10 +2321,7 @@ body {
     padding: 16px;
   }
   
-  .portal .badge-item {
-    padding: 14px 16px;
-    min-height: 160px;
-  }
+  /* 旧的badge-item样式已移除 */
   
   .portal .badges-card .badge-title {
     font-size: 20px;
@@ -2457,11 +2343,7 @@ body {
     font-size: 15px;
   }
   
-  .portal .badge-seal {
-    width: 160px;
-    height: 160px;
-    left: -80px;
-  }
+  /* 旧的badge-seal样式已移除 */
   
   .portal .badge-field.single-line {
     min-height: 22px;
@@ -2474,20 +2356,13 @@ body {
 
 /* 小屏手机 (360px) */
 @media (max-width: 360px) {
-  .portal .badge-item {
-    padding: 12px 14px;
-    min-height: 140px;
-  }
+  /* 旧的badge-item样式已移除 */
   
   .portal .badges-card .badge-title {
     font-size: 18px;
   }
   
-  .portal .badge-seal {
-    width: 140px;
-    height: 140px;
-    left: -70px;
-  }
+  /* 旧的badge-seal样式已移除 */
 }
 
 /* ===== MEMBERSHIP SECTION RESPONSIVE DESIGN ===== */
@@ -2637,9 +2512,6 @@ body {
 }
 
 
-/* (removed admin responsive + sortable) */
-
-/* (removed) admin table/pagination/sort/delete styles */
 
 /* ===== DONATION MODAL STYLES ===== */
 .modal-overlay {
@@ -2836,5 +2708,346 @@ body {
   border-color: #2563eb;
 }
 
-/* ===== EDIT USER MODAL STYLES ===== */
-/* (removed) edit user modal styles */
+/* ===== EMAIL CHANGE MODAL STYLES ===== */
+.portal .email-change-modal .modal-body {
+  padding: 24px;
+}
+
+.portal .email-change-modal .field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.portal .email-change-modal .field .label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.portal .email-change-modal .field .value {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.portal .email-change-modal .field input.form-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.portal .email-change-modal .field input.form-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.portal .email-change-modal .field input.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* Email Change Modal Error Status */
+.portal .email-change-modal .error {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 16px 0 8px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+/* Error state */
+.portal .email-change-modal .error {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Success state (when color is overridden to green) */
+.portal .email-change-modal .error[style*="color: #10b981"] {
+  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.1);
+  border: none;
+}
+
+/* Hide error when empty */
+.portal .email-change-modal .error:empty {
+  display: none;
+}
+
+/* ===== DONATION MODAL STYLES ===== */
+.portal .donation-modal {
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+  width: 90%;
+}
+
+.portal .donation-modal .modal-header {
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  position: relative;
+}
+
+.portal .donation-modal .modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
+}
+
+.portal .donation-modal .modal-header h3 {
+  font-family: 'Cinzel Decorative', Inter, system-ui, serif;
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 700;
+  letter-spacing: .4px;
+  background: linear-gradient(90deg, #ffffff, #ffe08a 55%, #c7e7ff 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal .donation-modal .modal-body {
+  padding: 24px;
+}
+
+.portal .donation-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.portal .donation-description {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin: 0;
+}
+
+.portal .amount-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.portal .amount-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.portal .amount-btn:hover {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  transform: translateY(-2px);
+}
+
+.portal .amount-btn.selected {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.portal .custom-amount {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portal .custom-amount label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.portal .custom-amount input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.portal .custom-amount input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.portal .custom-amount input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* Donation Modal Error Status */
+.portal .donation-modal .error {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 16px 0 8px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+/* Error state */
+.portal .donation-modal .error {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Success state (when color is overridden to green) */
+.portal .donation-modal .error[style*="color: #10b981"] {
+  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.1);
+  border: none;
+}
+
+/* Hide error when empty */
+.portal .donation-modal .error:empty {
+  display: none;
+}
+
+.portal .donation-modal .modal-footer {
+  border-top: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.portal .donation-modal .modal-footer .btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  min-width: 120px;
+}
+
+.portal .donation-modal .modal-footer .btn.primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.portal .donation-modal .modal-footer .btn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.portal .donation-modal .modal-footer .btn.primary:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.portal .donation-modal .modal-footer .btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.portal .donation-modal .modal-footer .btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.portal .email-change-modal .modal-footer {
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.portal .email-change-modal .modal-footer .btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  min-width: 120px;
+}
+
+.portal .email-change-modal .modal-footer .btn.primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.portal .email-change-modal .modal-footer .btn.primary:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.portal .email-change-modal .modal-footer .btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.portal .email-change-modal .modal-footer .btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}

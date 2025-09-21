@@ -766,9 +766,9 @@ body {
 }
 
 .auth .process .oath-body p {
-  color: rgba(255,255,255,.92);
-  line-height: 1.7; 
-  font-size: 18px; 
+  color: rgba(255,255,255,.78);
+  line-height: 1.6; 
+  font-size: 16px; 
   text-indent: 1.5em;
   font-weight: 400;
 }
@@ -1121,6 +1121,23 @@ body {
 .auth .footer-copy {
   font-size: 13px;
   color: rgba(255,255,255,.55);
+}
+
+.auth .footer-contact {
+  font-size: 13px;
+  color: rgba(255,255,255,.65);
+  margin-top: 4px;
+}
+
+.auth .footer-contact a {
+  color: rgba(248,210,106,.8);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth .footer-contact a:hover {
+  color: #f8d26a;
+  text-decoration: underline;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */

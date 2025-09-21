@@ -174,13 +174,8 @@ def get_database_url():
     return os.getenv("DATABASE_URL", "sqlite:///./mythicalhelper.db")
 
 def create_database():
-    """Create database and tables (recreate schema for latest models)"""
+    """Create database and tables if they do not exist (non-destructive)."""
     engine = create_engine(get_database_url())
-    # Recreate schema to reflect model changes
-    try:
-        Base.metadata.drop_all(engine)
-    except Exception:
-        pass
     Base.metadata.create_all(engine)
     return engine
 

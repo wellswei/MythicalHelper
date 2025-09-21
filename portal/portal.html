@@ -72,33 +72,6 @@
           </div>
         </div>
 
-        <!-- Email Change Card -->
-        <div class="change-card" id="emailChangeCard" style="display:none;">
-          <div class="change-header">
-            <h2>Change Email</h2>
-          </div>
-
-          <div class="change-content">
-            <!-- 显示当前Email信息 -->
-            <div class="field">
-              <span class="label">Current Email</span>
-              <span class="value" id="currentEmailDisplay">Loading…</span>
-            </div>
-            
-            <!-- Change Action部分 -->
-            <div class="field">
-              <span class="label" id="emailLabel">New Email</span>
-              <input type="email" id="newEmailInput" class="form-input" placeholder="you@example.com" />
-            </div>
-            
-            
-            <div class="error" id="errPortalEmail"></div>
-            <div class="actions">
-              <button class="btn primary" id="btnSendEmailCode" type="button">Send Magic Link</button>
-              <button class="btn cancel" id="btnCancelEmailChange" type="button">Cancel</button>
-            </div>
-          </div>
-        </div>
 
 
         <!-- QR卡（右） -->
@@ -125,28 +98,23 @@
             <h2>Your Badges</h2>
             <div class="header-actions">
               <button class="btn edit-mode-btn" id="btnToggleEditMode" type="button">Edit Mode</button>
+              <!-- 编辑模式按钮 -->
+              <div class="edit-actions" id="editActions" style="display: none;">
+                <button class="btn ghost" id="btnCancelEdit" type="button">Discard</button>
+                <button class="btn primary" id="btnSaveBadges" type="button" disabled>Save</button>
+              </div>
             </div>
           </div>
         
         <!-- 展示模式 -->
         <div class="badges-display" id="badgesDisplay">
-          <div class="badges-grid" id="badgesGrid">
+          <div class="badges-list" id="badgesGrid">
             <!-- Badges will be populated here -->
-          </div>
-          <div class="no-badges" id="noBadges" style="display: none;">
-            <p>Your scroll is still blank</p>
-            <p class="muted">Begin your tale — create your very first badge!</p>
           </div>
         </div>
         
         <!-- 编辑模式 -->
         <div class="badges-edit" id="badgesEdit" style="display: none;">
-          <div class="badges-edit-header">
-            <div class="edit-actions">
-              <button class="btn ghost" id="btnCancelEdit" type="button">Discard</button>
-              <button class="btn primary" id="btnSaveBadges" type="button" disabled>Save</button>
-            </div>
-          </div>
           <div class="badges-list" id="badgesEditList">
             <!-- Editable badges will be here -->
           </div>
@@ -197,25 +165,78 @@
     </section>
   </main>
 
+  <!-- Change Email Modal -->
+  <div class="modal-overlay" id="emailChangeModal" style="display: none;">
+    <div class="modal-content email-change-modal">
+      <div class="modal-header">
+        <h3>Change Email Address</h3>
+        <button class="modal-close" id="btnCloseEmailModal">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- 显示当前Email信息 -->
+        <div class="field">
+          <span class="label">Current Email</span>
+          <span class="value" id="currentEmailDisplay">Loading…</span>
+        </div>
+        
+        <!-- New Email Input -->
+        <div class="field">
+          <span class="label">New Email Address</span>
+          <input type="email" id="newEmailInput" class="form-input" placeholder="Enter your new email address" />
+        </div>
+        
+        <div class="error" id="errPortalEmail"></div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn primary" id="btnSendEmailCode">Send Magic Link</button>
+        <button class="btn secondary" id="btnCancelEmailChange">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Donation Modal -->
+  <div class="modal-overlay" id="donationModal" style="display: none;">
+    <div class="modal-content donation-modal">
+      <div class="modal-header">
+        <h3>Share A Gift of Kindness</h3>
+        <button class="modal-close" id="btnCloseDonationModal">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="donation-options">
+          <p class="donation-description">Any amount you give will help our guild shine brighter.</p>
+          
+          <div class="amount-buttons">
+            <button class="amount-btn" data-amount="5">$5</button>
+            <button class="amount-btn" data-amount="10">$10</button>
+            <button class="amount-btn" data-amount="20">$20</button>
+            <button class="amount-btn" data-amount="50">$50</button>
+          </div>
+          
+          <div class="custom-amount">
+            <label for="customAmountInput">Custom Amount:</label>
+            <input type="number" id="customAmountInput" placeholder="Enter amount" min="1" step="1" />
+          </div>
+        </div>
+        
+        <div class="error" id="errDonation"></div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn secondary" id="btnCancelDonation">Cancel</button>
+        <button class="btn primary" id="btnConfirmDonation" disabled>Donate $0</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Delete Account Modal -->
   <div class="modal" id="deleteAccountModal" style="display: none;">
     <div class="modal-content">
       <h3>Delete Account</h3>
       <p>This action is permanent and cannot be undone. All your data will be permanently deleted.</p>
       
-      <!-- Turnstile验证 -->
-      <div class="turnstile-container" style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
-        <div class="cf-turnstile"
-             data-sitekey="0x4AAAAAAByLcNil8rR2EAJs"
-             data-callback="onPortalTurnstileSuccess"
-             data-expired-callback="onPortalTurnstileExpired"
-             data-error-callback="onPortalTurnstileError"
-             data-action="submit">
-        </div>
-        <div id="turnstileStatusDelete" class="turnstile-status default">
-          <span id="turnstileMessageDelete">Security verification required</span>
-        </div>
-      </div>
       
       <div class="modal-actions">
         <button class="btn danger" id="btnConfirmDelete">Delete Account</button>
@@ -225,13 +246,6 @@
   </div>
 
 
-  <!-- Error Toast -->
-  <div id="errorToast" class="error-toast" style="display: none;">
-    <div class="error-content">
-      <span class="error-message"></span>
-      <button class="close-btn" id="btnCloseError">&times;</button>
-    </div>
-  </div>
 
   <!-- Footer -->
   <footer class="site-footer">
@@ -240,6 +254,7 @@
         <img src="../logo.png" alt="Logo" class="logo">
       </div>
       <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>
+      <p class="footer-contact">Contact: <a href="mailto:official@mythicalhelper.org">official@mythicalhelper.org</a></p>
     </div>
   </footer>
 

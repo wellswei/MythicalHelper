@@ -1,6 +1,8 @@
 // === Mythical Helper – index.js (Home page only) ===
 
-const API_BASE = 'https://api.mythicalhelper.org';
+// 检测是否为本地开发环境
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isLocalDev ? 'http://localhost:8000' : 'https://api.mythicalhelper.org';
 
 
 // 随机组合系统

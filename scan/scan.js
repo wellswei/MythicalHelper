@@ -1,5 +1,7 @@
 // scan.js — public badge viewer
-const API_BASE = 'https://api.mythicalhelper.org';
+// 检测是否为本地开发环境
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isLocalDev ? 'http://localhost:8000' : 'https://api.mythicalhelper.org';
 
 function $(s) { return document.querySelector(s); }
 
@@ -79,9 +81,10 @@ function renderBadges(badgesObj, username, validUntil) {
     icon: (b && b.icon) || '🏆',
     title: (b && b.title) || id,
     description: (b && b.description) || 'Custom badge',
-    active: (b && typeof b.active === 'boolean') ? b.active : true,
+    enchanted: (b && typeof b.enchanted === 'boolean') ? b.enchanted : false,
     realm: (b && b.realm) || 'north',
     care_description: (b && b.care_description) || '',
+    watchOver: (b && b.watchOver) || '',
     // 从数据库读取的信息（如果存在）
     agent: (b && b.agent) || null,
     ward: (b && b.ward) || null,
@@ -89,8 +92,8 @@ function renderBadges(badgesObj, username, validUntil) {
     missions: (b && b.missions) || null,
   }));
 
-  // 只显示active的badges
-  const activeBadges = custom.filter(b => b.active === true);
+  // 只显示enchanted（active）的badges
+  const activeBadges = custom.filter(b => b.enchanted === true);
   
   activeBadges.forEach(b => {
     // 获取realm信息
@@ -102,7 +105,7 @@ function renderBadges(badgesObj, username, validUntil) {
     
     const realm = realmNames[b.realm] || 'Unknown Realm';
     const agentName = username || 'Agent Not Assigned';
-    const wardName = b.care_description || 'Not specified';
+    const wardName = b.watchOver || b.care_description || 'Not specified';
     const missions = getRandomMissions(b.realm);
     const enchantedUntil = validUntil ? parseServerDateToDate(validUntil) : null;
     const today = new Date();

@@ -20,22 +20,41 @@ import stripe
 
 from models import create_database, Purchase, User
 from database import DatabaseService, get_db
-from config import get_config
+# 检查是否为本地开发环境
+import os
+if os.getenv('LOCAL_DEV', 'false').lower() == 'true':
+    from config_local import get_config
+    print("🔧 使用本地开发配置")
+else:
+    from config import get_config
+    print("🚀 使用生产配置")
 
 UTC = timezone.utc
 
 # 加载配置
 config = get_config()
 
-# Stripe 配置
-stripe.api_key = config.STRIPE_SECRET_KEY
+# Stripe 配置 - 延迟初始化
+def init_stripe():
+    """初始化 Stripe API 密钥"""
+    stripe.api_key = config.STRIPE_SECRET_KEY
+    print(f"[STRIPE] 初始化 Stripe API 密钥: {config.STRIPE_SECRET_KEY[:10]}...")
+
+# 立即初始化 Stripe
+init_stripe()
 
 # Stripe 价格配置
 RENEWAL_PRICE_ID = os.getenv("RENEWAL_PRICE_ID", None)  # 如果设置了价格ID，使用固定价格；否则使用动态价格
 RENEWAL_AMOUNT_CENTS = int(os.getenv("RENEWAL_AMOUNT_CENTS", "999"))  # 续费价格（美分），默认$9.99
 DONATION_AMOUNT_CENTS = int(os.getenv("DONATION_AMOUNT_CENTS", "1000"))  # 捐赠价格（美分），默认$10.00
 
-# Create database and tables
+# Stripe Webhook Secret
+STRIPE_WEBHOOK_SECRET = config.STRIPE_WEBHOOK_SECRET
+
+# 确保 models 使用与配置一致的数据库URL
+os.environ["DATABASE_URL"] = config.DATABASE_URL
+
+# Create database and tables (non-destructive)
 create_database()
 
 # 应用生命周期管理
@@ -427,19 +446,26 @@ def exchange_session(inb: SessionsExchangeIn, request: Request = None):
                 problem(401, "unauthorized", "Invalid proof_token")
             if proof.expires_at < now():
                 problem(401, "unauthorized", "Proof expired")
-            if proof.purpose != "signin":
-                problem(400, "invalid_flow", "Proof purpose is not signin")
+            if proof.purpose not in ("signin", "change_email"):
+                problem(400, "invalid_flow", f"Proof purpose is not signin or change_email, got {proof.purpose}")
             
             # 只支持邮箱登录
             if proof.channel != "email":
                 problem(400, "invalid_channel", "Only email login is supported")
             
-            user = db.get_user_by_email(proof.destination)
+            # 对于邮箱变更，使用subject_id查找用户；对于登录，使用邮箱查找用户
+            if proof.purpose == "change_email" and proof.subject_id:
+                user = db.get_user_by_id(proof.subject_id)
+            else:
+                user = db.get_user_by_email(proof.destination)
+            
             if not user or user.deleted_at:
                 problem(404, "user_not_found", "No user bound to this email")
             
-            # 消费proof
-            db.delete_proof(inb.proof_token)
+            # 对于邮箱变更，不立即消费proof token，因为后续的邮箱变更API还需要使用它
+            # 对于登录，立即消费proof token
+            if proof.purpose != "change_email":
+                db.delete_proof(inb.proof_token)
         
         else:
             problem(400, "missing_token", "Either proof_token or signup_session_token is required")
@@ -802,7 +828,7 @@ def admin_patch_user(user_id: str, inb: AdminUsersPatchIn, su: SessionUser = Dep
 app.include_router(users)
 
 # =========================
-# Contacts 路由（变更邮箱/手机号）
+# Contacts 路由（仅变更邮箱）
 # =========================
 contacts = APIRouter(prefix="/contacts", tags=["Contacts"])
 
@@ -813,8 +839,6 @@ def _consume_proof(db: DatabaseService, token: str):
     if proof.expires_at < now():
         problem(401, "unauthorized", "Proof expired")
     return proof
-
-# 手机号变更功能已移除，只支持邮箱变更
 
 @contacts.patch("/email")
 def change_email(inb: ContactsPatchIn, su: SessionUser = Depends(get_session_user)):
@@ -1009,51 +1033,68 @@ def create_renewal_session(
                 }]
             
             try:
-                print(f"[PAYMENT] Calling Stripe API via Cloudflare Proxy...")
-                print(f"[PAYMENT] Line items: {line_items}")
+                # 根据环境选择调用方式
+                if os.getenv('LOCAL_DEV', 'false').lower() == 'true':
+                    print(f"[PAYMENT] Calling Stripe API directly (local development)...")
+                    print(f"[PAYMENT] Line items: {line_items}")
+                    
+                    # 本地开发环境直接使用 Stripe API
+                    checkout_session = stripe.checkout.Session.create(
+                        payment_method_types=['card'],
+                        line_items=line_items,
+                        mode='payment',
+                        success_url=f"{config.FRONTEND_URL}/portal/portal.html?session_id={{CHECKOUT_SESSION_ID}}",
+                        cancel_url=f"{config.FRONTEND_URL}/portal/portal.html",
+                        metadata={
+                            'user_id': user.user_id,
+                            'type': 'renewal',
+                            'current_valid_until': user_data.valid_until.isoformat() if user_data.valid_until else "",
+                            'new_valid_until': new_valid_until.isoformat()
+                        }
+                    )
+                else:
+                    print(f"[PAYMENT] Calling Stripe API via Cloudflare Proxy...")
+                    print(f"[PAYMENT] Line items: {line_items}")
+                    
+                    # 生产环境通过 Cloudflare Worker 代理调用 Stripe API
+                    import requests
+                    
+                    # 使用实际的 Cloudflare Worker 端点
+                    stripe_url = "https://pay.mythicalhelper.org/v1/checkout/sessions"
+                    
+                    headers = {
+                        "X-Worker-Auth": "X7f8uV2YwQ9JsL4epM3RaNDkZ0B1tFgH"
+                    }
+                    
+                    # 构建 Stripe API 请求数据
+                    payload = {
+                        "payment_method_types[]": "card",
+                        "line_items[0][price_data][currency]": "usd",
+                        "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Membership Renewal",
+                        "line_items[0][price_data][product_data][description]": "Extend your membership for one year",
+                        "line_items[0][price_data][unit_amount]": str(RENEWAL_AMOUNT_CENTS),
+                        "line_items[0][quantity]": "1",
+                        "mode": "payment",
+                        "success_url": f"{config.FRONTEND_URL}/portal/portal.html?renewal=success",
+                        "cancel_url": f"{config.FRONTEND_URL}/portal/portal.html?renewal=cancelled",
+                        "metadata[user_id]": user.user_id,
+                        "metadata[type]": "renewal",
+                        "metadata[new_valid_until]": new_valid_until.isoformat(),
+                        "metadata[amount]": str(RENEWAL_AMOUNT_CENTS)
+                    }
+                    
+                    response = requests.post(stripe_url, headers=headers, data=payload, timeout=10)
+                    response.raise_for_status()
+                    
+                    result = response.json()
+                    print(f"[PAYMENT] Stripe API call successful!")
+                    
+                    # 模拟 Stripe 响应格式
+                    checkout_session = type('obj', (object,), {
+                        'id': result['id'],
+                        'url': result['url']
+                    })()
                 
-                # 通过 Cloudflare Worker 代理调用 Stripe API
-                import requests
-                
-                # 使用实际的 Cloudflare Worker 端点
-                stripe_url = "https://pay.mythicalhelper.org/v1/checkout/sessions"
-                
-                headers = {
-                    "X-Worker-Auth": "X7f8uV2YwQ9JsL4epM3RaNDkZ0B1tFgH"
-                }
-                
-                # 构建 Stripe API 请求数据
-                payload = {
-                    "payment_method_types[]": "card",
-                    "line_items[0][price_data][currency]": "usd",
-                    "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Membership Renewal",
-                    "line_items[0][price_data][product_data][description]": "Extend your membership for one year",
-                    "line_items[0][price_data][unit_amount]": str(RENEWAL_AMOUNT_CENTS),
-                    "line_items[0][quantity]": "1",
-                    "mode": "payment",
-                    "success_url": f"{config.FRONTEND_URL}/portal/portal.html?renewal=success",
-                    "cancel_url": f"{config.FRONTEND_URL}/portal/portal.html?renewal=cancelled",
-                    "metadata[user_id]": user.user_id,
-                    "metadata[type]": "renewal",
-                    "metadata[new_valid_until]": new_valid_until.isoformat(),
-                    "metadata[amount]": str(RENEWAL_AMOUNT_CENTS)
-                }
-                
-                response = requests.post(stripe_url, headers=headers, data=payload, timeout=10)
-                response.raise_for_status()
-                
-                result = response.json()
-                print(f"[PAYMENT] Stripe API call successful!")
-                
-                # 模拟 Stripe 响应格式
-                checkout_session = type('obj', (object,), {
-                    'id': result['id'],
-                    'url': result['url']
-                })()
-                
-            except requests.exceptions.RequestException as req_error:
-                print(f"[PAYMENT] Stripe proxy request error: {str(req_error)}")
-                raise Exception(f"Failed to call Stripe via proxy: {str(req_error)}")
             except Exception as general_error:
                 print(f"[PAYMENT] General error: {str(general_error)}")
                 print(f"[PAYMENT] Error type: {type(general_error)}")
@@ -1086,45 +1127,80 @@ def create_donation_session(
         print(f"[PAYMENT] Starting donation for user: {user.user_id}")
         print(f"[PAYMENT] Donation amount: ${request.amount / 100:.2f}")
         
-        # 通过 Cloudflare Worker 代理调用 Stripe API
-        import requests
-        
-        # 使用实际的 Cloudflare Worker 端点
-        stripe_url = "https://pay.mythicalhelper.org/v1/checkout/sessions"
-        
-        headers = {
-            "X-Worker-Auth": "X7f8uV2YwQ9JsL4epM3RaNDkZ0B1tFgH"
-        }
-        
-        # 构建 Stripe API 请求数据
-        payload = {
-            "payment_method_types[]": "card",
-            "line_items[0][price_data][currency]": "usd",
-            "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Donation",
-            "line_items[0][price_data][product_data][description]": "Support the Guild with your generous gift",
-            "line_items[0][price_data][unit_amount]": str(request.amount),
-            "line_items[0][quantity]": "1",
-            "mode": "payment",
-            "success_url": f"{config.FRONTEND_URL}/portal/portal.html?donation=success",
-            "cancel_url": f"{config.FRONTEND_URL}/portal/portal.html?donation=cancelled",
-            "metadata[user_id]": user.user_id,
-            "metadata[type]": "donation",
-            "metadata[amount]": str(request.amount)
-        }
-        
-        print(f"[PAYMENT] Calling Stripe API via Cloudflare Proxy...")
-        print(f"[PAYMENT] Line items: {payload}")
-        
-        response = requests.post(stripe_url, headers=headers, data=payload, timeout=30)
-        response.raise_for_status()
-        
-        result = response.json()
-        print(f"[PAYMENT] Stripe API call successful!")
-        
-        return PaymentResponse(
-            checkout_url=result['url'],
-            session_id=result['id']
-        )
+        # 根据环境选择调用方式
+        if os.getenv('LOCAL_DEV', 'false').lower() == 'true':
+            print(f"[PAYMENT] Calling Stripe API directly (local development)...")
+            
+            # 本地开发环境直接使用 Stripe API
+            line_items = [{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'MythicalHelper Guild Donation',
+                        'description': 'Support the Guild with your generous gift',
+                    },
+                    'unit_amount': request.amount,
+                },
+                'quantity': 1,
+            }]
+            
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=line_items,
+                mode='payment',
+                success_url=f"{config.FRONTEND_URL}/portal/portal.html?session_id={{CHECKOUT_SESSION_ID}}",
+                cancel_url=f"{config.FRONTEND_URL}/portal/portal.html",
+                metadata={
+                    'user_id': user.user_id,
+                    'type': 'donation',
+                    'amount': str(request.amount)
+                }
+            )
+            
+            return PaymentResponse(
+                checkout_url=checkout_session.url,
+                session_id=checkout_session.id
+            )
+        else:
+            # 生产环境通过 Cloudflare Worker 代理调用 Stripe API
+            import requests
+            
+            # 使用实际的 Cloudflare Worker 端点
+            stripe_url = "https://pay.mythicalhelper.org/v1/checkout/sessions"
+            
+            headers = {
+                "X-Worker-Auth": "X7f8uV2YwQ9JsL4epM3RaNDkZ0B1tFgH"
+            }
+            
+            # 构建 Stripe API 请求数据
+            payload = {
+                "payment_method_types[]": "card",
+                "line_items[0][price_data][currency]": "usd",
+                "line_items[0][price_data][product_data][name]": "MythicalHelper Guild Donation",
+                "line_items[0][price_data][product_data][description]": "Support the Guild with your generous gift",
+                "line_items[0][price_data][unit_amount]": str(request.amount),
+                "line_items[0][quantity]": "1",
+                "mode": "payment",
+                "success_url": f"{config.FRONTEND_URL}/portal/portal.html?donation=success",
+                "cancel_url": f"{config.FRONTEND_URL}/portal/portal.html?donation=cancelled",
+                "metadata[user_id]": user.user_id,
+                "metadata[type]": "donation",
+                "metadata[amount]": str(request.amount)
+            }
+            
+            print(f"[PAYMENT] Calling Stripe API via Cloudflare Proxy...")
+            print(f"[PAYMENT] Line items: {payload}")
+            
+            response = requests.post(stripe_url, headers=headers, data=payload, timeout=30)
+            response.raise_for_status()
+            
+            result = response.json()
+            print(f"[PAYMENT] Stripe API call successful!")
+            
+            return PaymentResponse(
+                checkout_url=result['url'],
+                session_id=result['id']
+            )
         
     except stripe.error.StripeError as e:
         print(f"[PAYMENT] Stripe error: {str(e)}")
@@ -1141,14 +1217,24 @@ async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get('stripe-signature')
     
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError:
-        problem(400, "invalid_payload", "Invalid payload")
-    except stripe.error.SignatureVerificationError:
-        problem(400, "invalid_signature", "Invalid signature")
+    # 根据环境选择验证方式
+    if os.getenv('LOCAL_DEV', 'false').lower() == 'true':
+        # 本地开发环境：跳过签名验证，直接解析 JSON
+        print("[WEBHOOK] 本地开发环境：跳过签名验证")
+        try:
+            event = json.loads(payload.decode('utf-8'))
+        except json.JSONDecodeError:
+            problem(400, "invalid_payload", "Invalid JSON payload")
+    else:
+        # 生产环境：使用 Stripe 签名验证
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, STRIPE_WEBHOOK_SECRET
+            )
+        except ValueError:
+            problem(400, "invalid_payload", "Invalid payload")
+        except stripe.error.SignatureVerificationError:
+            problem(400, "invalid_signature", "Invalid signature")
     
     # 处理支付成功事件
     if event['type'] == 'checkout.session.completed':
@@ -1184,6 +1270,68 @@ async def stripe_webhook(request: Request):
             db.db.commit()
     
     return {"status": "success"}
+
+@app.post("/api/payment/test-webhook")
+def test_webhook_local(session_id: str, user_id: str):
+    """本地开发环境测试 webhook"""
+    if os.getenv('LOCAL_DEV', 'false').lower() != 'true':
+        problem(403, "forbidden", "This endpoint is only available in local development")
+    
+    # 模拟 Stripe webhook 事件
+    mock_event = {
+        "id": f"evt_test_{session_id}",
+        "object": "event",
+        "type": "checkout.session.completed",
+        "data": {
+            "object": {
+                "id": session_id,
+                "metadata": {
+                    "user_id": user_id,
+                    "type": "renewal",
+                    "amount": "999",
+                    "new_valid_until": "2026-12-20T18:32:35.448145+00:00"
+                }
+            }
+        }
+    }
+    
+    print(f"[WEBHOOK] 模拟 webhook 事件: {session_id}")
+    
+    # 处理支付成功事件
+    session = mock_event['data']['object']
+    metadata = session.get('metadata', {})
+    user_id = metadata.get('user_id')
+    payment_type = metadata.get('type')
+    amount = int(metadata.get('amount', 0))
+    
+    if not user_id:
+        problem(400, "invalid_metadata", "Missing user_id in metadata")
+    
+    with get_db() as db:
+        # 记录支付记录
+        purchase_id = str(uuid4())
+        db.db.add(Purchase(
+            id=purchase_id,
+            user_id=user_id,
+            amount=amount,
+            currency='USD',
+            provider_payment_id=session['id'],
+            purchased_at=datetime.now(UTC),
+            valid_until_after_purchase=datetime.fromisoformat(metadata['new_valid_until']) if payment_type == 'renewal' else None
+        ))
+        
+        # 如果是续费，更新用户有效期
+        if payment_type == 'renewal':
+            new_valid_until = datetime.fromisoformat(metadata['new_valid_until'])
+            user = db.get_user_by_id(user_id)
+            if user:
+                user.valid_until = new_valid_until
+                print(f"[WEBHOOK] 更新用户 {user_id} 有效期到: {new_valid_until}")
+        
+        db.db.commit()
+        print(f"[WEBHOOK] 支付记录已创建: {purchase_id}")
+    
+    return {"status": "success", "message": "Test webhook processed successfully"}
 
 @app.get("/api/payment/verify-session/{session_id}")
 def verify_payment_session(session_id: str, user: SessionUser = Depends(get_session_user)):

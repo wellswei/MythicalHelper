@@ -16,7 +16,12 @@ import requests
 from typing import Optional
 
 # ========= 基本设置 =========
-from config import get_config
+# 检查是否为本地开发环境
+import os
+if os.getenv('LOCAL_DEV', 'false').lower() == 'true':
+    from config_local import get_config
+else:
+    from config import get_config
 
 # 加载配置
 config = get_config()
@@ -237,14 +242,14 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                 print(f"[MAGIC_LINK] Token: {token}")
                 return True
             elif purpose == "signin":
-                redirect_path = f"/auth/auth.html?mode=login&token={token}&purpose={purpose}&email={to_email}"
+                redirect_path = f"/portal/portal.html?token={token}&purpose={purpose}&email={to_email}"
                 magic_link = f"{frontend_url}{redirect_path}"
                 print(f"[MAGIC_LINK] SIGNIN Magic Link: {magic_link}")
                 print(f"[MAGIC_LINK] Email: {to_email}")
                 print(f"[MAGIC_LINK] Token: {token}")
                 return True
             elif purpose == "change_email":
-                redirect_path = f"/auth/auth.html?mode=login&token={token}&purpose={purpose}&email={to_email}"
+                redirect_path = f"/portal/portal.html?token={token}&purpose={purpose}&email={to_email}"
                 magic_link = f"{frontend_url}{redirect_path}"
                 print(f"[MAGIC_LINK] CHANGE_EMAIL Magic Link: {magic_link}")
                 print(f"[MAGIC_LINK] Email: {to_email}")
@@ -269,7 +274,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                 <p>This link will expire in 15 minutes.</p></div><div class=footer style=\"text-align:center;margin-top:30px;font-size:12px;color:#666;\">© 2025 MythicalHelper Guild</div></div></body></html>
                 """
             elif purpose == "signin":
-                redirect_path = f"/auth/auth.html?mode=login&token={token}&purpose={purpose}&email={to_email}"
+                redirect_path = f"/portal/portal.html?token={token}&purpose={purpose}&email={to_email}"
                 subject = "[MythicalHelper] Your Magic Link to Sign In"
                 body_html = f"""
                 <!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Sign In</title>
@@ -280,7 +285,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                 <p>This link will expire in 15 minutes.</p></div><div class=footer style=\"text-align:center;margin-top:30px;font-size:12px;color:#666;\">© 2025 MythicalHelper Guild</div></div></body></html>
                 """
             elif purpose == "change_email":
-                redirect_path = f"/auth/auth.html?mode=login&token={token}&purpose={purpose}&email={to_email}"
+                redirect_path = f"/portal/portal.html?token={token}&purpose={purpose}&email={to_email}"
                 subject = "[MythicalHelper] Confirm Your New Email Address"
                 body_html = f"""
                 <!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Verify Email Change</title>

@@ -1030,6 +1030,23 @@ body {
   color: rgba(255,255,255,.55);
 }
 
+.index .footer-contact {
+  font-size: 13px;
+  color: rgba(255,255,255,.65);
+  margin-top: 4px;
+}
+
+.index .footer-contact a {
+  color: rgba(248,210,106,.8);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.index .footer-contact a:hover {
+  color: #f8d26a;
+  text-decoration: underline;
+}
+
 /* 小屏对齐 */
 @media (max-width: 560px) {
   .index .footer-brand .logo { 

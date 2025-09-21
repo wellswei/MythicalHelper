@@ -3,7 +3,9 @@
 // portal.js — user portal functionality v20250107-24
 console.log('=== PORTAL.JS LOADED v20250107-24 ===');
 // 配置
-const API_BASE = 'https://api.mythicalhelper.org';
+// 检测是否为本地开发环境
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isLocalDev ? 'http://localhost:8000' : 'https://api.mythicalhelper.org';
 
 // 全局状态
 let currentUser = null;
@@ -34,53 +36,7 @@ function formatCurrency(cents) {
   return formatter.format(cents / 100);
 }
 
-function showError(message) {
-  const toast = $('#errorToast');
-  const messageEl = toast?.querySelector('.error-message');
-  
-  if (toast && messageEl) {
-    messageEl.textContent = message;
-    toast.style.display = 'flex';
-    // 3秒后自动隐藏
-    const timer = setTimeout(() => hideError(), 3000);
-    // 存储timer id以便在手动关闭时清除
-    toast.dataset.timerId = timer;
-  } else {
-    alert(message);
-  }
-}
-
-function hideError() {
-  const toast = $('#errorToast');
-  if (toast) {
-    // 清除可能存在的计时器
-    const timerId = toast.dataset.timerId;
-    if (timerId) clearTimeout(Number(timerId));
-    // 隐藏toast
-    toast.style.display = 'none';
-  }
-}
-
-function showSuccess(message) {
-  const toast = $('#errorToast');
-  const messageEl = toast?.querySelector('.error-message');
-  
-  if (toast && messageEl) {
-    // 改变样式为成功样式
-    toast.classList.add('success-toast');
-    messageEl.textContent = message;
-    toast.style.display = 'flex';
-    // 3秒后自动隐藏
-    const timer = setTimeout(() => {
-      hideError();
-      toast.classList.remove('success-toast');
-    }, 3000);
-    // 存储timer id以便在手动关闭时清除
-    toast.dataset.timerId = timer;
-  } else {
-    alert(message);
-  }
-}
+// 状态栏已移除
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -95,9 +51,9 @@ function formatDate(dateStr) {
 
 const REALM_OPTIONS = ['north', 'tooth', 'bunny'];
 const REALM_LABELS = {
-  north: 'North',
-  tooth: 'Tooth',
-  bunny: 'Bunny'
+  north: 'North Pole',
+  tooth: 'Tooth Fairy',
+  bunny: 'Spring Bunny'
 };
 
 function escapeHtml(value = '') {
@@ -115,6 +71,60 @@ function cloneBadges(source) {
 
 function formatRealmLabel(realm) {
   return REALM_LABELS[realm] || 'Unknown';
+}
+
+function getRealmSeal(realm) {
+  const seals = {
+    north: `<svg viewBox="0 0 120 120" width="120" height="120">
+      <defs>
+        <radialGradient id="g-north-portal" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+          <stop offset="100%" stop-color="#7BC4FF" stop-opacity=".25"/>
+        </radialGradient>
+      </defs>
+      <circle cx="60" cy="60" r="52" fill="url(#g-north-portal)" stroke="#7BC4FF" stroke-width="4" opacity=".8"/>
+      <circle cx="60" cy="60" r="42" fill="none" stroke="#7BC4FF" stroke-width="2" stroke-dasharray="4 6" opacity=".6"/>
+      <g stroke="#5AAEFF" stroke-width="3" stroke-linecap="round" opacity=".9">
+        <line x1="60" y1="32" x2="60" y2="88"/>
+        <line x1="32" y1="60" x2="88" y2="60"/>
+        <line x1="40" y1="40" x2="80" y2="80"/>
+        <line x1="80" y1="40" x2="40" y2="80"/>
+      </g>
+    </svg>`,
+    tooth: `<svg viewBox="0 0 120 120" width="120" height="120">
+      <defs>
+        <radialGradient id="g-tooth-portal" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+          <stop offset="100%" stop-color="#D5B8FF" stop-opacity=".25"/>
+        </radialGradient>
+      </defs>
+      <circle cx="60" cy="60" r="52" fill="url(#g-tooth-portal)" stroke="#C39BFF" stroke-width="4" opacity=".85"/>
+      <circle cx="60" cy="60" r="42" fill="none" stroke="#C39BFF" stroke-width="2" stroke-dasharray="3 5" opacity=".6"/>
+      <g fill="#B285FF" opacity=".9">
+        <path d="M60 42 l3 6 6 3 -6 3 -3 6 -3-6 -6-3 6-3z"/>
+        <path d="M86 58 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+        <path d="M34 58 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+        <path d="M60 78 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
+      </g>
+    </svg>`,
+    bunny: `<svg viewBox="0 0 120 120" width="120" height="120">
+      <defs>
+        <radialGradient id="g-bunny-portal" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
+          <stop offset="100%" stop-color="#9BE7B0" stop-opacity=".25"/>
+        </radialGradient>
+      </defs>
+      <circle cx="60" cy="60" r="52" fill="url(#g-bunny-portal)" stroke="#65D08A" stroke-width="4" opacity=".85"/>
+      <circle cx="60" cy="60" r="42" fill="none" stroke="#65D08A" stroke-width="2" stroke-dasharray="6 6" opacity=".55"/>
+      <g fill="#49C27A" opacity=".9">
+        <circle cx="60" cy="66" r="12"/>
+        <circle cx="48" cy="50" r="5"/>
+        <circle cx="60" cy="46" r="5"/>
+        <circle cx="72" cy="50" r="5"/>
+      </g>
+    </svg>`
+  };
+  return seals[realm] || '';
 }
 
 function updateEditFooterState() {
@@ -137,25 +147,28 @@ function collectBadgeValues(badgeElement) {
   const badgeId = badgeElement?.dataset.badgeId;
   if (!badgeId) return null;
 
-  const realmInput = badgeElement.querySelector('input[name^="realm-"]:checked');
+  const realmSelect = badgeElement.querySelector('select[name^="realm-"]');
   const watchOverInput = badgeElement.querySelector('.watch-over-input');
+  const enchantedToggle = badgeElement.querySelector('.enchanted-toggle');
 
-  const realm = realmInput ? realmInput.value : (editingBadges[badgeId]?.realm || 'north');
-  const watchOver = watchOverInput ? watchOverInput.value : (editingBadges[badgeId]?.watchOver || '');
+  const realm = realmSelect ? realmSelect.value : (editingBadges[badgeId]?.realm || 'north');
+  const watchOver = watchOverInput ? watchOverInput.value.trim() : (editingBadges[badgeId]?.watchOver || '');
+  const enchanted = enchantedToggle ? enchantedToggle.checked : (editingBadges[badgeId]?.enchanted || false);
 
-  return { badgeId, realm, watchOver };
+  console.log(`Collecting badge ${badgeId}:`, { realm, watchOver, enchanted });
+  return { badgeId, realm, watchOver, enchanted };
 }
 
 function collectAllBadgeValues() {
   const snapshot = cloneBadges(editingBadges);
 
-  document.querySelectorAll('.badge-edit-card').forEach(item => {
+  document.querySelectorAll('.edit-card').forEach(item => {
     const values = collectBadgeValues(item);
     if (!values) return;
 
-    const { badgeId, realm, watchOver } = values;
+    const { badgeId, realm, watchOver, enchanted } = values;
     const existing = snapshot[badgeId] || {};
-    snapshot[badgeId] = { ...existing, realm, watchOver };
+    snapshot[badgeId] = { ...existing, realm, watchOver, enchanted };
   });
 
   return snapshot;
@@ -202,7 +215,7 @@ function updateUnsavedSummary() {
   updateEditFooterState();
 
   const original = originalBadgesSnapshot || {};
-  document.querySelectorAll('.badge-edit-card').forEach(item => {
+  document.querySelectorAll('.edit-card').forEach(item => {
     const badgeId = item.dataset.badgeId;
     const stateLabel = item.querySelector('[data-badge-state]');
 
@@ -219,7 +232,7 @@ function updateUnsavedSummary() {
 
 function handleRealmChange(event) {
   const select = event.target;
-  const badgeElement = select.closest('.badge-edit-card');
+  const badgeElement = select.closest('.edit-card');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
@@ -227,12 +240,15 @@ function handleRealmChange(event) {
 
   const existing = editingBadges[badgeId] || {};
   editingBadges[badgeId] = { ...existing, realm: select.value };
+  
+  // 标记有未保存的更改
+  hasUnsavedChanges = true;
   updateUnsavedSummary();
 }
 
 function handleWatchOverInput(event) {
   const input = event.target;
-  const badgeElement = input.closest('.badge-edit-card');
+  const badgeElement = input.closest('.edit-card');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
@@ -240,12 +256,15 @@ function handleWatchOverInput(event) {
 
   const existing = editingBadges[badgeId] || {};
   editingBadges[badgeId] = { ...existing, watchOver: input.value };
+  
+  // 标记有未保存的更改
+  hasUnsavedChanges = true;
   updateUnsavedSummary();
 }
 
 function handleEnchantedToggle(event) {
   const toggle = event.target;
-  const badgeElement = toggle.closest('.badge-edit-card');
+  const badgeElement = toggle.closest('.edit-card');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
@@ -253,39 +272,60 @@ function handleEnchantedToggle(event) {
 
   const existing = editingBadges[badgeId] || {};
   editingBadges[badgeId] = { ...existing, enchanted: toggle.checked };
+  
+  // 标记有未保存的更改
+  hasUnsavedChanges = true;
   updateUnsavedSummary();
 }
 
 function handleBadgeDelete(event) {
   const button = event.currentTarget;
-  const badgeElement = button.closest('.badge-edit-card');
+  const badgeElement = button.closest('.edit-card');
   if (!badgeElement) return;
 
   const { badgeId } = badgeElement.dataset;
   if (!badgeId) return;
 
   deleteBadge(badgeId);
+  
+  // 标记有未保存的更改
+  hasUnsavedChanges = true;
+  updateUnsavedSummary();
 }
 
 function bindBadgeEditEvents() {
   const badgesEditList = $('#badgesEditList');
   if (!badgesEditList) return;
 
+  // 使用覆盖式绑定避免重复监听
   badgesEditList.querySelectorAll('.realm-select').forEach(select => {
-    select.addEventListener('change', handleRealmChange);
+    select.onchange = handleRealmChange;
   });
 
   badgesEditList.querySelectorAll('.enchanted-toggle').forEach(toggle => {
-    toggle.addEventListener('change', handleEnchantedToggle);
+    toggle.onchange = handleEnchantedToggle;
   });
 
   badgesEditList.querySelectorAll('.watch-over-input').forEach(input => {
-    input.addEventListener('input', handleWatchOverInput);
+    input.oninput = handleWatchOverInput;
   });
 
-  badgesEditList.querySelectorAll('.badge-delete-btn').forEach(button => {
-    button.addEventListener('click', handleBadgeDelete);
+  badgesEditList.querySelectorAll('.remove-btn, .badge-delete-btn').forEach(button => {
+    button.onclick = handleBadgeDelete;
   });
+
+  // 绑定“新增”卡片（整卡可点击 + 回车/空格）
+  const addCard = $('#editNewBadgeCard');
+  if (addCard) {
+    addCard.onclick = addBadge;
+    addCard.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        addBadge();
+      }
+    };
+    addCard.style.cursor = 'pointer';
+  }
 }
 
 // ===== API调用 =====
@@ -336,11 +376,17 @@ async function loadUserData() {
     return currentUser;
   } catch (error) {
     console.error('Failed to load user data:', error);
+    console.error('loadUserData error details:', {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     if (error.message.includes('401')) {
       console.log('Authentication failed, redirecting to auth...');
+      console.log('Calling logout() from loadUserData');
       logout();
     } else {
-      showError('Failed to load user data');
+      console.error('Failed to load user data');
     }
     throw error;
   }
@@ -367,7 +413,28 @@ function updateUserInfo() {
   Object.entries(fields).forEach(([id, value]) => {
     const element = $(id);
     console.log(`Updating ${id}:`, element ? 'Found' : 'Not found', 'Value:', value);
-    if (element) element.textContent = value;
+    if (element) {
+      element.textContent = value;
+      
+      // 特别处理 valid until 字段的状态样式
+      if (id === 'userValidUntil') {
+        // 移除之前的状态类
+        element.classList.remove('valid', 'expired');
+        
+        if (currentUser.valid_until) {
+          const validUntilDate = new Date(currentUser.valid_until);
+          const now = new Date();
+          
+          if (validUntilDate > now) {
+            // 有效期内 - 绿色
+            element.classList.add('valid');
+          } else {
+            // 已过期 - 红色
+            element.classList.add('expired');
+          }
+        }
+      }
+    }
   });
 }
 
@@ -452,10 +519,8 @@ async function generateQRCode() {
 async function loadBadges() {
   console.log('=== Load Badges Debug ===');
   const badgesGrid = $('#badgesGrid');
-  const noBadges = $('#noBadges');
   
   console.log('Badges grid element:', badgesGrid);
-  console.log('No badges element:', noBadges);
   console.log('Current user badges:', currentUser?.badges);
   console.log('Is edit mode:', isEditMode);
   
@@ -466,6 +531,15 @@ async function loadBadges() {
   
   if (!currentUser?.badges) {
     console.log('No current user or badges data available');
+    // 显示"没有badge"的卡片
+            badgesGrid.innerHTML = `
+              <div class="display-card display-empty">
+                <div class="no-badges-content">
+                  <p class="no-badges-text">Your scroll is still blank</p>
+                  <p class="no-badges-subtext">Begin your tale — create your very first badge!</p>
+                </div>
+              </div>
+            `;
     return;
   }
   
@@ -475,13 +549,19 @@ async function loadBadges() {
   
   if (badges.length === 0) {
     console.log('No badges found, showing no badges message');
-    if (noBadges) noBadges.style.display = 'block';
-    if (badgesGrid) badgesGrid.innerHTML = '';
+    // 显示"没有badge"的卡片
+            badgesGrid.innerHTML = `
+              <div class="display-card display-empty">
+                <div class="no-badges-content">
+                  <p class="no-badges-text">Your scroll is still blank</p>
+                  <p class="no-badges-subtext">Begin your tale — create your very first badge!</p>
+                </div>
+              </div>
+            `;
     return;
   }
   
   console.log('Displaying badges');
-  if (noBadges) noBadges.style.display = 'none';
   
   const badgesHTML = badges.map(([id, badge]) => {
     console.log(`Rendering badge ${id}:`, badge);
@@ -489,19 +569,24 @@ async function loadBadges() {
     const watchOver = badge?.watchOver || '';
     const isEnchanted = badge?.enchanted || false;
     const realmLabel = formatRealmLabel(realm);
+    const realmSeal = getRealmSeal(realm);
     
     return `
-      <div class="badge-item" data-badge-id="${id}">
-        <div class="badge-icon">🏆</div>
-        <div class="badge-content">
-          <div class="badge-row">
-            <span class="badge-label">Realm alignment</span>
-            <span class="badge-value">${realmLabel}${isEnchanted ? ' ✨' : ''}</span>
+      <div class="display-card" data-badge-id="${id}">
+        <div class="display-row display-top">
+          <div class="display-status">
+            <span class="status-badge ${isEnchanted ? 'active' : 'inactive'}">
+              ${isEnchanted ? 'Active' : 'Inactive'}
+            </span>
           </div>
-          <div class="badge-row">
-            <span class="badge-label">Whom you watch over</span>
-            <span class="badge-value">${watchOver || 'No one watched over'}</span>
-          </div>
+          <h3 class="display-realm-name">${realmLabel}</h3>
+        </div>
+        <div class="display-row display-bottom">
+          <span class="display-watch-label">Whom you watch over</span>
+          <span class="display-watch-value">${escapeHtml(watchOver) || 'Not specified'}</span>
+        </div>
+        <div class="display-seal">
+          ${realmSeal}
         </div>
       </div>
     `;
@@ -532,9 +617,12 @@ async function saveBadges() {
       payload[id] = {
         ...badge,
         realm: badge?.realm || 'north',
-        watchOver: (badge?.watchOver || '').trim()
+        watchOver: (badge?.watchOver || '').trim(),
+        enchanted: badge?.enchanted || false
       };
     });
+
+    console.log('Saving badges payload:', payload);
 
     const response = await apiCall('/users/me', {
       method: 'PATCH',
@@ -551,10 +639,10 @@ async function saveBadges() {
     updateUserInfo();
     loadBadges();
     loadEditableBadges();
-    showSuccess('Badges saved successfully');
+    console.log('Badges saved successfully');
   } catch (error) {
     console.error('Failed to save badges:', error);
-    showError(error.message || 'Failed to save badges');
+    console.error(error.message || 'Failed to save badges');
   } finally {
     if (saveBtn) {
       saveBtn.textContent = previousLabel || 'Save Changes';
@@ -569,7 +657,7 @@ async function deleteBadge(badgeId) {
     if (!editingBadges || !editingBadges[badgeId]) return;
     delete editingBadges[badgeId];
     loadEditableBadges();
-    showSuccess('Badge removed from draft');
+    console.log('Badge removed from draft');
     return true;
   }
 
@@ -587,18 +675,18 @@ async function deleteBadge(badgeId) {
     currentUser = response;
     updateUserInfo();
     await loadBadges();
-    showSuccess('Badge deleted successfully');
+    console.log('Badge deleted successfully');
     return true;
   } catch (error) {
     console.error('Failed to delete badge:', error);
-    showError('Failed to delete badge');
+    console.error('Failed to delete badge');
     return false;
   }
 }
 
 function toggleEditMode() {
   if (isEditMode && hasUnsavedChanges) {
-    showError('You still have unsaved changes. Save or discard them first.');
+    console.log('You still have unsaved changes. Save or discard them first.');
     return;
   }
 
@@ -607,20 +695,25 @@ function toggleEditMode() {
   const editBtn = $('#btnToggleEditMode');
   const badgesDisplay = $('#badgesDisplay');
   const badgesEdit = $('#badgesEdit');
+  const editActions = $('#editActions');
 
   if (isEditMode) {
     originalBadgesSnapshot = cloneBadges(currentUser?.badges);
     editingBadges = cloneBadges(currentUser?.badges);
     hasUnsavedChanges = false;
 
-    if (editBtn) editBtn.textContent = 'Done';
+    // 隐藏Edit Mode按钮，显示编辑操作按钮
+    if (editBtn) editBtn.style.display = 'none';
+    if (editActions) editActions.style.display = 'flex';
     if (badgesDisplay) badgesDisplay.style.display = 'none';
     if (badgesEdit) badgesEdit.style.display = 'block';
 
     updateEditFooterState();
     loadEditableBadges();
   } else {
-    if (editBtn) editBtn.textContent = 'Edit Mode';
+    // 显示Edit Mode按钮，隐藏编辑操作按钮
+    if (editBtn) editBtn.style.display = 'block';
+    if (editActions) editActions.style.display = 'none';
     if (badgesDisplay) badgesDisplay.style.display = 'block';
     if (badgesEdit) badgesEdit.style.display = 'none';
 
@@ -636,68 +729,62 @@ function loadEditableBadges() {
   const entries = Object.entries(editingBadges || {});
 
   if (entries.length === 0) {
-    badgesEditList.innerHTML = '<div class="no-badges-edit"><p>No badges yet. Click "Add New Badge" to create your first badge!</p></div>';
+    // 空列表：编辑态"新增"卡片使用按钮化文案
+    // 由于没有现有 badge，所以总是显示新增按钮
+    badgesEditList.innerHTML = `
+      <div class=\"edit-new display-empty\" id=\"editNewBadgeCard\" role=\"button\" tabindex=\"0\" aria-label=\"Add New Badge\">\n        <div class=\"no-badges-content\">\n          <p class=\"no-badges-text\">+ New Badge</p>\n          <p class=\"no-badges-subtext\">Click to create your first badge</p>\n        </div>\n      </div>
+    `;
     updateUnsavedSummary();
     bindBadgeEditEvents();
     return;
   }
+
+  // Precompute used realms to restrict options per badge (allow keeping its own)
+  const usedRealms = new Set(entries.map(([, b]) => (b?.realm)).filter(Boolean));
+  const allRealmsUsed = REALM_OPTIONS.every(realm => usedRealms.has(realm));
 
   badgesEditList.innerHTML = entries.map(([id, badge], index) => {
     const realm = badge?.realm || 'north';
     const watchOver = escapeHtml(badge?.watchOver || '');
     const isEnchanted = badge?.enchanted || false;
 
+    const allowedRealms = ['north', 'tooth', 'bunny'].filter(r => r === realm || !usedRealms.has(r));
+    const optionsHtml = allowedRealms.map(r => {
+      const labels = { north: 'North Pole', tooth: 'Tooth Fairy', bunny: 'Spring Bunny' };
+      const sel = (r === realm) ? 'selected' : '';
+      return `<option value="${r}" ${sel}>${labels[r]}</option>`;
+    }).join('');
+
     return `
-      <div class="badge-edit-card" data-badge-id="${id}">
-        <div class="badge-edit-row">
-          <div class="realm-section">
-            <label class="section-label">Realm alignment</label>
-            <select class="realm-select" name="realm-${id}">
-              <option value="north" ${realm === 'north' ? 'selected' : ''}>North Pole</option>
-              <option value="tooth" ${realm === 'tooth' ? 'selected' : ''}>Tooth Fairy</option>
-              <option value="bunny" ${realm === 'bunny' ? 'selected' : ''}>Spring Bunny</option>
-            </select>
+      <div class="edit-card" data-badge-id="${id}">
+        <div class="edit-row edit-top">
+          <div class="cell realm-group">
+            <span class="realm-label">Realm alignment</span>
+            <select class="realm-select" name="realm-${id}">${optionsHtml}</select>
           </div>
-          <div class="enchanted-section">
-            <label class="toggle-label">
-              <input type="checkbox" class="enchanted-toggle" ${isEnchanted ? 'checked' : ''}>
-              <span class="toggle-text">Enchanted</span>
+          <div class="cell enchanted-control">
+            <label class="switch">
+              <input type="checkbox" class="enchanted-toggle" ${isEnchanted ? 'checked' : ''} aria-label="Enchanted">
+              <span class="switch-track" aria-hidden="true"></span>
+              <span class="switch-text">Enchanted</span>
             </label>
           </div>
-          <button class="badge-delete-btn" type="button" aria-label="Delete badge">
-            <span class="delete-icon">×</span>
-          </button>
-        </div>
-        
-        <div class="badge-edit-row">
-          <div class="watch-over-section">
-            <label class="section-label">Whom you watch over</label>
-            <input type="text" class="watch-over-input" value="${watchOver}" placeholder="Enter who you watch over...">
+          <div class="cell remove-control">
+            <button class="remove-btn" type="button">Remove</button>
           </div>
+        </div>
+        <div class="edit-row edit-bottom">
+          <label class="section-label">Whom you watch over</label>
+          <input type="text" class="watch-over-input" value="${watchOver}" placeholder="Enter who you watch over...">
         </div>
       </div>
     `;
   }).join('');
-
-  // 如果没有徽章，添加Add Badge卡片
-  if (entries.length === 0) {
-    badgesEditList.innerHTML = `
-      <div class="add-badge-card">
-        <button class="btn add-badge-btn" id="btnAddBadge" type="button">
-          <span class="add-icon">+</span>
-          Add New Badge
-        </button>
-      </div>
-    `;
-  } else {
-    // 如果有徽章，在最后添加Add Badge卡片
+  
+  // 只有在还有可用 realm 时才添加"新增"卡片
+  if (!allRealmsUsed) {
     badgesEditList.innerHTML += `
-      <div class="add-badge-card">
-        <button class="btn add-badge-btn" id="btnAddBadge" type="button">
-          <span class="add-icon">+</span>
-          Add New Badge
-        </button>
-      </div>
+      <div class=\"edit-new display-empty\" id=\"editNewBadgeCard\" role=\"button\" tabindex=\"0\" aria-label=\"Add New Badge\">\n        <div class=\"no-badges-content\">\n          <p class=\"no-badges-text\">+ New Badge</p>\n          <p class=\"no-badges-subtext\">Click to add another badge</p>\n        </div>\n      </div>
     `;
   }
 
@@ -712,7 +799,7 @@ function cancelEdit() {
 
   if (isEditMode) {
     toggleEditMode();
-    showSuccess('Changes discarded');
+    console.log('Changes discarded');
   }
 }
 
@@ -728,7 +815,7 @@ function addBadge() {
   });
   
   if (existingRealms.size >= 3) {
-    showError('You already have badges for all three realms. Remove an existing badge first.');
+    console.log('You already have badges for all three realms. Remove an existing badge first.');
     return;
   }
   
@@ -754,8 +841,12 @@ function addBadge() {
 
   loadEditableBadges();
 
+  // 标记有未保存的更改
+  hasUnsavedChanges = true;
+  updateUnsavedSummary();
+
   requestAnimationFrame(() => {
-    const newlyCreated = document.querySelector(`.badge-edit-item[data-badge-id="${badgeId}"] .watch-over-input`);
+    const newlyCreated = document.querySelector(`.edit-card[data-badge-id="${badgeId}"] .watch-over-input`);
     newlyCreated?.focus();
   });
   
@@ -772,34 +863,149 @@ async function renewMembership() {
       body: JSON.stringify({})
     });
     
-    if (response.url) {
-      window.location.href = response.url;
+    if (response.checkout_url) {
+      window.location.href = response.checkout_url;
+    } else {
+      console.error('No checkout URL received from server');
+      alert('Failed to start payment process. Please try again.');
     }
   } catch (error) {
     console.error('Renewal failed:', error);
-    showError('Failed to start renewal process');
+    console.error('Failed to start renewal process');
+    alert('Failed to start renewal process. Please try again.');
   }
 }
 
-async function makeDonation() {
-  const amount = prompt('Enter donation amount (USD):');
-  if (!amount || isNaN(amount) || amount <= 0) {
-    showError('Please enter a valid donation amount');
+// ===== 捐赠功能 =====
+function startDonation() {
+  const donationModal = $('#donationModal');
+  
+  if (donationModal) {
+    donationModal.style.display = 'flex';
+    
+    // 重置状态
+    const amountBtns = document.querySelectorAll('.amount-btn');
+    const customInput = $('#customAmountInput');
+    const confirmBtn = $('#btnConfirmDonation');
+    const errorDiv = $('#errDonation');
+    
+    amountBtns.forEach(btn => btn.classList.remove('selected'));
+    if (customInput) customInput.value = '';
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Donate $0';
+    }
+    if (errorDiv) errorDiv.textContent = '';
+    
+    setTimeout(() => {
+      if (customInput) customInput.focus();
+    }, 100);
+  }
+}
+
+function selectDonationAmount(amount) {
+  const amountBtns = document.querySelectorAll('.amount-btn');
+  const customInput = $('#customAmountInput');
+  const confirmBtn = $('#btnConfirmDonation');
+  
+  // 清除所有选中状态
+  amountBtns.forEach(btn => btn.classList.remove('selected'));
+  
+  // 清除自定义输入
+  if (customInput) customInput.value = '';
+  
+  // 更新确认按钮
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = `Donate $${amount}`;
+  }
+}
+
+function updateCustomAmount() {
+  const customInput = $('#customAmountInput');
+  const confirmBtn = $('#btnConfirmDonation');
+  const amountBtns = document.querySelectorAll('.amount-btn');
+  
+  if (!customInput || !confirmBtn) return;
+  
+  const amount = customInput.value.trim();
+  
+  // 清除预设金额的选中状态
+  amountBtns.forEach(btn => btn.classList.remove('selected'));
+  
+  if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = `Donate $${parseFloat(amount).toFixed(2)}`;
+  } else {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Donate $0';
+  }
+}
+
+async function confirmDonation() {
+  const amountBtns = document.querySelectorAll('.amount-btn');
+  const customInput = $('#customAmountInput');
+  const errorDiv = $('#errDonation');
+  const confirmBtn = $('#btnConfirmDonation');
+  
+  let amount = 0;
+  
+  // 检查预设金额是否选中
+  const selectedBtn = document.querySelector('.amount-btn.selected');
+  if (selectedBtn) {
+    amount = parseFloat(selectedBtn.dataset.amount);
+  } else if (customInput && customInput.value.trim()) {
+    amount = parseFloat(customInput.value.trim());
+  }
+  
+  if (amount <= 0) {
+    if (errorDiv) {
+      errorDiv.textContent = 'Please select or enter a valid donation amount';
+    }
     return;
   }
+  
+  const originalText = confirmBtn.textContent;
+  confirmBtn.textContent = 'Processing...';
+  confirmBtn.disabled = true;
   
   try {
     const response = await apiCall('/api/payment/donation', {
       method: 'POST',
-      body: JSON.stringify({ amount: Math.round(parseFloat(amount) * 100) })
+      body: JSON.stringify({
+        amount: Math.round(amount * 100) // Convert to cents
+      })
     });
     
-    if (response.url) {
-      window.location.href = response.url;
+    if (response.checkout_url) {
+      window.location.href = response.checkout_url;
+    } else {
+      console.error('No checkout URL received from server');
+      if (errorDiv) {
+        errorDiv.textContent = 'Failed to start payment process. Please try again.';
+      }
     }
   } catch (error) {
     console.error('Donation failed:', error);
-    showError('Failed to start donation process');
+    if (errorDiv) {
+      errorDiv.textContent = 'Failed to start donation process. Please try again.';
+    }
+  } finally {
+    confirmBtn.textContent = originalText;
+    confirmBtn.disabled = false;
+  }
+}
+
+function cancelDonation() {
+  const donationModal = $('#donationModal');
+  const errorDiv = $('#errDonation');
+  
+  if (donationModal) {
+    donationModal.style.display = 'none';
+    
+    if (errorDiv) {
+      errorDiv.textContent = '';
+    }
   }
 }
 
@@ -821,13 +1027,8 @@ async function loadPurchaseHistory() {
     
     if (loading) loading.style.display = 'none';
     
-    if (purchaseHistory.length === 0) {
-      console.log('No purchase history found');
-      if (noHistory) noHistory.style.display = 'block';
-    } else {
-      console.log('Displaying purchase history');
-      displayPurchaseHistory();
-    }
+    console.log('Displaying purchase history');
+    displayPurchaseHistory();
   } catch (error) {
     console.error('Failed to load purchase history:', error);
     if (loading) loading.style.display = 'none';
@@ -842,38 +1043,146 @@ function displayPurchaseHistory() {
   const list = $('#historyList');
   if (!list) return;
   
-  list.innerHTML = purchaseHistory.map(purchase => `
-    <div class="history-item">
-      <div class="history-info">
-        <h4>${purchase.type || 'Purchase'}</h4>
-        <p>${formatDate(purchase.date)}</p>
+  if (purchaseHistory.length === 0) {
+    list.innerHTML = '<div class="no-history"><p>No purchase history found</p><p class="muted">Your purchase records will appear here</p></div>';
+    return;
+  }
+  
+  list.innerHTML = `
+    <div class="history-table">
+      <div class="history-header">
+        <div>Type</div>
+        <div>Date</div>
+        <div>Amount</div>
+        <div>Status</div>
       </div>
-      <div class="history-amount">
-        <span class="amount">${purchase.amount || '$0.00'}</span>
-        <span class="status ${(purchase.status || 'completed').toLowerCase()}">${purchase.status || 'Completed'}</span>
-      </div>
+      ${purchaseHistory.map(purchase => `
+        <div class="history-item">
+          <div class="history-item-type">${purchase.type || 'Purchase'}</div>
+          <div class="history-item-date">${formatDate(purchase.date)}</div>
+          <div class="history-item-amount">${purchase.amount || '$0.00'}</div>
+          <div class="history-item-status">
+            <span class="status ${(purchase.status || 'completed').toLowerCase()}">${purchase.status || 'Completed'}</span>
+          </div>
+        </div>
+      `).join('')}
     </div>
-  `).join('');
+  `;
 }
 
 // ===== 邮箱变更 =====
-async function startEmailChange() {
-  const newEmail = prompt('Enter new email address:');
-  if (!newEmail) return;
+function startEmailChange() {
+  // 显示 change email 模态框
+  const emailChangeModal = $('#emailChangeModal');
+  
+  if (emailChangeModal) {
+    emailChangeModal.style.display = 'flex';
+    
+    // 设置当前邮箱显示
+    const currentEmailDisplay = $('#currentEmailDisplay');
+    if (currentEmailDisplay && currentUser) {
+      currentEmailDisplay.textContent = currentUser.email || 'No email';
+    }
+    
+    // 聚焦到新邮箱输入框
+    const newEmailInput = $('#newEmailInput');
+    if (newEmailInput) {
+      newEmailInput.value = '';
+      // 延迟聚焦，确保模态框已完全显示
+      setTimeout(() => {
+        newEmailInput.focus();
+      }, 100);
+    }
+  }
+}
+
+async function sendEmailChangeLink() {
+  const newEmailInput = $('#newEmailInput');
+  const errorDiv = $('#errPortalEmail');
+  const sendBtn = $('#btnSendEmailCode');
+  
+  if (!newEmailInput || !errorDiv || !sendBtn) return;
+  
+  const newEmail = newEmailInput.value.trim();
+  
+  // 验证邮箱格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!newEmail) {
+    errorDiv.textContent = 'Please enter an email address';
+    return;
+  }
+  
+  if (!emailRegex.test(newEmail)) {
+    errorDiv.textContent = 'Please enter a valid email address';
+    return;
+  }
+  
+  if (newEmail === currentUser?.email) {
+    errorDiv.textContent = 'This is already your current email address';
+    return;
+  }
+  
+  // 显示加载状态
+  const originalText = sendBtn.textContent;
+  sendBtn.textContent = 'Sending...';
+  sendBtn.disabled = true;
+  errorDiv.textContent = '';
   
   try {
     await apiCall('/magic-links', {
       method: 'POST',
       body: JSON.stringify({
         email: newEmail,
-        purpose: 'change_email'
+        purpose: 'change_email',
+        subject_id: currentUser?.user_id
       })
     });
     
-    showError('Magic link sent to your new email address');
+    errorDiv.textContent = '';
+    errorDiv.style.color = '#10b981';
+    errorDiv.textContent = 'Magic link sent! You will be logged out for security. Check your new email address.';
+    
+    // 清空输入框
+    newEmailInput.value = '';
+    
+    // 3秒后自动logout并关闭模态框
+    setTimeout(() => {
+      cancelEmailChange();
+      logout();
+    }, 3000);
+    
   } catch (error) {
     console.error('Email change failed:', error);
-    showError('Failed to send magic link');
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      authToken: sessionStorage.getItem('authToken') ? 'Present' : 'Missing'
+    });
+    errorDiv.style.color = '#ef4444';
+    errorDiv.textContent = 'Failed to send magic link. Please try again.';
+  } finally {
+    sendBtn.textContent = originalText;
+    sendBtn.disabled = false;
+  }
+}
+
+function cancelEmailChange() {
+  const emailChangeModal = $('#emailChangeModal');
+  const errorDiv = $('#errPortalEmail');
+  const newEmailInput = $('#newEmailInput');
+  
+  if (emailChangeModal) {
+    emailChangeModal.style.display = 'none';
+    
+    // 清空错误信息和输入框
+    if (errorDiv) {
+      errorDiv.textContent = '';
+      errorDiv.style.color = '#ef4444';
+    }
+    
+    if (newEmailInput) {
+      newEmailInput.value = '';
+    }
   }
 }
 
@@ -884,7 +1193,7 @@ function handlePaymentResult() {
   const sessionId = urlParams.get('session_id');
   
   if (success === 'true' && sessionId) {
-    showError('Payment successful! Thank you for your support.');
+    console.log('Payment successful! Thank you for your support.');
     // 清理URL参数
     window.history.replaceState({}, document.title, window.location.pathname);
   }
@@ -898,11 +1207,16 @@ function setupEventListeners() {
     'btnCancelEdit': cancelEdit,
     'btnAddBadge': addBadge,
     'btnRenewMembership': renewMembership,
-    'btnMakeDonation': makeDonation,
+    'btnMakeDonation': startDonation,
     'btnChangeEmail': startEmailChange,
-    'btnDeleteAccount': () => showError('Account deletion not implemented yet'),
+    'btnSendEmailCode': sendEmailChangeLink,
+    'btnCancelEmailChange': cancelEmailChange,
+    'btnCloseEmailModal': cancelEmailChange,
+    'btnConfirmDonation': confirmDonation,
+    'btnCancelDonation': cancelDonation,
+    'btnCloseDonationModal': cancelDonation,
+    'btnDeleteAccount': () => console.log('Account deletion not implemented yet'),
     'btnLogout': logout,
-    'btnCloseError': hideError
   };
   
   Object.entries(events).forEach(([id, handler]) => {
@@ -914,6 +1228,43 @@ function setupEventListeners() {
       element.addEventListener('click', newHandler);
     }
   });
+  
+  // 添加模态框背景点击关闭功能
+  const emailChangeModal = $('#emailChangeModal');
+  if (emailChangeModal) {
+    emailChangeModal.addEventListener('click', function(e) {
+      // 如果点击的是模态框背景（不是内容区域），则关闭模态框
+      if (e.target === emailChangeModal) {
+        cancelEmailChange();
+      }
+    });
+  }
+  
+  // 捐赠模态框事件监听器
+  const donationModal = $('#donationModal');
+  if (donationModal) {
+    donationModal.addEventListener('click', function(e) {
+      if (e.target === donationModal) {
+        cancelDonation();
+      }
+    });
+  }
+  
+  // 金额按钮事件监听器
+  const amountBtns = document.querySelectorAll('.amount-btn');
+  amountBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const amount = parseFloat(this.dataset.amount);
+      selectDonationAmount(amount);
+      this.classList.add('selected');
+    });
+  });
+  
+  // 自定义金额输入事件监听器
+  const customAmountInput = $('#customAmountInput');
+  if (customAmountInput) {
+    customAmountInput.addEventListener('input', updateCustomAmount);
+  }
 }
 
 // ===== 初始化 =====
@@ -948,6 +1299,18 @@ async function initializePortal() {
   console.log('Document body:', document.body);
   console.log('All elements with id qrCode:', document.querySelectorAll('#qrCode'));
   console.log('All elements with id badgesGrid:', document.querySelectorAll('#badgesGrid'));
+  
+  // 检查是否有魔法链接参数需要处理
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const purpose = params.get('purpose');
+  const email = params.get('email');
+  
+  if (token && purpose && email) {
+    console.log('Magic link detected:', { token, purpose, email });
+    await handleMagicLinkInPortal(token, purpose, email);
+    return; // 处理完魔法链接后返回，不继续初始化
+  }
   
   console.log('DOM elements check:');
   console.log('- #qrCode:', $('#qrCode'));
@@ -1022,7 +1385,7 @@ async function initializePortal() {
   } catch (error) {
     console.error('Initialization failed:', error);
     console.error('Error stack:', error.stack);
-    showError('Failed to initialize portal');
+    console.error('Failed to initialize portal');
   }
   console.log('=== Portal Initialization Debug End ===');
 }
@@ -1067,4 +1430,136 @@ if (document.readyState === 'loading') {
       } else {
   console.log('Document already loaded, initializing immediately');
   setTimeout(startInitialization, 100);
+}
+
+// ===== 魔法链接处理 =====
+async function handleMagicLinkInPortal(token, purpose, email) {
+  try {
+    console.log('Handling magic link in portal:', { token, purpose, email });
+    
+    // 验证魔法链接
+    const response = await fetch(`${API_BASE}/magic-links/verify?token=${token}&purpose=${purpose}&email=${email}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.verified) {
+      // 清除URL参数，防止重复处理
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.delete('token');
+      newUrl.searchParams.delete('purpose');
+      newUrl.searchParams.delete('email');
+      window.history.replaceState({}, '', newUrl);
+      
+      if (purpose === 'signin') {
+        // 登录流程
+        await handleSignInFromMagicLink(data);
+      } else if (purpose === 'change_email') {
+        // 邮箱变更流程
+        await handleEmailChangeFromMagicLink(data);
+      }
+    } else {
+      console.error('Magic link verification failed:', data);
+      alert('Magic link verification failed. Please try again.');
+      // 清除URL参数并重定向到登录页面
+      window.location.href = '/auth/auth.html';
+    }
+  } catch (error) {
+    console.error('Magic link handling error:', error);
+    alert('An error occurred. Please try again.');
+    window.location.href = '/auth/auth.html';
+  }
+}
+
+// 处理登录
+async function handleSignInFromMagicLink(data) {
+  try {
+    const sessionResponse = await fetch(`${API_BASE}/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        proof_token: data.proof_token
+      })
+    });
+
+    if (sessionResponse.ok) {
+      const sessionData = await sessionResponse.json();
+      sessionStorage.setItem('authToken', sessionData.access_token);
+      
+      // 登录成功，重新加载页面以初始化portal
+      window.location.reload();
+    } else {
+      const errorData = await sessionResponse.json();
+      console.error('Login failed:', errorData);
+      alert(`Login failed: ${errorData.detail?.detail || errorData.detail}`);
+      window.location.href = '/auth/auth.html';
+    }
+  } catch (error) {
+    console.error('Sign in error:', error);
+    alert('Login error. Please try again.');
+    window.location.href = '/auth/auth.html';
+  }
+}
+
+// 处理邮箱变更
+async function handleEmailChangeFromMagicLink(data) {
+  try {
+    // 邮箱变更需要先创建会话（登录用户）
+    const sessionResponse = await fetch(`${API_BASE}/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        proof_token: data.proof_token
+      })
+    });
+
+    if (sessionResponse.ok) {
+      const sessionData = await sessionResponse.json();
+      sessionStorage.setItem('authToken', sessionData.access_token);
+      
+      // 现在用户已经登录，可以完成邮箱变更
+      const changeEmailResponse = await fetch(`${API_BASE}/contacts/email`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionData.access_token}`
+        },
+        body: JSON.stringify({
+          proof_token: data.proof_token
+        })
+      });
+
+      if (changeEmailResponse.ok) {
+        // 邮箱变更成功，显示成功消息并自动登录
+        alert('Email changed successfully! You are now logged in with your new email address.');
+        
+        // 刷新用户信息以显示新邮箱
+        await loadUserData();
+        
+        // 显示成功消息
+        console.log('Email change completed successfully');
+        
+        // 页面会自动显示portal内容，因为用户已经登录
+      } else {
+        const errorData = await changeEmailResponse.json();
+        console.error('Email change failed:', errorData);
+        alert(`Email change failed: ${errorData.detail?.detail || errorData.detail}`);
+      }
+    } else {
+      const errorData = await sessionResponse.json();
+      console.error('Session creation failed:', errorData);
+      alert(`Login failed: ${errorData.detail?.detail || errorData.detail}`);
+    }
+  } catch (error) {
+    console.error('Email change error:', error);
+    alert('Email change error. Please try again.');
+  }
 }

@@ -56,7 +56,6 @@ class Config:
         
         # ========= 功能开关 =========
         self.ENABLE_EMAIL_VERIFICATION = True
-        self.ENABLE_SMS_VERIFICATION = False
         self.ENABLE_STRIPE_PAYMENTS = True
         self.ENABLE_ADMIN_PANEL = True
         
@@ -351,7 +350,6 @@ class Config:
         """获取功能开关"""
         return {
             "email_verification": self.ENABLE_EMAIL_VERIFICATION,
-            # sms_verification removed
             "stripe_payments": self.ENABLE_STRIPE_PAYMENTS,
             "admin_panel": self.ENABLE_ADMIN_PANEL,
         }

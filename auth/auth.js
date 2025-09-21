@@ -2,7 +2,9 @@
 // Flow: Email → Magic Link → Take Oath → Get Badge
 
 // ===== Config =====
-const API_BASE = "https://api.mythicalhelper.org";
+// 检测是否为本地开发环境
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isLocalDev ? "http://localhost:8000" : "https://api.mythicalhelper.org";
 const ENDPOINTS = {
   // Magic Link API
   createMagicLink: "/magic-links",
@@ -294,14 +296,12 @@ async function onSendEmail() {
     $('#step2tag')?.classList.remove('active');
     $('#step3tag')?.classList.remove('active');
     
-    // 立即更新按钮状态为Resend
+    // 更新按钮状态为Change Email
     if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Resend in 60s';
+      btn.disabled = false;
+      btn.textContent = 'Change Email';
+      btn.onclick = onBackToEmail;
     }
-    
-    // 开始重发倒计时
-    startEmailResend();
     
     saveState();
     // 不调用updateStep()，保持在第1步显示
@@ -314,7 +314,7 @@ async function onSendEmail() {
     return; // 提前返回，不执行finally块
   }
   
-  // 成功时不需要unlockButton，因为startEmailResend已经处理了按钮状态
+  // 成功时不需要unlockButton，因为按钮状态已经直接更新
 }
 
 function onBackToEmail() {
@@ -332,12 +332,16 @@ function onBackToEmail() {
   if (btn) {
     btn.disabled = false;
     btn.textContent = 'Send Magic Link';
+    btn.onclick = onSendEmail;
   }
+  
+  // 重置输入框状态
+  $('#emailInput').disabled = false;
+  $('#emailInput').value = '';
   
   // 显示切换选项
   show($('#authSwitch'));
   setStatus($('#emailStatus'), 'We\'ll send a magic link to your email.', 'info');
-  $('#emailInput').value = state.email;
 }
 
 // ===== Take Oath =====
@@ -522,8 +526,12 @@ async function onSendLoginCode() {
     // 保持在第1步，显示简化状态
     setStatus($('#loginEmailStatus'), 'Magic link sent! Check your inbox and click the link to sign in.', 'success');
     
-    // 开始重发倒计时（按钮会变成Resend）
-    startLoginEmailResend();
+    // 更新按钮状态为Change Email
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Change Email';
+      btn.onclick = onBackToLoginEmail;
+    }
     
     // 确保第1步保持激活状态
     $('#loginStep1tag')?.classList.add('active');
@@ -552,12 +560,16 @@ function onBackToLoginEmail() {
   if (btn) {
     btn.disabled = false;
     btn.textContent = 'Send Magic Link';
+    btn.onclick = onSendLoginCode;
   }
+  
+  // 重置输入框状态
+  $('#loginEmailInput').disabled = false;
+  $('#loginEmailInput').value = '';
   
   // 显示切换选项
   show($('#loginAuthSwitch'));
   setStatus($('#loginEmailStatus'), 'We\'ll send a magic link to your email.', 'info');
-  $('#loginEmailInput').value = state.email || '';
 }
 
 // ===== 步骤更新 =====
@@ -614,6 +626,14 @@ function updateStep(step = null) {
       }
     }
   }
+
+  // 跳转到 Step 2 或 Step 3 时自动滚动到页面顶部（避免卡在中间）
+  if (currentAuthMode === 'signup' && (state.currentStep === 2 || state.currentStep === 3)) {
+    // 先尝试滚动到当前步骤容器，再回退到窗口顶端，以适配不同布局
+    const stepEl = $(`#step${state.currentStep}`);
+    try { stepEl?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 // ===== 初始化 =====
@@ -628,16 +648,22 @@ function initializeApp() {
   const email = params.get('email');
   const verifiedFlag = params.get('verified');
   
-  // 如果有magic link参数，先验证
+  // 如果有magic link参数，先验证（防止重复验证）
   if (token && purpose && email) {
-    handleMagicLinkVerification(token, purpose, email);
-    return; // 验证完成后会重新加载页面
-  }
-  
-  // 若从 /verify 返回并带 verified=true，不要清空会话状态
-  if (verifiedFlag !== 'true') {
-    sessionStorage.removeItem('authState');
-    clearState();
+    // 检查这个特定的token是否已经被处理过
+    const processedKey = `magicLinkProcessed_${token}`;
+    if (!sessionStorage.getItem(processedKey)) {
+      sessionStorage.setItem(processedKey, 'true');
+      handleMagicLinkVerification(token, purpose, email);
+      return; // 验证完成后会重新加载页面
+    } else {
+      // 如果token已经被处理过，清除URL参数避免重复处理
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.delete('token');
+      newUrl.searchParams.delete('purpose');
+      newUrl.searchParams.delete('email');
+      window.history.replaceState({}, '', newUrl);
+    }
   }
   
   // 加载保存的状态
@@ -652,15 +678,26 @@ function initializeApp() {
       // 从verify页面返回，直接跳转到当前步骤
       updateStep(state.currentStep);
     } else if (state.email) {
-      // 普通恢复，显示第1步的"Magic Link Sent"状态
-      $('#emailInput').value = state.email;
-      $('#emailInput').disabled = true;
-      hide($('#btnSend'));
-      show($('#emailSentSection'));
-      $('#emailDisplay').textContent = state.email;
-      setStatus($('#emailStatus'), 'Magic link sent! Check your inbox.', 'success');
-      hide($('#authSwitch'));
-      updateStep(state.currentStep);
+      // 检查是否已经验证过邮箱（有emailProofToken说明已验证）
+      if (state.emailProofToken && state.currentStep >= 2) {
+        // 已经验证过邮箱，直接跳转到当前步骤
+        updateStep(state.currentStep);
+      } else {
+        // 普通恢复，显示第1步的"Magic Link Sent"状态
+        $('#emailInput').value = state.email;
+        $('#emailInput').disabled = true;
+        setStatus($('#emailStatus'), 'Magic link sent! Check your inbox.', 'success');
+        // 更新按钮状态为Change Email
+        const btn = $('#btnSend');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Change Email';
+          btn.onclick = onBackToEmail;
+        }
+        // 显示登录切换选项
+        show($('#authSwitch'));
+        updateStep(state.currentStep);
+      }
     } else {
       updateStep(state.currentStep);
     }
@@ -678,12 +715,10 @@ function initializeApp() {
   
   // 绑定事件监听器
   $('#btnSend')?.addEventListener('click', onSendEmail);
-  $('#btnBackToEmailInput')?.addEventListener('click', onBackToEmail);
   $('#btnSubmitOath')?.addEventListener('click', onTakeOath);
   $('#btnGetBadge')?.addEventListener('click', onGetBadge);
   $('#btnGoToMember')?.addEventListener('click', onGoToMember);
   $('#btnSendLoginCode')?.addEventListener('click', onSendLoginCode);
-  $('#btnBackToLoginEmail')?.addEventListener('click', onBackToLoginEmail);
   $('#usernameInput')?.addEventListener('input', onUsernameInput);
   $('#chkOath')?.addEventListener('change', onOathCheckboxChange);
   
@@ -718,6 +753,13 @@ async function handleMagicLinkVerification(token, purpose, email) {
     const data = await response.json();
 
     if (response.ok && data.verified) {
+      // 清除URL参数，防止Live Server刷新时重复处理
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.delete('token');
+      newUrl.searchParams.delete('purpose');
+      newUrl.searchParams.delete('email');
+      window.history.replaceState({}, '', newUrl);
+      
       if (purpose === 'signin') {
         // 登录流程
         await handleSignInFromMagicLink(data);
@@ -795,11 +837,54 @@ async function handleSignUpFromMagicLink(data, email) {
 
 // 处理邮箱变更
 async function handleEmailChangeFromMagicLink(data) {
-  showVerificationSuccess('Email changed successfully! Redirecting...');
-  setTimeout(() => {
-    hideVerificationModal();
-    window.location.href = '/portal/portal.html';
-  }, 1500);
+  try {
+    // 邮箱变更需要先创建会话（登录用户）
+    const sessionResponse = await fetch(`${API_BASE}/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        proof_token: data.proof_token
+      })
+    });
+
+    if (sessionResponse.ok) {
+      const sessionData = await sessionResponse.json();
+      sessionStorage.setItem('authToken', sessionData.access_token);
+      
+      // 现在用户已经登录，可以完成邮箱变更
+      const changeEmailResponse = await fetch(`${API_BASE}/contacts/email`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionData.access_token}`
+        },
+        body: JSON.stringify({
+          proof_token: data.proof_token
+        })
+      });
+
+      if (changeEmailResponse.ok) {
+        showVerificationSuccess('Email changed successfully! Redirecting...');
+        setTimeout(() => {
+          hideVerificationModal();
+          window.location.href = '/portal/portal.html';
+        }, 1500);
+      } else {
+        const errorData = await changeEmailResponse.json();
+        const errorMessage = errorData.detail?.detail || errorData.detail || 'Failed to change email';
+        showVerificationError(`Email change failed: ${errorMessage}`);
+      }
+    } else {
+      const errorData = await sessionResponse.json();
+      const errorMessage = errorData.detail?.detail || errorData.detail || 'Failed to create session';
+      showVerificationError(`Login failed: ${errorMessage}`);
+    }
+  } catch (error) {
+    console.error('Email change error:', error);
+    showVerificationError('Email change error. Please try again.');
+  }
 }
 
 // ===== 验证模态框控制 =====

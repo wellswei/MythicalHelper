@@ -814,6 +814,24 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+.admin .footer-contact {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin-top: 4px;
+}
+
+.admin .footer-contact a {
+  color: rgba(248, 210, 106, 0.8);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.admin .footer-contact a:hover {
+  color: #f8d26a;
+  text-decoration: underline;
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 
 /* 平板屏幕 (768px - 899px) */

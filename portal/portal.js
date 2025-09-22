@@ -640,6 +640,20 @@ async function saveBadges() {
     loadBadges();
     loadEditableBadges();
     console.log('Badges saved successfully');
+    
+    // 保存成功后自动切换到display mode
+    isEditMode = false;
+    const editBtn = $('#btnToggleEditMode');
+    const badgesDisplay = $('#badgesDisplay');
+    const badgesEdit = $('#badgesEdit');
+    const editActions = $('#editActions');
+    
+    // 显示Edit Mode按钮，隐藏编辑操作按钮
+    if (editBtn) editBtn.style.display = 'block';
+    if (editActions) editActions.style.display = 'none';
+    if (badgesDisplay) badgesDisplay.style.display = 'block';
+    if (badgesEdit) badgesEdit.style.display = 'none';
+    
   } catch (error) {
     console.error('Failed to save badges:', error);
     console.error(error.message || 'Failed to save badges');

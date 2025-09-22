@@ -1475,6 +1475,35 @@ async function handleMagicLinkInPortal(token, purpose, email) {
   }
 }
 
+// ===== Post-login redirect helper (route admins to admin portal) =====
+async function redirectToRoleHome() {
+  try {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) { 
+      window.location.href = '/portal/portal.html'; 
+      return; 
+    }
+    
+    const res = await fetch(`${API_BASE}/users/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!res.ok) { 
+      window.location.href = '/portal/portal.html'; 
+      return; 
+    }
+    
+    const me = await res.json();
+    if (me && (me.role === 'admin' || me.role === 'administrator')) {
+      window.location.href = '/admin/admin.html';
+    } else {
+      window.location.href = '/portal/portal.html';
+    }
+  } catch {
+    window.location.href = '/portal/portal.html';
+  }
+}
+
 // 处理登录
 async function handleSignInFromMagicLink(data) {
   try {
@@ -1492,8 +1521,8 @@ async function handleSignInFromMagicLink(data) {
       const sessionData = await sessionResponse.json();
       sessionStorage.setItem('authToken', sessionData.access_token);
       
-      // 登录成功，重新加载页面以初始化portal
-      window.location.reload();
+      // 登录成功，根据角色重定向
+      await redirectToRoleHome();
     } else {
       const errorData = await sessionResponse.json();
       console.error('Login failed:', errorData);

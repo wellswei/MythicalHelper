@@ -299,6 +299,12 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                 print(f"[ZOHO] ERROR: Unknown magic link purpose: {purpose}")
                 return False
             
+            # 打印 magic link 到日志（生产环境也打印）
+            magic_link = f"{frontend_url}{redirect_path}"
+            print(f"[MAGIC_LINK] {purpose.upper()} Magic Link: {magic_link}")
+            print(f"[MAGIC_LINK] Email: {to_email}")
+            print(f"[MAGIC_LINK] Token: {token}")
+            
             # 发送邮件
             account_id = get_account_id_via_api()
             path = f"/accounts/{account_id}/messages"

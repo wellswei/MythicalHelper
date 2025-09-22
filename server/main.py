@@ -272,6 +272,16 @@ async def create_magic_link(inb: MagicLinkCreateIn, request: Request = None, aut
     # 魔法链接不需要Turnstile验证，因为魔法链接本身就是安全机制
     # 用户必须访问邮箱才能获取链接，这已经提供了足够的安全保护
     
+    # 检查当前用户身份，防止管理员创建注册链接
+    if inb.purpose == "signup" and authorization:
+        try:
+            current_user = get_session_user(authorization)
+            if current_user.role == "admin":
+                problem(403, "forbidden", "Admin users cannot create signup magic links")
+        except:
+            # 如果无法解析当前用户，继续正常流程（可能是未登录用户）
+            pass
+    
     with get_db() as db:
         # 验证邮箱格式
         if not is_email(inb.email):

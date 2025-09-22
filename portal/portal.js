@@ -199,8 +199,10 @@ function computeDirtyBadgeIds() {
       const editedRealm = editedBadge.realm || 'north';
       const originalWatch = (originalBadge.watchOver || '').trim();
       const editedWatch = (editedBadge.watchOver || '').trim();
+      const originalEnchanted = originalBadge.enchanted || false;
+      const editedEnchanted = editedBadge.enchanted || false;
 
-      if (originalRealm !== editedRealm || originalWatch !== editedWatch) {
+      if (originalRealm !== editedRealm || originalWatch !== editedWatch || originalEnchanted !== editedEnchanted) {
         dirty.add(id);
       }
     }

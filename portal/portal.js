@@ -355,7 +355,7 @@ function isAuthenticated() {
 }
 
 function redirectToAuth() {
-  window.location.href = '../auth/auth.html';
+  window.location.href = '../auth/auth.html?mode=signin';
 }
 
 function logout() {
@@ -1480,12 +1480,12 @@ async function handleMagicLinkInPortal(token, purpose, email) {
       console.error('Magic link verification failed:', data);
       alert('Magic link verification failed. Please try again.');
       // 清除URL参数并重定向到登录页面
-      window.location.href = '/auth/auth.html';
+      window.location.href = '/auth/auth.html?mode=signin';
     }
   } catch (error) {
     console.error('Magic link handling error:', error);
     alert('An error occurred. Please try again.');
-    window.location.href = '/auth/auth.html';
+    window.location.href = '/auth/auth.html?mode=signin';
   }
 }
 
@@ -1541,12 +1541,12 @@ async function handleSignInFromMagicLink(data) {
       const errorData = await sessionResponse.json();
       console.error('Login failed:', errorData);
       alert(`Login failed: ${errorData.detail?.detail || errorData.detail}`);
-      window.location.href = '/auth/auth.html';
+      window.location.href = '/auth/auth.html?mode=signin';
     }
   } catch (error) {
     console.error('Sign in error:', error);
     alert('Login error. Please try again.');
-    window.location.href = '/auth/auth.html';
+    window.location.href = '/auth/auth.html?mode=signin';
   }
 }
 

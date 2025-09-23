@@ -13,7 +13,7 @@ let isEditMode = false;
 let purchaseHistory = [];
 let editingBadges = {};
 let originalBadgesSnapshot = {};
-let hasUnsavedChanges = false;
+// 简化：移除修改状态追踪
 
 // ===== 工具函数 =====
 function $(id) {
@@ -131,7 +131,8 @@ function updateEditFooterState() {
   const saveBtn = $('#btnSaveBadges');
 
   if (saveBtn) {
-    saveBtn.disabled = !hasUnsavedChanges;
+    // 简化逻辑：save按钮始终可用
+    saveBtn.disabled = false;
   }
 }
 
@@ -174,63 +175,9 @@ function collectAllBadgeValues() {
   return snapshot;
 }
 
-function computeDirtyBadgeIds() {
-  const dirty = new Set();
-  const original = originalBadgesSnapshot || {};
-  const edited = editingBadges || {};
-  const keys = new Set([...Object.keys(original), ...Object.keys(edited)]);
+// 简化：移除修改状态追踪函数
 
-  keys.forEach(id => {
-    const originalBadge = original[id];
-    const editedBadge = edited[id];
-
-    if (!originalBadge && editedBadge) {
-      dirty.add(id);
-      return;
-    }
-
-    if (originalBadge && !editedBadge) {
-      dirty.add(id);
-      return;
-    }
-
-    if (originalBadge && editedBadge) {
-      const originalRealm = originalBadge.realm || 'north';
-      const editedRealm = editedBadge.realm || 'north';
-      const originalWatch = (originalBadge.watchOver || '').trim();
-      const editedWatch = (editedBadge.watchOver || '').trim();
-      const originalEnchanted = originalBadge.enchanted || false;
-      const editedEnchanted = editedBadge.enchanted || false;
-
-      if (originalRealm !== editedRealm || originalWatch !== editedWatch || originalEnchanted !== editedEnchanted) {
-        dirty.add(id);
-      }
-    }
-  });
-
-  return dirty;
-}
-
-function updateUnsavedSummary() {
-  const dirtyIds = computeDirtyBadgeIds();
-  hasUnsavedChanges = dirtyIds.size > 0;
-  updateEditFooterState();
-
-  const original = originalBadgesSnapshot || {};
-  document.querySelectorAll('.edit-card').forEach(item => {
-    const badgeId = item.dataset.badgeId;
-    const stateLabel = item.querySelector('[data-badge-state]');
-
-    if (!stateLabel || !badgeId) return;
-
-    if (!Object.prototype.hasOwnProperty.call(original, badgeId)) {
-      stateLabel.textContent = 'New';
-      return;
-    }
-
-    stateLabel.textContent = dirtyIds.has(badgeId) ? 'Unsaved' : 'Saved';
-  });
-}
+// 简化：移除修改状态追踪函数
 
 function handleRealmChange(event) {
   const select = event.target;
@@ -242,10 +189,6 @@ function handleRealmChange(event) {
 
   const existing = editingBadges[badgeId] || {};
   editingBadges[badgeId] = { ...existing, realm: select.value };
-  
-  // 标记有未保存的更改
-  hasUnsavedChanges = true;
-  updateUnsavedSummary();
 }
 
 function handleWatchOverInput(event) {
@@ -258,10 +201,6 @@ function handleWatchOverInput(event) {
 
   const existing = editingBadges[badgeId] || {};
   editingBadges[badgeId] = { ...existing, watchOver: input.value };
-  
-  // 标记有未保存的更改
-  hasUnsavedChanges = true;
-  updateUnsavedSummary();
 }
 
 function handleEnchantedToggle(event) {
@@ -274,10 +213,6 @@ function handleEnchantedToggle(event) {
 
   const existing = editingBadges[badgeId] || {};
   editingBadges[badgeId] = { ...existing, enchanted: toggle.checked };
-  
-  // 标记有未保存的更改
-  hasUnsavedChanges = true;
-  updateUnsavedSummary();
 }
 
 function handleBadgeDelete(event) {
@@ -291,8 +226,7 @@ function handleBadgeDelete(event) {
   deleteBadge(badgeId);
   
   // 标记有未保存的更改
-  hasUnsavedChanges = true;
-  updateUnsavedSummary();
+// 简化：移除修改状态追踪
 }
 
 function bindBadgeEditEvents() {
@@ -635,8 +569,6 @@ async function saveBadges() {
     currentUser.badges = currentUser.badges || payload;
 
     editingBadges = cloneBadges(currentUser.badges);
-    originalBadgesSnapshot = cloneBadges(currentUser.badges);
-    hasUnsavedChanges = false;
 
     updateUserInfo();
     loadBadges();
@@ -662,9 +594,8 @@ async function saveBadges() {
   } finally {
     if (saveBtn) {
       saveBtn.textContent = previousLabel || 'Save Changes';
-      saveBtn.disabled = !hasUnsavedChanges;
+      saveBtn.disabled = false; // 简化：save按钮始终可用
     }
-    updateUnsavedSummary();
   }
 }
 
@@ -701,11 +632,6 @@ async function deleteBadge(badgeId) {
 }
 
 function toggleEditMode() {
-  if (isEditMode && hasUnsavedChanges) {
-    console.log('You still have unsaved changes. Save or discard them first.');
-    return;
-  }
-
   isEditMode = !isEditMode;
 
   const editBtn = $('#btnToggleEditMode');
@@ -716,7 +642,7 @@ function toggleEditMode() {
   if (isEditMode) {
     originalBadgesSnapshot = cloneBadges(currentUser?.badges);
     editingBadges = cloneBadges(currentUser?.badges);
-    hasUnsavedChanges = false;
+  // 简化：移除修改状态追踪
 
     // 隐藏Edit Mode按钮，显示编辑操作按钮
     if (editBtn) editBtn.style.display = 'none';
@@ -750,7 +676,7 @@ function loadEditableBadges() {
     badgesEditList.innerHTML = `
       <div class=\"edit-new display-empty\" id=\"editNewBadgeCard\" role=\"button\" tabindex=\"0\" aria-label=\"Add New Badge\">\n        <div class=\"no-badges-content\">\n          <p class=\"no-badges-text\">+ New Badge</p>\n          <p class=\"no-badges-subtext\">Click to create your first badge</p>\n        </div>\n      </div>
     `;
-    updateUnsavedSummary();
+// 简化：移除修改状态追踪
     bindBadgeEditEvents();
     return;
   }
@@ -810,7 +736,7 @@ function loadEditableBadges() {
 
 function cancelEdit() {
   editingBadges = cloneBadges(originalBadgesSnapshot);
-  hasUnsavedChanges = false;
+// 简化：移除修改状态追踪
   updateEditFooterState();
 
   if (isEditMode) {
@@ -858,8 +784,7 @@ function addBadge() {
   loadEditableBadges();
 
   // 标记有未保存的更改
-  hasUnsavedChanges = true;
-  updateUnsavedSummary();
+// 简化：移除修改状态追踪
 
   requestAnimationFrame(() => {
     const newlyCreated = document.querySelector(`.edit-card[data-badge-id="${badgeId}"] .watch-over-input`);

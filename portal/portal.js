@@ -1323,6 +1323,9 @@ async function initializePortal() {
     }
     
     console.log('Portal initialization completed successfully');
+    
+    // 确保save按钮状态正确
+    updateEditFooterState();
   } catch (error) {
     console.error('Initialization failed:', error);
     console.error('Error stack:', error.stack);

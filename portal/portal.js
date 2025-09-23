@@ -127,14 +127,7 @@ function getRealmSeal(realm) {
   return seals[realm] || '';
 }
 
-function updateEditFooterState() {
-  const saveBtn = $('#btnSaveBadges');
-
-  if (saveBtn) {
-    // 简化逻辑：save按钮始终可用
-    saveBtn.disabled = false;
-  }
-}
+// 简化：移除updateEditFooterState函数，save按钮始终可用
 
 function updateRealmPill(badgeElement, realm) {
   const pill = badgeElement?.querySelector('.badge-realm-pill');
@@ -650,7 +643,6 @@ function toggleEditMode() {
     if (badgesDisplay) badgesDisplay.style.display = 'none';
     if (badgesEdit) badgesEdit.style.display = 'block';
 
-    updateEditFooterState();
     loadEditableBadges();
   } else {
     // 显示Edit Mode按钮，隐藏编辑操作按钮
@@ -659,7 +651,6 @@ function toggleEditMode() {
     if (badgesDisplay) badgesDisplay.style.display = 'block';
     if (badgesEdit) badgesEdit.style.display = 'none';
 
-    updateEditFooterState();
     loadBadges();
   }
 }
@@ -736,8 +727,6 @@ function loadEditableBadges() {
 
 function cancelEdit() {
   editingBadges = cloneBadges(originalBadgesSnapshot);
-// 简化：移除修改状态追踪
-  updateEditFooterState();
 
   if (isEditMode) {
     toggleEditMode();
@@ -1323,9 +1312,6 @@ async function initializePortal() {
     }
     
     console.log('Portal initialization completed successfully');
-    
-    // 确保save按钮状态正确
-    updateEditFooterState();
   } catch (error) {
     console.error('Initialization failed:', error);
     console.error('Error stack:', error.stack);

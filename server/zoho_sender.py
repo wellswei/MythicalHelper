@@ -274,7 +274,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                         color: #2c3e50; 
                         margin: 0; 
                         padding: 0; 
-                        background: #f8f9fa;
+                        background: transparent;
                         min-height: 100vh;
                     }}
                     .container {{ 
@@ -339,7 +339,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                     .footer {{ 
                         text-align: center; 
                         padding: 20px 30px; 
-                        background: #f8f9fa;
+                        background: transparent;
                         font-size: 11px; 
                         color: #95a5a6;
                         letter-spacing: 0.5px;
@@ -378,7 +378,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                         color: #2c3e50; 
                         margin: 0; 
                         padding: 0; 
-                        background: #f8f9fa;
+                        background: transparent;
                         min-height: 100vh;
                     }}
                     .container {{ 
@@ -443,7 +443,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                     .footer {{ 
                         text-align: center; 
                         padding: 20px 30px; 
-                        background: #f8f9fa;
+                        background: transparent;
                         font-size: 11px; 
                         color: #95a5a6;
                         letter-spacing: 0.5px;
@@ -482,7 +482,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                         color: #2c3e50; 
                         margin: 0; 
                         padding: 0; 
-                        background: #f8f9fa;
+                        background: transparent;
                         min-height: 100vh;
                     }}
                     .container {{ 
@@ -547,7 +547,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                     .footer {{ 
                         text-align: center; 
                         padding: 20px 30px; 
-                        background: #f8f9fa;
+                        background: transparent;
                         font-size: 11px; 
                         color: #95a5a6;
                         letter-spacing: 0.5px;

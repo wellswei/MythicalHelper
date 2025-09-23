@@ -565,10 +565,9 @@ async function saveBadges() {
 
     updateUserInfo();
     loadBadges();
-    loadEditableBadges();
     console.log('Badges saved successfully');
     
-    // 保存成功后自动切换到display mode
+    // 保存成功后直接切换到display mode
     isEditMode = false;
     const editBtn = $('#btnToggleEditMode');
     const badgesDisplay = $('#badgesDisplay');

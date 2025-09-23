@@ -263,37 +263,315 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
             # 生产模式：通过Zoho发送真实邮件
             if purpose == "signup":
                 redirect_path = f"/auth/auth.html?mode=signup&token={token}&purpose={purpose}&email={to_email}"
-                subject = "[MythicalHelper] Your Magic Link to Join the Guild"
+                subject = "Your invitation to the Guild awaits"
                 body_html = f"""
                 <!DOCTYPE html>
                 <html><head><meta charset=\"UTF-8\"><title>Join the Guild</title>
-                <style>body{{font-family:Arial,sans-serif;line-height:1.6;color:#333}}.container{{max-width:600px;margin:0 auto;padding:20px}}.header{{text-align:center;margin-bottom:30px}}.logo{{font-size:24px;font-weight:bold;color:#4a90e2}}.content{{background:#f9f9f9;padding:30px;border-radius:10px}}.button{{display:inline-block;background:#4a90e2;color:#fff;padding:15px 30px;text-decoration:none;border-radius:5px;margin:20px 0}}</style>
-                </head><body><div class=container><div class=header><div class=logo>MythicalHelper</div></div><div class=content>
-                <h2>Welcome to the Guild!</h2><p>Click the link below to continue your registration:</p>
-                <p style=\"text-align:center;\"><a class=button href=\"{frontend_url}{redirect_path}\">Join the Guild with this Magic Link</a></p>
-                <p>This link will expire in 15 minutes.</p></div><div class=footer style=\"text-align:center;margin-top:30px;font-size:12px;color:#666;\">© 2025 MythicalHelper Guild</div></div></body></html>
+                <style>
+                    body {{ 
+                        font-family: 'Georgia', serif; 
+                        line-height: 1.6; 
+                        color: #2c3e50; 
+                        margin: 0; 
+                        padding: 0; 
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                    }}
+                    .container {{ 
+                        max-width: 480px; 
+                        margin: 40px auto; 
+                        background: rgba(255,255,255,0.95); 
+                        border-radius: 20px; 
+                        overflow: hidden;
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                        backdrop-filter: blur(10px);
+                    }}
+                    .header {{ 
+                        text-align: center; 
+                        padding: 40px 30px 20px; 
+                        background: linear-gradient(45deg, #2c3e50, #34495e);
+                        color: white;
+                    }}
+                    .logo {{ 
+                        font-size: 28px; 
+                        font-weight: 300; 
+                        letter-spacing: 2px;
+                        margin-bottom: 8px;
+                    }}
+                    .motto {{
+                        font-size: 12px;
+                        opacity: 0.8;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                    }}
+                    .content {{ 
+                        padding: 40px 30px; 
+                        text-align: center;
+                    }}
+                    .message {{
+                        font-size: 16px;
+                        margin-bottom: 30px;
+                        color: #34495e;
+                        line-height: 1.8;
+                    }}
+                    .button {{ 
+                        display: inline-block; 
+                        background: linear-gradient(45deg, #667eea, #764ba2); 
+                        color: white; 
+                        padding: 18px 36px; 
+                        text-decoration: none; 
+                        border-radius: 50px; 
+                        font-weight: 500;
+                        letter-spacing: 1px;
+                        transition: transform 0.2s ease;
+                        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                    }}
+                    .button:hover {{
+                        transform: translateY(-2px);
+                        box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+                    }}
+                    .expiry {{
+                        margin-top: 30px;
+                        font-size: 13px;
+                        color: #7f8c8d;
+                        font-style: italic;
+                    }}
+                    .footer {{ 
+                        text-align: center; 
+                        padding: 20px 30px; 
+                        background: #f8f9fa;
+                        font-size: 11px; 
+                        color: #95a5a6;
+                        letter-spacing: 0.5px;
+                    }}
+                </style>
+                </head>
+                <body>
+                    <div class=\"container\">
+                        <div class=\"header\">
+                            <div class=\"logo\">MythicalHelper</div>
+                            <div class=\"motto\">Only Wonder Endures</div>
+                        </div>
+                        <div class=\"content\">
+                            <div class=\"message\">
+                                A scroll bearing your name has arrived at the Guild.<br>
+                                Your journey into wonder begins with a single step.
+                            </div>
+                            <a class=\"button\" href=\"{frontend_url}{redirect_path}\">Enter the Guild</a>
+                            <div class=\"expiry\">This invitation expires in 15 minutes</div>
+                        </div>
+                        <div class=\"footer\">© 2025 MythicalHelper Guild</div>
+                    </div>
+                </body>
+                </html>
                 """
             elif purpose == "signin":
                 redirect_path = f"/portal/portal.html?token={token}&purpose={purpose}&email={to_email}"
-                subject = "[MythicalHelper] Your Magic Link to Sign In"
+                subject = "The Guild awaits your return"
                 body_html = f"""
-                <!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Sign In</title>
-                <style>body{{font-family:Arial,sans-serif;line-height:1.6;color:#333}}.container{{max-width:600px;margin:0 auto;padding:20px}}.header{{text-align:center;margin-bottom:30px}}.logo{{font-size:24px;font-weight:bold;color:#4a90e2}}.content{{background:#f9f9f9;padding:30px;border-radius:10px}}.button{{display:inline-block;background:#4a90e2;color:#fff;padding:15px 30px;text-decoration:none;border-radius:5px;margin:20px 0}}</style>
-                </head><body><div class=container><div class=header><div class=logo>MythicalHelper</div></div><div class=content>
-                <h2>Welcome Back!</h2><p>Click the link below to access your account:</p>
-                <p style=\"text-align:center;\"><a class=button href=\"{frontend_url}{redirect_path}\">Sign In with this Magic Link</a></p>
-                <p>This link will expire in 15 minutes.</p></div><div class=footer style=\"text-align:center;margin-top:30px;font-size:12px;color:#666;\">© 2025 MythicalHelper Guild</div></div></body></html>
+                <!DOCTYPE html>
+                <html><head><meta charset=\"UTF-8\"><title>Return to the Guild</title>
+                <style>
+                    body {{ 
+                        font-family: 'Georgia', serif; 
+                        line-height: 1.6; 
+                        color: #2c3e50; 
+                        margin: 0; 
+                        padding: 0; 
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                    }}
+                    .container {{ 
+                        max-width: 480px; 
+                        margin: 40px auto; 
+                        background: rgba(255,255,255,0.95); 
+                        border-radius: 20px; 
+                        overflow: hidden;
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                        backdrop-filter: blur(10px);
+                    }}
+                    .header {{ 
+                        text-align: center; 
+                        padding: 40px 30px 20px; 
+                        background: linear-gradient(45deg, #2c3e50, #34495e);
+                        color: white;
+                    }}
+                    .logo {{ 
+                        font-size: 28px; 
+                        font-weight: 300; 
+                        letter-spacing: 2px;
+                        margin-bottom: 8px;
+                    }}
+                    .motto {{
+                        font-size: 12px;
+                        opacity: 0.8;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                    }}
+                    .content {{ 
+                        padding: 40px 30px; 
+                        text-align: center;
+                    }}
+                    .message {{
+                        font-size: 16px;
+                        margin-bottom: 30px;
+                        color: #34495e;
+                        line-height: 1.8;
+                    }}
+                    .button {{ 
+                        display: inline-block; 
+                        background: linear-gradient(45deg, #667eea, #764ba2); 
+                        color: white; 
+                        padding: 18px 36px; 
+                        text-decoration: none; 
+                        border-radius: 50px; 
+                        font-weight: 500;
+                        letter-spacing: 1px;
+                        transition: transform 0.2s ease;
+                        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                    }}
+                    .button:hover {{
+                        transform: translateY(-2px);
+                        box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+                    }}
+                    .expiry {{
+                        margin-top: 30px;
+                        font-size: 13px;
+                        color: #7f8c8d;
+                        font-style: italic;
+                    }}
+                    .footer {{ 
+                        text-align: center; 
+                        padding: 20px 30px; 
+                        background: #f8f9fa;
+                        font-size: 11px; 
+                        color: #95a5a6;
+                        letter-spacing: 0.5px;
+                    }}
+                </style>
+                </head>
+                <body>
+                    <div class=\"container\">
+                        <div class=\"header\">
+                            <div class=\"logo\">MythicalHelper</div>
+                            <div class=\"motto\">Only Wonder Endures</div>
+                        </div>
+                        <div class=\"content\">
+                            <div class=\"message\">
+                                Your badge glimmers in the twilight.<br>
+                                The Guild chambers are open to you once more.
+                            </div>
+                            <a class=\"button\" href=\"{frontend_url}{redirect_path}\">Return to the Guild</a>
+                            <div class=\"expiry\">This passage expires in 15 minutes</div>
+                        </div>
+                        <div class=\"footer\">© 2025 MythicalHelper Guild</div>
+                    </div>
+                </body>
+                </html>
                 """
             elif purpose == "change_email":
                 redirect_path = f"/portal/portal.html?token={token}&purpose={purpose}&email={to_email}"
-                subject = "[MythicalHelper] Confirm Your New Email Address"
+                subject = "A new scroll arrives at the Guild"
                 body_html = f"""
-                <!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Verify Email Change</title>
-                <style>body{{font-family:Arial,sans-serif;line-height:1.6;color:#333}}.container{{max-width:600px;margin:0 auto;padding:20px}}.header{{text-align:center;margin-bottom:30px}}.logo{{font-size:24px;font-weight:bold;color:#4a90e2}}.content{{background:#f9f9f9;padding:30px;border-radius:10px}}.button{{display:inline-block;background:#4a90e2;color:#fff;padding:15px 30px;text-decoration:none;border-radius:5px;margin:20px 0}}</style>
-                </head><body><div class=container><div class=header><div class=logo>MythicalHelper</div></div><div class=content>
-                <h2>Verify Your Email Change</h2><p>Click the link below to confirm your new email:</p>
-                <p style=\"text-align:center;\"><a class=button href=\"{frontend_url}{redirect_path}\">Confirm New Email with this Magic Link</a></p>
-                <p>This link will expire in 15 minutes.</p></div><div class=footer style=\"text-align:center;margin-top:30px;font-size:12px;color:#666;\">© 2025 MythicalHelper Guild</div></div></body></html>
+                <!DOCTYPE html>
+                <html><head><meta charset=\"UTF-8\"><title>Verify New Address</title>
+                <style>
+                    body {{ 
+                        font-family: 'Georgia', serif; 
+                        line-height: 1.6; 
+                        color: #2c3e50; 
+                        margin: 0; 
+                        padding: 0; 
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                    }}
+                    .container {{ 
+                        max-width: 480px; 
+                        margin: 40px auto; 
+                        background: rgba(255,255,255,0.95); 
+                        border-radius: 20px; 
+                        overflow: hidden;
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                        backdrop-filter: blur(10px);
+                    }}
+                    .header {{ 
+                        text-align: center; 
+                        padding: 40px 30px 20px; 
+                        background: linear-gradient(45deg, #2c3e50, #34495e);
+                        color: white;
+                    }}
+                    .logo {{ 
+                        font-size: 28px; 
+                        font-weight: 300; 
+                        letter-spacing: 2px;
+                        margin-bottom: 8px;
+                    }}
+                    .motto {{
+                        font-size: 12px;
+                        opacity: 0.8;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                    }}
+                    .content {{ 
+                        padding: 40px 30px; 
+                        text-align: center;
+                    }}
+                    .message {{
+                        font-size: 16px;
+                        margin-bottom: 30px;
+                        color: #34495e;
+                        line-height: 1.8;
+                    }}
+                    .button {{ 
+                        display: inline-block; 
+                        background: linear-gradient(45deg, #667eea, #764ba2); 
+                        color: white; 
+                        padding: 18px 36px; 
+                        text-decoration: none; 
+                        border-radius: 50px; 
+                        font-weight: 500;
+                        letter-spacing: 1px;
+                        transition: transform 0.2s ease;
+                        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                    }}
+                    .button:hover {{
+                        transform: translateY(-2px);
+                        box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+                    }}
+                    .expiry {{
+                        margin-top: 30px;
+                        font-size: 13px;
+                        color: #7f8c8d;
+                        font-style: italic;
+                    }}
+                    .footer {{ 
+                        text-align: center; 
+                        padding: 20px 30px; 
+                        background: #f8f9fa;
+                        font-size: 11px; 
+                        color: #95a5a6;
+                        letter-spacing: 0.5px;
+                    }}
+                </style>
+                </head>
+                <body>
+                    <div class=\"container\">
+                        <div class=\"header\">
+                            <div class=\"logo\">MythicalHelper</div>
+                            <div class=\"motto\">Only Wonder Endures</div>
+                        </div>
+                        <div class=\"content\">
+                            <div class=\"message\">
+                                A new scroll bearing your name<br>
+                                has arrived at the Guild chambers.
+                            </div>
+                            <a class=\"button\" href=\"{frontend_url}{redirect_path}\">Confirm New Address</a>
+                            <div class=\"expiry\">This confirmation expires in 15 minutes</div>
+                        </div>
+                        <div class=\"footer\">© 2025 MythicalHelper Guild</div>
+                    </div>
+                </body>
+                </html>
                 """
             else:
                 print(f"[ZOHO] ERROR: Unknown magic link purpose: {purpose}")

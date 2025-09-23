@@ -274,7 +274,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                         color: #2c3e50; 
                         margin: 0; 
                         padding: 0; 
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: #f8f9fa;
                         min-height: 100vh;
                     }}
                     .container {{ 
@@ -378,7 +378,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                         color: #2c3e50; 
                         margin: 0; 
                         padding: 0; 
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: #f8f9fa;
                         min-height: 100vh;
                     }}
                     .container {{ 
@@ -482,7 +482,7 @@ def send_magic_link_email(to_email: str, token: str, purpose: str) -> bool:
                         color: #2c3e50; 
                         margin: 0; 
                         padding: 0; 
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: #f8f9fa;
                         min-height: 100vh;
                     }}
                     .container {{ 

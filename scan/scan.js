@@ -77,6 +77,9 @@ function renderBadges(badgesObj, username, validUntil) {
     });
   }
 
+  // Generate QR code for certificate
+  generateCertificateQR(username, validUntil, badgesObj);
+
   const custom = Object.entries(badgesObj || {}).map(([id, b]) => ({
     icon: (b && b.icon) || '🏆',
     title: (b && b.title) || id,
@@ -188,6 +191,50 @@ function renderBadges(badgesObj, username, validUntil) {
     `;
     grid.appendChild(el);
   });
+}
+
+// 生成证书二维码
+function generateCertificateQR(username, validUntil, badgesObj) {
+  const qrContainer = document.getElementById('certificateQR');
+  if (!qrContainer) return;
+
+  // 清空之前的二维码
+  qrContainer.innerHTML = '';
+
+  // 构建二维码内容 - 包含验证信息
+  const qrData = {
+    type: 'mythical_helper_certificate',
+    username: username || 'Unknown Agent',
+    validUntil: validUntil,
+    timestamp: new Date().toISOString(),
+    verificationUrl: window.location.href,
+    activeBadges: Object.entries(badgesObj || {}).filter(([id, badge]) => badge && badge.enchanted === true).length
+  };
+
+  const qrText = JSON.stringify(qrData);
+
+  // 生成二维码
+  try {
+    QRCode.toCanvas(qrContainer, qrText, {
+      width: 80,
+      height: 80,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      margin: 1,
+      errorCorrectionLevel: 'M'
+    }, function (error) {
+      if (error) {
+        console.error('QR Code generation failed:', error);
+        // 如果二维码生成失败，显示一个占位符
+        qrContainer.innerHTML = '<div style="width: 80px; height: 80px; background: #f0f0f0; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">QR Error</div>';
+      }
+    });
+  } catch (error) {
+    console.error('QR Code library not loaded:', error);
+    qrContainer.innerHTML = '<div style="width: 80px; height: 80px; background: #f0f0f0; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">QR Unavailable</div>';
+  }
 }
 
 async function loadScan() {

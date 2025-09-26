@@ -13,6 +13,8 @@
   <!-- PDF生成库 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- 二维码生成库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
   <script>
     // Simple theme base to match site background
     document.addEventListener('DOMContentLoaded', () => {
@@ -163,12 +165,20 @@
                 </svg>
               </div>
 
-              <!-- 文字放在蜡封下方，符合你的排版：Seal 在上，下面是 Council 和日期 -->
-              <div class="guild-council">Sealed by the Council of the Mythical Helper Guild</div>
-              <div class="cert-date"><span id="certDate">August 29, 2025</span></div>
+            <!-- 文字放在蜡封下方，符合你的排版：Seal 在上，下面是 Council 和日期 -->
+            <div class="guild-council">Sealed by the Council of the Mythical Helper Guild</div>
+            <div class="cert-date"><span id="certDate">August 29, 2025</span></div>
+          </div>
+          
+          <!-- 二维码区域 -->
+          <div class="cert-qr-section">
+            <div class="qr-container">
+              <div id="certificateQR" class="qr-code"></div>
+              <div class="qr-label">Scan to verify authenticity</div>
             </div>
           </div>
         </div>
+      </div>
       </div>
       <div class="certificate-controls">
         <button id="downloadPDF" class="btn primary">Download Certificate PDF</button>

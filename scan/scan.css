@@ -622,6 +622,68 @@ html { scrollbar-gutter: stable; }
   margin-bottom: 0;
 }
 
+/* 二维码区域样式 */
+.cert-qr-section {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.qr-code {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 6px;
+}
+
+.qr-code canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 4px;
+}
+
+  .qr-label {
+    font-size: 10px;
+    color: #666;
+    text-align: center;
+    font-weight: 500;
+    line-height: 1.2;
+    max-width: 80px;
+}
+
+/* 响应式设计 - 二维码在小屏幕上的调整 */
+@media (max-width: 480px) {
+  .cert-qr-section {
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .qr-container {
+    padding: 8px;
+  }
+  
+  .qr-code {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .qr-label {
+    font-size: 9px;
+    max-width: 60px;
+  }
+}
+
 /* 分割线 */
 .section-divider {
   height: 1px;

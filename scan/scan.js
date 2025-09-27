@@ -215,6 +215,11 @@ function generateCertificateQR(username, validUntil, badgesObj) {
 
   // 生成二维码
   try {
+    // 检查QRCode库是否已加载
+    if (typeof QRCode === 'undefined') {
+      throw new Error('QRCode library not loaded');
+    }
+    
     QRCode.toCanvas(qrContainer, qrText, {
       width: 80,
       height: 80,

@@ -201,17 +201,8 @@ function generateCertificateQR(username, validUntil, badgesObj) {
   // 清空之前的二维码
   qrContainer.innerHTML = '';
 
-  // 构建二维码内容 - 包含验证信息
-  const qrData = {
-    type: 'mythical_helper_certificate',
-    username: username || 'Unknown Agent',
-    validUntil: validUntil,
-    timestamp: new Date().toISOString(),
-    verificationUrl: window.location.href,
-    activeBadges: Object.entries(badgesObj || {}).filter(([id, badge]) => badge && badge.enchanted === true).length
-  };
-
-  const qrText = JSON.stringify(qrData);
+  // 简单的二维码内容 - 就是当前页面的链接
+  const qrText = window.location.href;
 
   // 生成二维码
   try {
@@ -219,9 +210,6 @@ function generateCertificateQR(username, validUntil, badgesObj) {
     if (typeof QRCode === 'undefined') {
       throw new Error('QRCode library not loaded');
     }
-    
-    // 清空容器
-    qrContainer.innerHTML = '';
     
     // 使用QRCode.js库的构造函数API（与portal保持一致）
     const qr = new QRCode(qrContainer, {

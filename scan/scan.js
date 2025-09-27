@@ -211,11 +211,15 @@ function generateCertificateQR(username, validUntil, badgesObj) {
       throw new Error('QRCode library not loaded');
     }
     
+    // 根据屏幕尺寸调整二维码大小
+    const isMobile = window.innerWidth <= 768;
+    const qrSize = isMobile ? 70 : 80;
+    
     // 使用QRCode.js库的构造函数API（与portal保持一致）
     const qr = new QRCode(qrContainer, {
       text: qrText,
-      width: 80,
-      height: 80,
+      width: qrSize,
+      height: qrSize,
       colorDark: '#000000',
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M

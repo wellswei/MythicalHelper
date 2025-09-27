@@ -639,6 +639,7 @@ html { scrollbar-gutter: stable; }
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.1);
+  max-width: 100px;
 }
 
 .qr-code {
@@ -653,24 +654,50 @@ html { scrollbar-gutter: stable; }
   border-radius: 4px;
 }
 
-  .qr-label {
-    font-size: 10px;
-    color: #666;
-    text-align: center;
-    font-weight: 500;
-    line-height: 1.2;
-    max-width: 80px;
+.qr-label {
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.2;
+  max-width: 80px;
 }
 
-/* 响应式设计 - 二维码在小屏幕上的调整 */
+/* 响应式设计 - 二维码在移动设备上的调整 */
+@media (max-width: 768px) {
+  .cert-qr-section {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .qr-container {
+    padding: 10px;
+    max-width: 90px;
+  }
+  
+  .qr-code {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .qr-label {
+    font-size: 9px;
+    max-width: 70px;
+  }
+}
+
 @media (max-width: 480px) {
   .cert-qr-section {
-    bottom: 15px;
-    right: 15px;
+    margin-top: 15px;
   }
   
   .qr-container {
     padding: 8px;
+    max-width: 80px;
   }
   
   .qr-code {
@@ -679,7 +706,7 @@ html { scrollbar-gutter: stable; }
   }
   
   .qr-label {
-    font-size: 9px;
+    font-size: 8px;
     max-width: 60px;
   }
 }

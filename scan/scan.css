@@ -639,7 +639,9 @@ html { scrollbar-gutter: stable; }
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.1);
-  max-width: 100px;
+  width: 100px;
+  min-width: 100px;
+  box-sizing: border-box;
 }
 
 .qr-code {
@@ -675,8 +677,10 @@ html { scrollbar-gutter: stable; }
   }
   
   .qr-container {
-    padding: 10px;
-    max-width: 90px;
+    padding: 12px;
+    width: 90px;
+    min-width: 90px;
+    box-sizing: border-box;
   }
   
   .qr-code {
@@ -696,8 +700,10 @@ html { scrollbar-gutter: stable; }
   }
   
   .qr-container {
-    padding: 8px;
-    max-width: 80px;
+    padding: 10px;
+    width: 80px;
+    min-width: 80px;
+    box-sizing: border-box;
   }
   
   .qr-code {

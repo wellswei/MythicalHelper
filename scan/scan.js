@@ -215,39 +215,23 @@ function generateCertificateQR(username, validUntil, badgesObj) {
 
   // 生成二维码
   try {
-    // 检查qrcode库是否已加载
-    if (typeof qrcode === 'undefined') {
+    // 检查QRCode库是否已加载
+    if (typeof QRCode === 'undefined') {
       throw new Error('QRCode library not loaded');
     }
     
-    // 使用qrcode-generator库生成二维码
-    const qr = qrcode(0, 'M');
-    qr.addData(qrText);
-    qr.make();
-    
-    // 创建canvas元素
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const size = 80;
-    const moduleCount = qr.getModuleCount();
-    const cellSize = Math.floor(size / moduleCount);
-    const actualSize = cellSize * moduleCount;
-    
-    canvas.width = actualSize;
-    canvas.height = actualSize;
-    
-    // 绘制二维码
-    for (let row = 0; row < moduleCount; row++) {
-      for (let col = 0; col < moduleCount; col++) {
-        const isDark = qr.isDark(row, col);
-        ctx.fillStyle = isDark ? '#000000' : '#FFFFFF';
-        ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-      }
-    }
-    
-    // 清空容器并添加canvas
+    // 清空容器
     qrContainer.innerHTML = '';
-    qrContainer.appendChild(canvas);
+    
+    // 使用QRCode.js库的构造函数API（与portal保持一致）
+    const qr = new QRCode(qrContainer, {
+      text: qrText,
+      width: 80,
+      height: 80,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
     
   } catch (error) {
     console.error('QR Code generation failed:', error);

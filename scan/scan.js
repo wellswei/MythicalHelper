@@ -215,30 +215,43 @@ function generateCertificateQR(username, validUntil, badgesObj) {
 
   // 生成二维码
   try {
-    // 检查QRCode库是否已加载
-    if (typeof QRCode === 'undefined') {
+    // 检查qrcode库是否已加载
+    if (typeof qrcode === 'undefined') {
       throw new Error('QRCode library not loaded');
     }
     
-    QRCode.toCanvas(qrContainer, qrText, {
-      width: 80,
-      height: 80,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      },
-      margin: 1,
-      errorCorrectionLevel: 'M'
-    }, function (error) {
-      if (error) {
-        console.error('QR Code generation failed:', error);
-        // 如果二维码生成失败，显示一个占位符
-        qrContainer.innerHTML = '<div style="width: 80px; height: 80px; background: #f0f0f0; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">QR Error</div>';
+    // 使用qrcode-generator库生成二维码
+    const qr = qrcode(0, 'M');
+    qr.addData(qrText);
+    qr.make();
+    
+    // 创建canvas元素
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 80;
+    const moduleCount = qr.getModuleCount();
+    const cellSize = Math.floor(size / moduleCount);
+    const actualSize = cellSize * moduleCount;
+    
+    canvas.width = actualSize;
+    canvas.height = actualSize;
+    
+    // 绘制二维码
+    for (let row = 0; row < moduleCount; row++) {
+      for (let col = 0; col < moduleCount; col++) {
+        const isDark = qr.isDark(row, col);
+        ctx.fillStyle = isDark ? '#000000' : '#FFFFFF';
+        ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
       }
-    });
+    }
+    
+    // 清空容器并添加canvas
+    qrContainer.innerHTML = '';
+    qrContainer.appendChild(canvas);
+    
   } catch (error) {
-    console.error('QR Code library not loaded:', error);
-    qrContainer.innerHTML = '<div style="width: 80px; height: 80px; background: #f0f0f0; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">QR Unavailable</div>';
+    console.error('QR Code generation failed:', error);
+    qrContainer.innerHTML = '<div style="width: 80px; height: 80px; background: #f0f0f0; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">QR Error</div>';
   }
 }
 

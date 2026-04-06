@@ -1,0 +1,10 @@
+APP_ORIGIN="https://mythicalhelper.org"
+EMAIL_MODE="zoho"
+ZOHO_ACCOUNTS_BASE="https://accounts.zoho.com"
+ZOHO_MAIL_API_BASE="https://mail.zoho.com/api"
+ZOHO_EMAIL="official@example.org"
+ZOHO_CLIENT_ID="your_zoho_client_id"
+ZOHO_CLIENT_SECRET="your_zoho_client_secret"
+ZOHO_REFRESH_TOKEN="your_zoho_refresh_token"
+# Optional. If omitted, the Worker will look up the account id from the Zoho account list.
+ZOHO_ACCOUNT_ID=""

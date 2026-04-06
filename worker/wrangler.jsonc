@@ -1,0 +1,23 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "mythicalhelper-worker",
+	"main": "src/index.js",
+	"compatibility_date": "2026-04-05",
+	"workers_dev": true,
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		"APP_ORIGIN": "https://mythicalhelper.org",
+		"EMAIL_MODE": "zoho",
+		"ZOHO_ACCOUNTS_BASE": "https://accounts.zoho.com",
+		"ZOHO_MAIL_API_BASE": "https://mail.zoho.com/api"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "mythicalhelper",
+			"database_id": "c4098755-e436-4480-98b2-48f7c8e254d0"
+		}
+	]
+}

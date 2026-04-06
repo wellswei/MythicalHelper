@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MythicalHelper - Access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/site.css">
+  <script defer src="/access/index.js"></script>
+</head>
+<body class="site-shell">
+  <div class="sky-glow" aria-hidden="true"></div>
+  <div class="meteor meteor-one" aria-hidden="true"></div>
+  <div class="meteor meteor-two" aria-hidden="true"></div>
+  <div class="meteor meteor-three" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="/index.html">
+        <img src="/logo.png" alt="MythicalHelper logo">
+        <span>MythicalHelper</span>
+      </a>
+      <nav class="site-nav">
+        <a href="/index.html">Home</a>
+        <a href="/access/" aria-current="page">Access</a>
+        <a href="/certificate/">Certificate</a>
+        <a href="/verify/">Verify</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page certificate-page">
+    <section class="focus-shell access-stage">
+      <article class="access-sheet">
+        <div class="access-inner">
+          <section class="access-band access-band-top">
+            <div class="access-folio-head">
+              <p class="access-overline">Mythical Helper Guild</p>
+              <h1 class="access-folio-title">Access</h1>
+              <p class="access-folio-lead">Prepare the record for a certificate that can be returned to, revised, and revealed at the right moment.</p>
+            </div>
+          </section>
+
+          <section class="access-band access-band-choice">
+            <div class="access-choice-grid" id="accessChoiceGrid">
+              <button class="access-choice-card is-active" id="newMemberChoice" type="button">
+                <span class="access-choice-kicker">Sign Up</span>
+                <strong>Create a first certificate record.</strong>
+                <span>Open a new guild record with one email, one agent name, the watched names, and the realms you serve.</span>
+              </button>
+
+              <button class="access-choice-card" id="returningAgentChoice" type="button">
+                <span class="access-choice-kicker">Sign In</span>
+                <strong>Resume or revise an existing record.</strong>
+                <span>Request a return link by email, reopen the record, and revise it before printing the certificate again.</span>
+              </button>
+            </div>
+            <div class="access-edit-grid" id="editModeGrid" hidden>
+              <button class="access-choice-card access-choice-card-delete" id="deleteRecordButton" type="button">
+                <span class="access-choice-kicker">Delete</span>
+                <strong>Remove this record.</strong>
+                <span>Remove the active guild record from this browser and from the current database. This cannot be undone.</span>
+              </button>
+
+              <button class="access-choice-card access-choice-card-leave" id="leaveRecordButton" type="button">
+                <span class="access-choice-kicker">Exit</span>
+                <strong>Exit this record.</strong>
+                <span>Clear the current access state from this browser and return Access to its default entry mode.</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="access-band access-band-main">
+            <div class="access-panel access-panel-active" id="newMemberPanel">
+              <form class="access-form" id="accessForm">
+                <div class="access-row">
+                  <div class="access-row-label-wrap">
+                    <label for="email">Agent Email</label>
+                    <span class="access-hint" tabindex="0" data-hint="Use one household email for this record. Each email may open only one guild record." aria-label="Use one household email for this record. Each email may open only one guild record.">?</span>
+                  </div>
+                  <input id="email" name="email" type="email" required placeholder="name@example.com">
+                </div>
+
+                <div class="access-row">
+                  <div class="access-row-label-wrap">
+                    <label for="agentName">Agent Name</label>
+                    <span class="access-hint" tabindex="0" data-hint="Use the name that should appear on the certificate when this service is remembered." aria-label="Use the name that should appear on the certificate when this service is remembered.">?</span>
+                  </div>
+                  <input id="agentName" name="agentName" type="text" required placeholder="Alex Rowan, Jordan Hale, Taylor Brooks">
+                </div>
+
+                <div class="access-row">
+                  <div class="access-row-label-wrap">
+                    <label for="watchOver">Watch Over</label>
+                    <span class="access-hint" tabindex="0" data-hint="Nicknames are enough. If more than one child is watched over, separate the names with commas." aria-label="Nicknames are enough. If more than one child is watched over, separate the names with commas.">?</span>
+                  </div>
+                  <input id="watchOver" name="watchOver" type="text" placeholder="Lulu, June, Theo">
+                </div>
+
+                <div class="access-row access-row-realms">
+                  <div class="access-row-label-wrap">
+                    <div class="access-row-label">Serving Realms</div>
+                    <span class="access-hint" tabindex="0" data-hint="Choose the realms connected to this household's work. Wonderkeeping Office is always included as the first realm." aria-label="Choose the realms connected to this household's work. Wonderkeeping Office is always included as the first realm.">?</span>
+                  </div>
+                  <fieldset class="realm-fieldset">
+                    <div class="realm-grid">
+                      <label class="realm-option realm-option-wonder realm-option-required">
+                        <input type="checkbox" name="realms" value="Wonderkeeping Office" checked disabled>
+                        <span>Wonderkeeping Office</span>
+                      </label>
+                      <label class="realm-option realm-option-north">
+                        <input type="checkbox" name="realms" value="North Pole Auxiliary">
+                        <span>North Pole Auxiliary</span>
+                      </label>
+                      <label class="realm-option realm-option-fairy">
+                        <input type="checkbox" name="realms" value="Tooth Fairy Liaison">
+                        <span>Tooth Fairy Liaison</span>
+                      </label>
+                      <label class="realm-option realm-option-easter">
+                        <input type="checkbox" name="realms" value="Spring Bunny Service">
+                        <span>Spring Bunny Service</span>
+                      </label>
+                    </div>
+                  </fieldset>
+                </div>
+
+                <div class="access-row access-row-actions">
+                  <div class="access-actions">
+                    <button class="button button-primary button-signup-accent" id="submitRecordButton" type="submit">Join The Guild</button>
+                    <div class="status-line" id="formStatus" aria-live="polite"></div>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div class="access-panel" id="returningAgentPanel" hidden>
+              <form class="access-return-form" id="returningForm">
+                <div class="access-row">
+                  <div class="access-row-label-wrap">
+                    <label for="returningEmail">Agent Email</label>
+                    <span class="access-hint" tabindex="0" data-hint="Use the same household email that first opened this guild record. A return link will be sent there." aria-label="Use the same household email that first opened this guild record. A return link will be sent there.">?</span>
+                  </div>
+                  <input id="returningEmail" name="returningEmail" type="email" required placeholder="name@example.com">
+                </div>
+
+                <div class="access-row access-row-note" aria-hidden="true">
+                  <div class="access-row-label-wrap"></div>
+                  <div class="access-note-line" id="returningNote">We will send a magic link to this email so the record can be reopened and revised.</div>
+                </div>
+                <div class="access-row access-row-spacer" aria-hidden="true"></div>
+                <div class="access-row access-row-spacer access-row-spacer-tall" aria-hidden="true"></div>
+
+                <div class="access-row access-row-actions">
+                  <div class="access-actions">
+                    <button class="button button-primary button-return-accent" type="submit">Retrieve The Record</button>
+                    <div class="status-line" id="returningStatus" aria-live="polite"></div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

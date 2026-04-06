@@ -1,143 +1,114 @@
 # MythicalHelper
 
-一个为家长提供魔法角色徽章服务的 Web 应用，帮助维护童年的魔法。
+MythicalHelper is an open-source nonprofit website centered on a printable, verifiable certificate for parents who want to preserve childhood wonder with care.
 
-## 项目结构
+The core idea is simple: when a child grows old enough to hear that Santa Claus, the Tooth Fairy, or other childhood legends were "just made up," they can discover a certificate and verification page showing that their parents were acting as trusted helpers on behalf of that larger world.
 
-```
+## Product
+
+The active project is now organized around four pages:
+
+- a public homepage
+- an access page
+- a certificate page with PDF export
+- a public verification page
+
+## Active Repository
+
+```text
 MythicalHelper/
-├── admin/                 # 管理后台
-├── auth/                  # 认证页面
-├── portal/                # 用户门户
-├── scan/                  # 徽章扫描页面
-├── server/                # 后端服务器
-│   ├── config.py          # 统一配置文件（所有密钥和配置）
-│   ├── main.py            # 主应用
-│   ├── database.py        # 数据库服务
-│   ├── models.py          # 数据模型
-│   ├── zoho_mail_sender.py # Zoho 邮件服务
-│   ├── zoho_api_email.py  # Zoho API 邮件服务
-│   ├── deploy.command     # 部署脚本
-│   ├── stripe-proxy.js    # Stripe Cloudflare Worker 备份
-│   └── zoho-proxy.js      # Zoho Cloudflare Worker 备份
-├── index.html             # 首页
-├── index.css              # 首页样式
-├── index.js               # 首页脚本
-└── logo.png               # 项目 Logo
+├── access/                # Access flow
+├── certificate/           # Certificate page
+├── verify/                # Public verification page
+├── worker/                # Cloudflare Worker + D1 backend
+├── styles/                # Shared site styles
+├── backup/                # Legacy code moved out of the active structure
+├── index.html             # Homepage
+└── logo.png               # Project logo
 ```
 
-## 配置管理
+## Active Pages
 
-所有配置都集中在 `server/config.py` 文件中，包括：
+- [index.html](/Users/wei/GitHub/MythicalHelper/index.html): homepage
+- [access/index.html](/Users/wei/GitHub/MythicalHelper/access/index.html): access flow for creating or retrieving a record
+- [certificate/index.html](/Users/wei/GitHub/MythicalHelper/certificate/index.html): certificate view with QR generation and PDF export
+- [verify/index.html](/Users/wei/GitHub/MythicalHelper/verify/index.html): public verification page
+- [worker/src/index.js](/Users/wei/GitHub/MythicalHelper/worker/src/index.js): Cloudflare Worker API
+- [worker/migrations/0001_init.sql](/Users/wei/GitHub/MythicalHelper/worker/migrations/0001_init.sql): D1 schema
 
-- **基础配置**: 前端地址、API 地址、数据库连接
-- **安全密钥**: JWT 密钥、加密密钥
-- **Stripe 配置**: 支付密钥、价格设置
-- **Zoho 配置**: 邮件服务配置
-- **管理员配置**: 管理员信息
-- **业务配置**: 公会名称、格言等
-- **功能开关**: 各种功能的启用/禁用
-- **服务器配置**: 端口、工作进程数等
-- **安全配置**: 登录限制、安全头等
-- **监控配置**: 健康检查、性能监控等
+## Certificate Implementation
 
-## 部署
+The active certificate experience lives in:
 
-### 1. 配置服务器信息
+- [certificate/index.html](/Users/wei/GitHub/MythicalHelper/certificate/index.html)
+- [certificate/index.js](/Users/wei/GitHub/MythicalHelper/certificate/index.js)
+- [styles/site.css](/Users/wei/GitHub/MythicalHelper/styles/site.css)
 
-编辑 `server/deploy.command` 文件，更新以下信息：
+The active flow now has a lightweight backend shape:
+
+- the access page can create or retrieve a record through `/api`
+- the certificate page can read a record through an access token
+- the verification page can read a public record through a verify token
+- `localStorage` remains as a fallback for the current browser prototype
+- the certificate page still exports the result as a PDF in the browser
+
+## Development
+
+Install dependencies:
 
 ```bash
-SERVER_IP="你的服务器IPv6地址"
-USERNAME="ubuntu"
-SERVER_PATH="/home/ubuntu/mythicalhelper"
-KEY_PATH="~/.ssh/你的私钥.pem"
+npm install
 ```
 
-### 2. 运行部署脚本
+Run the frontend:
 
 ```bash
-cd server
-./deploy.command
+npm run dev:static
 ```
 
-部署脚本会自动：
-- 上传整个 `server` 文件夹到服务器
-- 安装 Python 依赖
-- 重启服务
-- 检查服务状态
-- 测试 API 连接
-
-## 服务管理
-
-在服务器上可以使用以下命令管理服务：
+Run the Worker locally in a second terminal:
 
 ```bash
-# 查看服务状态
-sudo systemctl status mythicalhelper
-
-# 查看服务日志
-sudo journalctl -u mythicalhelper -f
-
-# 重启服务
-sudo systemctl restart mythicalhelper
-
-# 停止服务
-sudo systemctl stop mythicalhelper
-
-# 启动服务
-sudo systemctl start mythicalhelper
+npm run dev:worker
 ```
 
-## 配置测试
-
-在本地测试配置：
+Apply the local D1 schema before testing the API:
 
 ```bash
-cd server
-python3 config.py
+npm run db:migrate:local
 ```
 
-## 功能特性
+During local development:
 
-- **用户认证**: 邮箱注册和登录
-- **徽章管理**: 创建和管理魔法角色徽章
-- **支付集成**: Stripe 支付处理
-- **邮件服务**: Zoho 邮件发送
-- **管理后台**: 用户和订单管理
-- **响应式设计**: 支持移动端和桌面端
-- **PDF 生成**: 证书 PDF 下载
+- the static frontend runs on `http://localhost:8000`
+- the Worker API runs on `http://localhost:8787`
+- the frontend will automatically use `http://localhost:8787/api` when opened from a local static server
 
-## 技术栈
+The backend skeleton is prepared for Cloudflare Workers + D1:
 
-- **前端**: HTML5, CSS3, JavaScript
-- **后端**: Python, FastAPI, SQLAlchemy
-- **数据库**: SQLite
-- **支付**: Stripe
-- **邮件**: Zoho Mail API
-- **部署**: AWS Lightsail, Cloudflare Pages
-- **代理**: Cloudflare Workers
+- configure [worker/wrangler.jsonc](/Users/wei/GitHub/MythicalHelper/worker/wrangler.jsonc)
+- apply [worker/migrations/0001_init.sql](/Users/wei/GitHub/MythicalHelper/worker/migrations/0001_init.sql)
+- run the Worker alongside the static frontend
 
-## 开发
+Current auth behavior:
 
-### 本地开发
+- `Sign Up` creates a record and establishes a session
+- `Sign In` creates a magic link
+- in local development, that link is returned in the UI and logged through `EMAIL_MODE=console`
+- the Worker is prepared to switch to a real mail provider later without changing the frontend flow
 
-1. 克隆项目
-2. 进入 `server` 目录
-3. 创建虚拟环境：`python3 -m venv venv`
-4. 激活虚拟环境：`source venv/bin/activate`
-5. 安装依赖：`pip install -r requirements.txt`
-6. 运行服务：`python main.py`
+To enable Zoho sending in the Worker, configure:
 
-### 配置修改
+- `EMAIL_MODE=zoho`
+- `APP_ORIGIN`
+- `ZOHO_EMAIL`
+- `ZOHO_CLIENT_ID`
+- `ZOHO_CLIENT_SECRET`
+- `ZOHO_REFRESH_TOKEN`
+- optional: `ZOHO_ACCOUNT_ID`
 
-所有配置都在 `server/config.py` 文件中，修改后需要重新部署：
+Legacy FastAPI, portal, admin, auth, scan, and deployment code has been moved to [backup/legacy-2026-04-04](/Users/wei/GitHub/MythicalHelper/backup/legacy-2026-04-04).
 
-```bash
-cd server
-./deploy.command
-```
+## License
 
-## 许可证
-
-MIT License
+MIT License.

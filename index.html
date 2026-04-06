@@ -1,321 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mythical Helper</title>
-  <link rel="stylesheet" href="index.css"/>
-  </head>
-  <body class="page-home index">
-  <!-- 全站星空背景元素 -->
-  <div class="meteor" aria-hidden="true"></div>
-  <div class="meteor" aria-hidden="true"></div>
-  <div class="meteor" aria-hidden="true"></div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MythicalHelper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/site.css">
+  <link rel="icon" href="/logo.png">
+</head>
+<body class="site-shell">
+  <div class="sky-glow" aria-hidden="true"></div>
+  <div class="meteor meteor-one" aria-hidden="true"></div>
+  <div class="meteor meteor-two" aria-hidden="true"></div>
+  <div class="meteor meteor-three" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="/index.html">
+        <img src="/logo.png" alt="MythicalHelper logo">
+        <span>MythicalHelper</span>
+      </a>
+      <nav class="site-nav">
+        <a href="/index.html" aria-current="page">Home</a>
+        <a href="/access/">Access</a>
+        <a href="/certificate/">Certificate</a>
+        <a href="/verify/">Verify</a>
+      </nav>
+    </div>
+  </header>
 
-  <!-- Header -->
-    <header class="site-header header">
-      <div class="container">
-        <div class="brand">
-        <img src="logo.png" alt="Logo" class="logo">
-        <span class="name">MythicalHelper</span>
-      </div>
-      <nav class="nav">
-        <a href="#" class="active">Home</a>
-        <a href="#" id="navMember">Member</a>
-        <div class="lang-selector">
-          <select>
-            <option value="en">🇺🇸 English</option>
-          </select>
+  <main class="page page-home">
+    <section class="focus-shell home-stage">
+      <article class="home-sheet">
+        <div class="home-inner">
+          <section class="home-band home-band-top">
+            <div class="home-folio-head">
+              <h1 class="home-folio-title">One Certificate.<br>One Keeper's Charge.<br>One Starlit Record.</h1>
+            </div>
+          </section>
+
+          <section class="home-band home-band-middle">
+            <p class="home-declaration">
+              MythicalHelper exists to give visible form to a parent's hidden work.
+              It turns years of care, effort, and entrusted responsibility into something a family can hold onto.
+              And when the moment is right, it offers one bright way for a child to see that the wonder was lovingly carried, not merely explained away.
+            </p>
+          </section>
+
+          <section class="home-band home-band-bottom">
+            <div class="home-bottom-grid">
+              <div class="home-column home-column-left">
+                <div class="home-section-head">
+                  <span>Currently Supported</span>
+                  <strong>Recognized Realms</strong>
+                </div>
+                <div class="home-realm-list">
+                  <div class="home-realm-item home-realm-item-wonder">Wonderkeeping Office</div>
+                  <div class="home-realm-item home-realm-item-north">The North Pole</div>
+                  <div class="home-realm-item home-realm-item-fairy">The Tooth Fairy's Realm</div>
+                  <div class="home-realm-item home-realm-item-easter">Easter Meadow</div>
+                </div>
+              </div>
+
+              <div class="home-column home-column-right">
+                <div class="home-section-head">
+                  <span>How It Works</span>
+                  <strong>One Clear Path</strong>
+                </div>
+                <div class="home-flow-list">
+                  <div class="home-flow-item">
+                    <span>1</span>
+                    <strong>Create a record</strong>
+                  </div>
+                  <div class="home-flow-item">
+                    <span>2</span>
+                    <strong>Return by magic link</strong>
+                  </div>
+                  <div class="home-flow-item">
+                    <span>3</span>
+                    <strong>Print the certificate</strong>
+                  </div>
+                  <div class="home-flow-item">
+                    <span>4</span>
+                    <strong>Reveal the record</strong>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
         </div>
-        </nav>
-      </div>
-    </header>
-
-  <!-- Hero -->
-  <main class="container">
-    <section class="section-hero hero">
-      <h1>Enlist in the Guild of Mythical Helper</h1>
-      <p class="lead">The Council summons brave grown-ups to a vital mission: guard childhood wonder.</p>
-      <p class="lead">Take the oath, receive your parchment of office, and stand watch over every dreamer's light.</p>
-      <div class="actions">
-        <a class="btn primary" href="/auth/auth.html?mode=signup">Accept the Mission</a>
-        <a class="btn" href="/auth/auth.html?mode=login">Returning Member</a>
-      </div>
-      <p class="verse">EVERY DREAM NEEDS A GUARDIAN. EVERY GUARDIAN HAS A MISSION.</p>
+      </article>
     </section>
-
-    <!-- 分隔线 -->
-    <div class="section-divider"></div>
-
-    <!-- Board Section -->
-    <section class="section-board board" aria-labelledby="board-title">
-      <div class="container">
-        <header class="board-header">
-          <h2 id="board-title" class="board-title">Mythical Helper Needed</h2>
-          <p class="board-subtitle">Realms are calling. More friends are in discussion and will join soon.</p>
-        </header>
-
-        <div class="board" role="list">
-          <!-- 左列：包裹三张卡 -->
-          <div class="choices">
-            <div class="choice" data-role="north" role="listitem" tabindex="0">
-            <div class="choice-body">
-              <h3 class="choice-title">North Pole Helper</h3>
-              <div class="choice-desc">
-                <span class="chip-item">• Logistics</span>
-                <span class="chip-item">• Reindeer</span>
-                <span class="chip-item">• Winter routes</span>
-              </div>
-            </div>
-            <div class="card-stamp" aria-hidden="true">
-              <svg class="stamp stamp-north" viewBox="0 0 120 120" width="120" height="120">
-                <defs>
-                  <radialGradient id="g-north" cx="50%" cy="50%" r="60%">
-                    <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
-                    <stop offset="100%" stop-color="#7BC4FF" stop-opacity=".25"/>
-                  </radialGradient>
-                </defs>
-                <circle cx="60" cy="60" r="52" fill="url(#g-north)" stroke="#7BC4FF" stroke-width="4" opacity=".8"/>
-                <circle cx="60" cy="60" r="42" fill="none" stroke="#7BC4FF" stroke-width="2" stroke-dasharray="4 6" opacity=".6"/>
-                <g stroke="#5AAEFF" stroke-width="3" stroke-linecap="round" opacity=".9">
-                  <line x1="60" y1="32" x2="60" y2="88"/>
-                  <line x1="32" y1="60" x2="88" y2="60"/>
-                  <line x1="40" y1="40" x2="80" y2="80"/>
-                  <line x1="80" y1="40" x2="40" y2="80"/>
-                </g>
-              </svg>
-            </div>
-          </div>
-
-          <div class="choice" data-role="tooth" role="listitem" tabindex="0">
-            <div class="choice-body">
-              <h3 class="choice-title">Tooth Fairy Circle</h3>
-              <div class="choice-desc">
-                <span class="chip-item">• Tiny treasures</span>
-                <span class="chip-item">• Brave smiles</span>
-                <span class="chip-item">• Pillow exchanges</span>
-              </div>
-            </div>
-            <div class="card-stamp" aria-hidden="true">
-              <svg class="stamp stamp-tooth" viewBox="0 0 120 120" width="120" height="120">
-                <defs>
-                  <radialGradient id="g-tooth" cx="50%" cy="50%" r="60%">
-                    <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
-                    <stop offset="100%" stop-color="#D5B8FF" stop-opacity=".25"/>
-                  </radialGradient>
-                </defs>
-                <circle cx="60" cy="60" r="52" fill="url(#g-tooth)" stroke="#C39BFF" stroke-width="4" opacity=".85"/>
-                <circle cx="60" cy="60" r="42" fill="none" stroke="#C39BFF" stroke-width="2" stroke-dasharray="3 5" opacity=".6"/>
-                <g fill="#B285FF" opacity=".9">
-                  <path d="M60 42 l3 6 6 3 -6 3 -3 6 -3-6 -6-3 6-3z"/>
-                  <path d="M86 58 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
-                  <path d="M34 58 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
-                  <path d="M60 78 l2 4 4 2 -4 2 -2 4 -2-4 -4-2 4-2z"/>
-                </g>
-              </svg>
-            </div>
-          </div>
-
-          <div class="choice" data-role="bunny" role="listitem" tabindex="0">
-            <div class="choice-body">
-              <h3 class="choice-title">Spring Bunny Caravan</h3>
-              <div class="choice-desc">
-                <span class="chip-item">• Egg trails</span>
-                <span class="chip-item">• Garden laughter</span>
-                <span class="chip-item">• Spring signs</span>
-              </div>
-            </div>
-            <div class="card-stamp" aria-hidden="true">
-              <svg class="stamp stamp-bunny" viewBox="0 0 120 120" width="120" height="120">
-                <defs>
-                  <radialGradient id="g-bunny" cx="50%" cy="50%" r="60%">
-                    <stop offset="0%" stop-color="#ffffff" stop-opacity=".2"/>
-                    <stop offset="100%" stop-color="#9BE7B0" stop-opacity=".25"/>
-                  </radialGradient>
-                </defs>
-                <circle cx="60" cy="60" r="52" fill="url(#g-bunny)" stroke="#65D08A" stroke-width="4" opacity=".85"/>
-                <circle cx="60" cy="60" r="42" fill="none" stroke="#65D08A" stroke-width="2" stroke-dasharray="6 6" opacity=".55"/>
-                <g fill="#49C27A" opacity=".9">
-                  <circle cx="60" cy="66" r="12"/>
-                  <circle cx="48" cy="50" r="5"/>
-                  <circle cx="60" cy="46" r="5"/>
-                  <circle cx="72" cy="50" r="5"/>
-                </g>
-              </svg>
-            </div>
-                      </div>
-          </div>
-
-                <!-- 右列：letter（保持原样） -->
-      <div class="letter" data-active="north">
-            <article class="letter-pane role-north">
-              <div class="seal" aria-hidden="true">
-                <img src="logo.png" alt="Logo"/>
-              </div>
-              <div class="letter-head">North Pole Workshop</div>
-              <p class="dear">Dear Mythical Helper,</p>
-              <p>Snow prints mark the season's path. We seek steady hands to keep the sleigh on time—lists checked, parcels queued, runways clear.</p>
-              <p>Where care meets craft, schedules become starlight.</p>
-              <p class="sign">— The Scribes of Winter</p>
-            </article>
-
-            <article class="letter-pane role-tooth">
-              <div class="seal" aria-hidden="true">
-                <img src="logo.png" alt="Logo"/>
-              </div>
-              <div class="letter-head">Tooth Fairy Circle</div>
-              <p class="dear">Dear Mythical Helper,</p>
-              <p>Brave smiles deserve gentle ceremony. Help place tiny tokens, tidy notes, and quiet sparkle—always respectful of each home's custom.</p>
-              <p>Leave courage seen, never secrets taken.</p>
-              <p class="sign">— The Silver Keepers</p>
-            </article>
-
-            <article class="letter-pane role-bunny">
-              <div class="seal" aria-hidden="true">
-                <img src="logo.png" alt="Logo"/>
-              </div>
-              <div class="letter-head">Spring Bunny Caravan</div>
-              <p class="dear">Dear Mythical Helper,</p>
-              <p>Hope hides in plain sight. Lay simple trails, place bright signs of spring, and mind the gardens you cross—each family's ways first.</p>
-              <p>Joy should be gentle—and easy to tidy.</p>
-              <p class="sign">— The Meadow Quartermasters</p>
-            </article>
-        </div>
-        </div>
-        </div>
-      </section>
-    
-    <!-- 分隔线 -->
-    <div class="section-divider"></div>
-
-    <!-- Steps Section -->
-    <section class="steps-section" aria-labelledby="steps-title">
-      <div class="container">
-        <header class="steps-header">
-          <h2 id="steps-title" class="steps-title">How it works</h2>
-          <p class="steps-subtitle">A magical flow that maps to everyday steps: clear, quick, and ceremonial.</p>
-        </header>
-
-        <ol class="steps steps--three" role="list">
-          <!-- 1. Owl / Email -->
-          <li class="step">
-            <div class="step-card">
-              <div class="step-header">
-                <div class="step-icon">🦉</div>
-                <h3 class="step-title">Messenger Owl</h3>
-                <div class="step-badge">1</div>
-              </div>
-              <p class="step-desc">
-                An owl brings a magic link to your inbox, making sure letters can find you.
-              </p>
-            </div>
-          </li>
-
-          <!-- 2. Oath / North -->
-          <li class="step">
-            <div class="step-card">
-              <div class="step-header">
-                <div class="step-icon">❄️</div>
-                <h3 class="step-title">Take the Oath</h3>
-                <div class="step-badge">2</div>
-              </div>
-              <p class="step-desc">
-                The North Pole appoints you, sealing your parchment with a unique serial and QR.
-              </p>
-            </div>
-          </li>
-
-          <!-- 3. Start Watch -->
-          <li class="step">
-            <div class="step-card">
-              <div class="step-header">
-                <div class="step-icon">🕯️</div>
-                <h3 class="step-title">Start Your Watch</h3>
-                <div class="step-badge">3</div>
-              </div>
-              <p class="step-desc">
-                Begin quietly: small gestures, tidy exits, and a spark of wonder left behind.
-              </p>
-            </div>
-          </li>
-        </ol>
-      </div>
-    </section>
-    
-    <!-- 分隔线 -->
-    <div class="section-divider"></div>
-    
-    <!-- Features / The Council Guaranteed -->
-    <section class="features-section features" aria-labelledby="features-title">
-      <div class="container">
-        <header class="features-header">
-          <h2 id="features-title" class="features-title">The Council Guaranteed</h2>
-          <p class="features-subtitle">
-            Three gifts sealed by the Guild: a seat in the council, proof of the tale, and only wonder that endures.
-          </p>
-        </header>
-
-        <ul class="features" role="list">
-          <li class="feature">
-            <div class="feature-card">
-              <h3 class="feature-title">A Seat in the Council</h3>
-              <p class="feature-desc">
-                Your name is etched on living parchment, verifiable when shown.
-              </p>
-            </div>
-          </li>
-
-          <li class="feature">
-            <div class="feature-card">
-              <h3 class="feature-title">Proof of the Tale</h3>
-              <p class="feature-desc">
-                Unveil the scroll or glowing code and bedtime talk becomes evidence.
-              </p>
-            </div>
-          </li>
-
-          <li class="feature">
-            <div class="feature-card">
-              <h3 class="feature-title">Only Wonder Endures</h3>
-              <p class="feature-desc">
-                We take nothing but leave awe, no ledgers and no hidden trade.
-              </p>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </section>
-    
-    <!-- 分隔线 -->
-    <div class="section-divider"></div>
-    
-    <!-- CTA Section -->
-    <section class="cta-section" aria-labelledby="cta-title">
-      <div class="container">
-        <header class="cta-header">
-          <h2 id="cta-title" class="cta-title">For the Smiles That Believe</h2>
-          <p class="cta-subtitle">Join the circle, carry the scroll, and keep their wonder safe.</p>
-        </header>
-
-        <div class="cta-actions">
-          <a class="btn primary" href="/auth/auth.html?mode=signup">Become a Mythical Helper</a>
-        </div>
-              </div>
-      </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="site-footer footer">
-      <div class="container footer-inner">
-        <div class="footer-brand">
-          <img src="logo.png" alt="Logo" class="logo">
-        </div>
-
-        <p class="footer-copy">© 2025 MythicalHelper Guild — Only Wonder Endures</p>
-        <p class="footer-contact">Contact: <a href="mailto:official@mythicalhelper.org">official@mythicalhelper.org</a></p>
-      </div>
-    </footer>
-
-    <script src="index.js"></script>
-  </body>
+  </main>
+</body>
 </html>

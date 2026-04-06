@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MythicalHelper - Certificate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&family=Inter:wght@400;500;600;700&family=Sacramento&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/site.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script defer src="/certificate/index.js"></script>
+</head>
+<body class="site-shell">
+  <div class="sky-glow" aria-hidden="true"></div>
+  <div class="meteor meteor-one" aria-hidden="true"></div>
+  <div class="meteor meteor-two" aria-hidden="true"></div>
+  <div class="meteor meteor-three" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="/index.html">
+        <img src="/logo.png" alt="MythicalHelper logo">
+        <span>MythicalHelper</span>
+      </a>
+      <nav class="site-nav">
+        <a href="/index.html">Home</a>
+        <a href="/access/">Access</a>
+        <a href="/certificate/" aria-current="page">Certificate</a>
+        <a href="/verify/">Verify</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page certificate-page">
+    <section class="focus-shell certificate-stage">
+      <button class="certificate-tag-button" id="downloadPdf" type="button">Print PDF</button>
+      <article class="mh-certificate" id="certificateCard">
+        <div class="mh-cert-inner">
+          <section class="mh-cert-band mh-cert-band-title">
+            <div class="mh-cert-title-wrap">
+              <p class="mh-cert-overline">Mythical Helper Guild</p>
+              <h1 class="mh-cert-title">Certificate of Enchantment</h1>
+              <p class="mh-cert-subtitle">Recognition of faithful service in the keeping of childhood wonder.</p>
+            </div>
+          </section>
+
+          <section class="mh-cert-band mh-cert-band-body">
+            <p class="mh-cert-content">
+              This certifies that <span id="certAgent">Agent [Name]</span> is hereby recognized as a trusted field agent of the
+              Mythical Helper Guild, appointed to quietly watch over <span id="certWatchOver">Cherished Name or Names</span> and to
+              carry part of the work of wonder with care, discretion, and tenderness.
+            </p>
+          </section>
+
+          <section class="mh-cert-band mh-cert-band-honors">
+            <div class="mh-cert-signatures">
+              <div class="signature-grid" id="signatureGrid"></div>
+            </div>
+          </section>
+
+          <section class="mh-cert-band mh-cert-band-footer">
+            <div class="mh-cert-footer-spacer" aria-hidden="true"></div>
+
+            <div class="mh-cert-footer-copy">
+              <div class="guild-seal-section" aria-hidden="true">
+                <div class="guild-seal">
+                  <svg class="seal-svg" viewBox="0 0 220 220" width="92" height="92" aria-label="Mythical Helper Guild Seal">
+                    <defs>
+                      <radialGradient id="sealWax" cx="50%" cy="45%" r="55%">
+                        <stop offset="0%" stop-color="#dc5858"></stop>
+                        <stop offset="50%" stop-color="#a12626"></stop>
+                        <stop offset="100%" stop-color="#701616"></stop>
+                      </radialGradient>
+                      <path id="sealRing" d="M110,110 m-72,0 a72,72 0 1,1 144,0 a72,72 0 1,1 -144,0"></path>
+                    </defs>
+                    <path d="M110 18 C150 20, 188 40, 195 78 C205 105, 198 140, 176 164 C160 182, 137 195, 110 198 C85 196, 56 186, 41 167 C22 143, 15 118, 22 90 C30 55, 64 30, 110 18 Z" fill="url(#sealWax)"></path>
+                    <circle cx="110" cy="110" r="69" fill="none" stroke="rgba(0,0,0,.32)" stroke-width="1.5"></circle>
+                    <text font-size="10" fill="rgba(255,255,255,.92)" letter-spacing="1.2" font-family="Cinzel Decorative, serif" font-weight="700">
+                      <textPath href="#sealRing" startOffset="6%">MYTHICAL HELPER GUILD • OFFICIAL SEAL • MYTHICAL HELPER GUILD • OFFICIAL SEAL •</textPath>
+                    </text>
+                    <text x="110" y="120" text-anchor="middle" font-size="34" fill="#fff5e2" font-family="Cinzel Decorative, serif" font-weight="700">MH</text>
+                  </svg>
+                </div>
+              </div>
+              <div class="guild-council-title">Mythical Helper Guild</div>
+              <div class="guild-issued-line">ISSUED ON <span id="certDate">April 4, 2026</span></div>
+            </div>
+
+            <div class="cert-qr-section">
+              <div class="qr-stack">
+                <div id="certificateQR" class="qr-code"></div>
+                <div class="qr-caption">Scan to verify</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -59,6 +59,9 @@ run_local.py
 start_local_dev.sh
 mythicalhelper_local.db
 README_LOCAL_DEV.md
+worker/.dev.vars
+worker/.prod.vars
+worker/.secrets*
 
 # Temporary files
 *.tmp
@@ -72,3 +75,4 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+worker/.wrangler/

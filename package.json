@@ -1,0 +1,14 @@
+{
+  "name": "mythicalhelper",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:static": "python3 -m http.server 8000",
+    "dev:worker": "wrangler dev --config worker/wrangler.jsonc --local",
+    "db:migrate:local": "wrangler d1 migrations apply mythicalhelper --local --config worker/wrangler.jsonc",
+    "db:migrate:remote": "wrangler d1 migrations apply mythicalhelper --remote --config worker/wrangler.jsonc"
+  },
+  "devDependencies": {
+    "wrangler": "^4.39.0"
+  }
+}

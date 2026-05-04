@@ -14,6 +14,8 @@ The core idea is simple: when a child grows old enough to hear that Santa Claus,
 - Demo verification record: https://mythicalhelper.org/verify/?demo=1
 - Parent guides: https://mythicalhelper.org/guides/
 - Share copy: https://mythicalhelper.org/share/
+- About: https://mythicalhelper.org/about/
+- Privacy: https://mythicalhelper.org/privacy/
 
 ## Why This Exists
 
@@ -31,6 +33,7 @@ The project is organized around a certificate flow and a small passive-discovery
 - a public verification page
 - parent guide pages for search discovery
 - a share page with reusable copy for people who want to pass the project along
+- about and privacy pages for trust, open-source context, and data clarity
 
 ## Repository
 
@@ -39,6 +42,8 @@ MythicalHelper/
 ├── access/                # Access flow
 ├── certificate/           # Certificate page
 ├── guides/                # Parent-facing guide pages
+├── about/                 # Project context
+├── privacy/               # Privacy notes
 ├── share/                 # Reusable share copy
 ├── verify/                # Public verification page
 ├── worker/                # Cloudflare Worker + D1 backend
@@ -56,6 +61,8 @@ MythicalHelper/
 - [verify/index.html](/Users/wei/GitHub/MythicalHelper/verify/index.html): public verification page
 - [guides/index.html](/Users/wei/GitHub/MythicalHelper/guides/index.html): parent guide index
 - [share/index.html](/Users/wei/GitHub/MythicalHelper/share/index.html): reusable share copy
+- [about/index.html](/Users/wei/GitHub/MythicalHelper/about/index.html): project context page
+- [privacy/index.html](/Users/wei/GitHub/MythicalHelper/privacy/index.html): privacy notes
 - [worker/src/index.js](/Users/wei/GitHub/MythicalHelper/worker/src/index.js): Cloudflare Worker API
 - [worker/migrations/0001_init.sql](/Users/wei/GitHub/MythicalHelper/worker/migrations/0001_init.sql): D1 schema
 

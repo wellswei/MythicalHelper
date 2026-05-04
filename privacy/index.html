@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy | MythicalHelper</title>
+  <meta name="description" content="Privacy notes for MythicalHelper, a free open-source project for printable, verifiable childhood wonder certificates.">
+  <link rel="canonical" href="https://mythicalhelper.org/privacy/">
+  <meta name="theme-color" content="#09111f">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="MythicalHelper">
+  <meta property="og:title" content="MythicalHelper Privacy">
+  <meta property="og:description" content="What MythicalHelper stores, why it stores it, and how records can be removed.">
+  <meta property="og:url" content="https://mythicalhelper.org/privacy/">
+  <meta property="og:image" content="https://mythicalhelper.org/social-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="MythicalHelper Privacy">
+  <meta name="twitter:description" content="What MythicalHelper stores, why it stores it, and how records can be removed.">
+  <meta name="twitter:image" content="https://mythicalhelper.org/social-preview.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/site.css">
+  <link rel="icon" href="/logo.png">
+</head>
+<body class="site-shell">
+  <div class="sky-glow" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="/index.html"><img src="/logo.png" alt="MythicalHelper logo"><span>MythicalHelper</span></a>
+      <nav class="site-nav">
+        <a href="/index.html">Home</a>
+        <a href="/access/">Access</a>
+        <a href="/certificate/">Certificate</a>
+        <a href="/verify/">Verify</a>
+        <a href="/guides/">Guides</a>
+        <a href="/share/">Share</a>
+        <a href="/about/">About</a>
+        <a href="/privacy/" aria-current="page">Privacy</a>
+        <a href="https://github.com/wellswei/MythicalHelper" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page guide-page">
+    <article class="guide-article">
+      <p class="home-overline">Privacy</p>
+      <h1>Privacy notes for a family-facing project</h1>
+      <p class="guide-lead">MythicalHelper is a free, open-source, nonprofit project. It is designed to collect only what is needed to create and retrieve a certificate record.</p>
+
+      <h2>What a certificate record stores</h2>
+      <p>The current record flow stores an email address, the helper name that should appear on the certificate, the watched name or names entered by the parent, selected realms, issue date, access token, verification token, and record status.</p>
+
+      <h2>Why an email is used</h2>
+      <p>The email is used to create one household record and to send a return link so the record can be reopened, revised, or deleted. It is not used for advertising or mailing lists.</p>
+
+      <h2>What appears publicly</h2>
+      <p>The public verification page can show the helper name, watched names, selected realms, issue date, and status for anyone who has the verification link or scans the QR code. Do not enter full legal names if nicknames are more appropriate for your family.</p>
+
+      <h2>Deletion</h2>
+      <p>When a record is open in edit mode, the Access page includes a delete action. Deleting the record removes it from the active database.</p>
+
+      <h2>Analytics and advertising</h2>
+      <p>The project does not include ad tracking in the repository. If analytics are added later, they should be privacy-friendly and documented here.</p>
+
+      <h2>Open source</h2>
+      <p>The source code is public on GitHub so privacy-sensitive behavior can be inspected, discussed, and improved.</p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div>
+        <strong>MythicalHelper</strong>
+        <p>A free, open-source, nonprofit project for parents preserving childhood wonder with care.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="/guides/">Guides</a>
+        <a href="/share/">Share</a>
+        <a href="/access/">Create</a>
+        <a href="/verify/?demo=1">Demo</a>
+        <a href="/about/">About</a>
+        <a href="https://github.com/wellswei/MythicalHelper" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

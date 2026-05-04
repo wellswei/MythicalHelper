@@ -2330,6 +2330,7 @@ textarea {
 }
 
 .share-copy-card {
+  position: relative;
   display: grid;
   gap: 10px;
   padding: 20px;
@@ -2357,12 +2358,36 @@ textarea {
 
 .share-copy-card pre {
   margin: 0;
+  padding-top: 8px;
   white-space: pre-wrap;
   word-break: break-word;
   color: rgba(242, 244, 255, 0.78);
   font-family: "Inter", sans-serif;
   font-size: 0.92rem;
   line-height: 1.55;
+}
+
+.copy-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(239, 215, 162, 0.22);
+  background: rgba(239, 215, 162, 0.08);
+  color: rgba(242, 244, 255, 0.86);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  color: var(--text);
+  border-color: rgba(239, 215, 162, 0.38);
 }
 
 .site-footer {

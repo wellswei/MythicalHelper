@@ -3,7 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MythicalHelper</title>
+  <title>MythicalHelper | A Certificate for Childhood Wonder</title>
+  <meta name="description" content="Create a printable, verifiable certificate that helps parents preserve childhood wonder and gently reveal who carried the magic when the time is right.">
+  <link rel="canonical" href="https://mythicalhelper.org/">
+  <meta name="theme-color" content="#09111f">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="MythicalHelper">
+  <meta property="og:title" content="A certificate for the day they ask who carried the magic.">
+  <meta property="og:description" content="A printable, verifiable keepsake for parents who want to preserve childhood wonder with care.">
+  <meta property="og:url" content="https://mythicalhelper.org/">
+  <meta property="og:image" content="https://mythicalhelper.org/social-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="MythicalHelper">
+  <meta name="twitter:description" content="A printable, verifiable certificate for the day they ask who carried the magic.">
+  <meta name="twitter:image" content="https://mythicalhelper.org/social-preview.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,6 +41,8 @@
         <a href="/access/">Access</a>
         <a href="/certificate/">Certificate</a>
         <a href="/verify/">Verify</a>
+        <a href="/guides/">Guides</a>
+        <a href="https://github.com/wellswei/MythicalHelper" rel="noopener">GitHub</a>
       </nav>
     </div>
   </header>
@@ -36,7 +53,13 @@
         <div class="home-inner">
           <section class="home-band home-band-top">
             <div class="home-folio-head">
-              <h1 class="home-folio-title">One Certificate.<br>One Keeper's Charge.<br>One Starlit Record.</h1>
+              <p class="home-overline">For Parents Keeping Childhood Wonder</p>
+              <h1 class="home-folio-title">For the day they ask<br>who carried the magic.</h1>
+              <p class="home-folio-lead">Create a printable certificate with a QR verification record, then keep it for the moment the story needs a gentle next chapter.</p>
+              <div class="home-actions" aria-label="Primary actions">
+                <a class="button button-primary button-signup-accent" href="/access/">Create A Certificate</a>
+                <a class="button button-secondary" href="/verify/?demo=1">View Demo</a>
+              </div>
             </div>
           </section>
 
@@ -71,28 +94,94 @@
                 <div class="home-flow-list">
                   <div class="home-flow-item">
                     <span>1</span>
-                    <strong>Create a record</strong>
+                    <strong>Create a private record</strong>
                   </div>
                   <div class="home-flow-item">
                     <span>2</span>
-                    <strong>Return by magic link</strong>
+                    <strong>Preview and print</strong>
                   </div>
                   <div class="home-flow-item">
                     <span>3</span>
-                    <strong>Print the certificate</strong>
+                    <strong>Scan the QR proof</strong>
                   </div>
                   <div class="home-flow-item">
                     <span>4</span>
-                    <strong>Reveal the record</strong>
+                    <strong>Reveal when ready</strong>
                   </div>
                 </div>
 
               </div>
             </div>
+            <div class="home-trust-row" aria-label="Project notes">
+              <span>No ads</span>
+              <span>Free to use</span>
+              <a href="https://github.com/wellswei/MythicalHelper" rel="noopener">Open source</a>
+            </div>
           </section>
         </div>
       </article>
     </section>
+
+    <section class="home-preview-section" aria-labelledby="previewTitle">
+      <div class="home-preview-copy">
+        <p class="home-overline">Demo Preview</p>
+        <h2 id="previewTitle">A keepsake they can scan, verify, and understand later.</h2>
+        <p>The certificate is meant to be printed and saved. The QR code opens a public verification page so the record feels like part of a real family archive, not a throwaway template.</p>
+        <div class="home-actions home-actions-left">
+          <a class="button button-primary button-return-accent" href="/verify/?demo=1">View Demo Record</a>
+          <a class="button button-secondary" href="/guides/">Read Parent Guides</a>
+        </div>
+      </div>
+
+      <a class="certificate-preview-card" href="/verify/?demo=1" aria-label="View demo verification record">
+        <div class="certificate-preview-paper">
+          <div class="certificate-preview-overline">Mythical Helper Guild</div>
+          <div class="certificate-preview-title">Certificate of Enchantment</div>
+          <p>This certifies that Demo Parent is recognized as a trusted field agent appointed to carry part of the work of wonder.</p>
+          <div class="certificate-preview-footer">
+            <div class="certificate-preview-seal">MH</div>
+            <div class="certificate-preview-qr" aria-hidden="true"></div>
+          </div>
+        </div>
+      </a>
+    </section>
+
+    <section class="home-guides-section" aria-labelledby="guidesTitle">
+      <div class="home-section-head">
+        <span>Parent Guides</span>
+        <strong id="guidesTitle">Helpful pages people can find and share</strong>
+      </div>
+      <div class="guide-card-grid">
+        <a class="guide-card" href="/guides/tell-child-santa-truth/">
+          <span>Santa Conversation</span>
+          <strong>How to tell your child Santa isn't real without ruining the magic</strong>
+        </a>
+        <a class="guide-card" href="/guides/tooth-fairy-truth/">
+          <span>Tooth Fairy Conversation</span>
+          <strong>What to say when your child asks if the Tooth Fairy is real</strong>
+        </a>
+        <a class="guide-card" href="/guides/santa-helper-certificate/">
+          <span>Certificate Idea</span>
+          <strong>What is a Santa helper certificate?</strong>
+        </a>
+      </div>
+    </section>
   </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div>
+        <strong>MythicalHelper</strong>
+        <p>A free, open-source, nonprofit project for parents preserving childhood wonder with care.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="/guides/">Guides</a>
+        <a href="/access/">Create</a>
+        <a href="/verify/?demo=1">Demo</a>
+        <a href="https://github.com/wellswei/MythicalHelper" rel="noopener">GitHub</a>
+        <a href="https://github.com/wellswei/MythicalHelper/blob/main/LICENSE" rel="noopener">License</a>
+      </nav>
+    </div>
+  </footer>
 </body>
 </html>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">MythicalHelper social preview</title>
+  <desc id="desc">A certificate for the day they ask who carried the magic.</desc>
+  <defs>
+    <radialGradient id="skyA" cx="18%" cy="12%" r="55%">
+      <stop offset="0%" stop-color="#2e65b8" stop-opacity="0.62"/>
+      <stop offset="62%" stop-color="#09111f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="skyB" cx="84%" cy="10%" r="48%">
+      <stop offset="0%" stop-color="#efd7a2" stop-opacity="0.38"/>
+      <stop offset="64%" stop-color="#09111f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#07101b"/>
+      <stop offset="56%" stop-color="#09111f"/>
+      <stop offset="100%" stop-color="#11192a"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f6f0df"/>
+      <stop offset="100%" stop-color="#e7dfca"/>
+    </linearGradient>
+    <radialGradient id="seal" cx="42%" cy="36%" r="64%">
+      <stop offset="0%" stop-color="#dc5858"/>
+      <stop offset="58%" stop-color="#a12626"/>
+      <stop offset="100%" stop-color="#701616"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="24" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#skyA)"/>
+  <rect width="1200" height="630" fill="url(#skyB)"/>
+
+  <g fill="#ffffff" opacity="0.78">
+    <circle cx="94" cy="86" r="2"/>
+    <circle cx="176" cy="162" r="1.6"/>
+    <circle cx="305" cy="78" r="2"/>
+    <circle cx="502" cy="128" r="1.5"/>
+    <circle cx="721" cy="82" r="2"/>
+    <circle cx="918" cy="146" r="1.6"/>
+    <circle cx="1047" cy="92" r="2"/>
+    <circle cx="1098" cy="248" r="1.6"/>
+    <circle cx="82" cy="382" r="1.8"/>
+    <circle cx="338" cy="496" r="1.6"/>
+    <circle cx="844" cy="522" r="1.8"/>
+  </g>
+
+  <g transform="translate(790 116) rotate(2)" filter="url(#shadow)">
+    <rect x="0" y="0" width="360" height="398" rx="4" fill="url(#paper)" stroke="#cdbf9c" stroke-width="2"/>
+    <rect x="24" y="24" width="312" height="350" rx="2" fill="none" stroke="#b8860b" stroke-opacity="0.42" stroke-width="2"/>
+    <text x="180" y="78" text-anchor="middle" font-family="Georgia, serif" font-size="17" font-weight="700" letter-spacing="3" fill="#77571f">MYTHICAL HELPER GUILD</text>
+    <text x="180" y="134" text-anchor="middle" font-family="Georgia, serif" font-size="38" font-weight="700" fill="#b8860b">Certificate</text>
+    <text x="180" y="178" text-anchor="middle" font-family="Georgia, serif" font-size="26" font-weight="700" fill="#8b5b0e">of Enchantment</text>
+    <line x1="68" y1="218" x2="292" y2="218" stroke="#8b5b0e" stroke-opacity="0.32"/>
+    <text x="180" y="258" text-anchor="middle" font-family="Georgia, serif" font-size="21" fill="#2c3e50">Trusted helper record</text>
+    <text x="180" y="288" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#4b5563">with QR verification</text>
+    <circle cx="114" cy="330" r="38" fill="url(#seal)"/>
+    <text x="114" y="340" text-anchor="middle" font-family="Georgia, serif" font-size="23" font-weight="700" fill="#fff5e2">MH</text>
+    <rect x="232" y="292" width="62" height="62" fill="#ffffff"/>
+    <path d="M240 300h18v18h-18zm28 0h18v18h-18zm-28 28h18v18h-18zm32 32h14v-14h-14zm-10-28h9v9h-9zm-22 26h11v-10h-11zm39-27h8v8h-8z" fill="#111111"/>
+  </g>
+
+  <g transform="translate(118 112)">
+    <text x="0" y="0" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="5" fill="#efd7a2">MYTHICALHELPER</text>
+    <text x="0" y="82" font-family="Georgia, serif" font-size="64" font-weight="700" fill="#eef2ff">A certificate</text>
+    <text x="0" y="150" font-family="Georgia, serif" font-size="64" font-weight="700" fill="#eef2ff">for the day they ask</text>
+    <text x="0" y="218" font-family="Georgia, serif" font-size="64" font-weight="700" fill="#efd7a2">who carried</text>
+    <text x="0" y="286" font-family="Georgia, serif" font-size="64" font-weight="700" fill="#efd7a2">the magic.</text>
+    <text x="0" y="352" font-family="Inter, Arial, sans-serif" font-size="25" fill="#c9d5ea">Free, open-source, nonprofit, and made for parents.</text>
+    <g transform="translate(0 404)">
+      <rect x="0" y="0" width="116" height="38" rx="19" fill="#efd7a2" fill-opacity="0.12" stroke="#efd7a2" stroke-opacity="0.32"/>
+      <text x="58" y="25" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.4" fill="#efd7a2">NO ADS</text>
+      <rect x="132" y="0" width="152" height="38" rx="19" fill="#efd7a2" fill-opacity="0.12" stroke="#efd7a2" stroke-opacity="0.32"/>
+      <text x="208" y="25" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.4" fill="#efd7a2">OPEN SOURCE</text>
+      <rect x="300" y="0" width="130" height="38" rx="19" fill="#efd7a2" fill-opacity="0.12" stroke="#efd7a2" stroke-opacity="0.32"/>
+      <text x="365" y="25" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.4" fill="#efd7a2">FREE USE</text>
+    </g>
+  </g>
+</svg>

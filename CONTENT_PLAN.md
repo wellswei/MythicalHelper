@@ -6,7 +6,19 @@ Make MythicalHelper easier to discover by leading with the parent moment:
 
 > A free, open-source certificate for the day they ask who carried the magic.
 
+## Passive Discovery System
+
+The project should not depend on the maintainer manually posting every week. The low-maintenance discovery loop is:
+
+1. Search guides answer real parent questions.
+2. The demo and certificate flow give visitors something concrete to inspect.
+3. Verification pages include a light open-source attribution link.
+4. The share page gives supporters copy they can reuse without asking for a custom pitch.
+5. GitHub topics and README copy help open-source discovery.
+
 ## Weekly Rhythm
+
+Use this only when someone wants to actively help. The project should still make sense without it.
 
 - 2 Instagram posts
 - 3 Pinterest pins
@@ -81,12 +93,16 @@ Existing first pages:
 - `/guides/tell-child-santa-truth/`
 - `/guides/tooth-fairy-truth/`
 - `/guides/santa-helper-certificate/`
-
-Next pages to add:
-
 - `/guides/explain-easter-bunny-truth/`
 - `/guides/child-feels-betrayed-by-santa/`
 - `/guides/printable-santa-helper-certificate/`
+- `/guides/preserve-childhood-wonder/`
+
+Next pages to add:
+
+- `/guides/what-age-do-kids-stop-believing-in-santa/`
+- `/guides/santa-truth-letter-template/`
+- `/guides/tooth-fairy-reveal-letter/`
 - `/guides/childhood-wonder-family-traditions/`
 
 ## Measurement

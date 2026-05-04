@@ -1355,6 +1355,19 @@ textarea {
   font-weight: 600;
 }
 
+.verify-guidance .verify-attribution {
+  margin-top: 4px;
+  color: rgba(242, 244, 255, 0.58);
+  font-family: "Inter", sans-serif;
+  font-size: clamp(0.66rem, 1.02cqi, 0.86rem);
+  font-weight: 500;
+}
+
+.verify-attribution a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
 .empty-state {
   text-align: center;
   padding: 50px 24px;
@@ -2309,6 +2322,49 @@ textarea {
   margin-top: 18px;
 }
 
+.share-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.share-copy-card {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(10, 18, 33, 0.62);
+  backdrop-filter: blur(16px);
+}
+
+.share-copy-card span {
+  color: rgba(239, 215, 162, 0.82);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.share-copy-card h2 {
+  margin: 0;
+  color: var(--text);
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.58rem;
+  line-height: 1.15;
+}
+
+.share-copy-card pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: rgba(242, 244, 255, 0.78);
+  font-family: "Inter", sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
 .site-footer {
   width: min(92vw, 980px);
   max-width: calc(100% - 32px);
@@ -2486,6 +2542,7 @@ textarea {
 
   .home-preview-section,
   .guide-card-grid,
+  .share-grid,
   .site-footer-inner {
     grid-template-columns: 1fr !important;
   }

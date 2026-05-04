@@ -1,8 +1,19 @@
 # MythicalHelper
 
-MythicalHelper is an open-source nonprofit website centered on a printable, verifiable certificate for parents who want to preserve childhood wonder with care.
+![MythicalHelper social preview](social-preview.png)
+
+MythicalHelper is a free, open-source, nonprofit website centered on a printable, verifiable certificate for parents who want to preserve childhood wonder with care.
+
+> A certificate for the day children ask who carried the magic.
 
 The core idea is simple: when a child grows old enough to hear that Santa Claus, the Tooth Fairy, or other childhood legends were "just made up," they can discover a certificate and verification page showing that their parents were acting as trusted helpers on behalf of that larger world.
+
+## Live Project
+
+- Website: https://mythicalhelper.org/
+- Demo verification record: https://mythicalhelper.org/verify/?demo=1
+- Parent guides: https://mythicalhelper.org/guides/
+- Share copy: https://mythicalhelper.org/share/
 
 ## Why This Exists
 
@@ -12,12 +23,14 @@ Many parents spend years carrying out gifts, traditions, and small works of wond
 
 ## Product
 
-The project is organized around four pages:
+The project is organized around a certificate flow and a small passive-discovery surface:
 
 - a public homepage
 - an access page
 - a certificate page with PDF export
 - a public verification page
+- parent guide pages for search discovery
+- a share page with reusable copy for people who want to pass the project along
 
 ## Repository
 
@@ -25,6 +38,8 @@ The project is organized around four pages:
 MythicalHelper/
 ├── access/                # Access flow
 ├── certificate/           # Certificate page
+├── guides/                # Parent-facing guide pages
+├── share/                 # Reusable share copy
 ├── verify/                # Public verification page
 ├── worker/                # Cloudflare Worker + D1 backend
 ├── styles/                # Shared site styles
@@ -39,6 +54,8 @@ MythicalHelper/
 - [access/index.html](/Users/wei/GitHub/MythicalHelper/access/index.html): access flow for creating or retrieving a record
 - [certificate/index.html](/Users/wei/GitHub/MythicalHelper/certificate/index.html): certificate view with QR generation and PDF export
 - [verify/index.html](/Users/wei/GitHub/MythicalHelper/verify/index.html): public verification page
+- [guides/index.html](/Users/wei/GitHub/MythicalHelper/guides/index.html): parent guide index
+- [share/index.html](/Users/wei/GitHub/MythicalHelper/share/index.html): reusable share copy
 - [worker/src/index.js](/Users/wei/GitHub/MythicalHelper/worker/src/index.js): Cloudflare Worker API
 - [worker/migrations/0001_init.sql](/Users/wei/GitHub/MythicalHelper/worker/migrations/0001_init.sql): D1 schema
 
@@ -130,8 +147,26 @@ The most useful contributions right now are:
 - Zoho and email delivery reliability improvements
 - multilingual support
 - new realm ideas that still fit mainstream childhood folklore and family ritual
+- additional parent guides for gentle search discovery
 
 If you want to contribute, start small and stay close to the current certificate-first product shape.
+
+## Repository Topics
+
+Recommended GitHub topics:
+
+```text
+open-source
+nonprofit
+parenting
+christmas
+santa
+tooth-fairy
+printable
+certificate
+cloudflare-workers
+cloudflare-d1
+```
 
 ## Open Source
 

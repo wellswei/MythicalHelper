@@ -1,0 +1,4 @@
+/auth/auth.html* /access/ 301
+/auth/auth* /access/ 301
+/auth/* /access/ 301
+/index.html / 301
